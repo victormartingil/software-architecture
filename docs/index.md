@@ -1,52 +1,48 @@
-# Arquitectura de software e IA aplicada
+# Manual de arquitectura de software e integración de IA
 
-Una tienda sintética permite estudiar transacciones, eventos y herramientas de IA con código pequeño y garantías explícitas. Cada tema conecta una decisión, su alternativa y una prueba que puede fallar.
+Este manual estudia una tienda de ejemplo para responder a preguntas habituales de un backend: dónde colocar las reglas de negocio, cómo evitar ventas sin stock, cómo publicar eventos sin perderlos y cómo utilizar IA sin darle permisos que no le corresponden.
 
-Antes del recorrido técnico, consultar [qué hace cada pieza](repository-design.md#component-map): aplicaciones, módulos, servidores y protocolos.
+Se trabaja sobre una implementación ya construida. La lectura del código y las prácticas permiten comprobar por qué funciona, qué ocurre cuando algo falla y qué habría que cambiar ante otros requisitos.
 
-Los diagramas están integrados en cada tema. El [índice de vistas](reference-map.md#topic-vistas-visuales) permite elegir contexto, estructura, datos, comportamiento o despliegue sin mezclar sus niveles.
+## A quién va dirigido
 
-## Punto de entrada
+A desarrolladores que conocen programación, peticiones HTTP y consultas SQL básicas. Para seguir el código conviene poder leer clases Java y funciones Python; no es necesario dominar Spring Boot, Kafka o LangGraph antes de empezar.
 
-Desde la raíz del repositorio, con Docker Compose, Java 21, Python 3.12 y uv:
+No hace falta instalar herramientas para leer las explicaciones y los diagramas. El [capítulo 0](getting-started.md) prepara el entorno para las prácticas e introduce a los usuarios y las aplicaciones del ejemplo.
 
-```bash
-make up
-make demo
-make down
-```
+## Cómo estudiar cada capítulo
 
-`up` construye y espera servicios; la demo obtiene tokens de usuarios sintéticos, crea un pedido, verifica idempotencia y permisos, consulta políticas y ejecuta una devolución aprobada. No necesita clave de IA. La primera construcción descarga dependencias e imágenes. Reservar 10 GiB a Docker para núcleo y observabilidad; ejecutar kind después de apagar Compose.
+1. Leer el problema y el objetivo del capítulo.
+2. Seguir el recorrido por los archivos enlazados: entrada, regla de negocio y acceso al sistema externo.
+3. Predecir el resultado de la práctica antes de ejecutarla.
+4. Comparar la salida con la explicación y responder a la pregunta final.
+5. Consultar las lecturas complementarias cuando se necesite más profundidad.
 
-## Recorrido recomendado
+Los primeros capítulos se apoyan unos en otros. Una vez completados, el [mapa de referencia](reference-map.md) permite consultar un problema concreto sin repetir el recorrido.
 
-1. [Límites y patrones](handbook/architecture.md): responsabilidades y dependencias.
-2. [Contratos HTTP](handbook/api-contracts.md): errores semánticos, OpenAPI y paginación acotada.
-3. [Datos y concurrencia](handbook/transactions.md): invariantes antes de distribución.
-4. [Eventos y ventanas](handbook/events.md): entrega, repetición y tiempo.
-5. [RAG y evaluación](handbook/retrieval.md): evidencia antes de generación.
-6. [Workflow aprobado](handbook/workflows.md): efectos autorizados y reanudación.
-7. [Seguridad y resiliencia](handbook/security.md): amenazas y fallos concretos.
-8. [Operación](handbook/operations.md) y [delivery](handbook/delivery.md): señales, despliegue y límites.
+Para leer el manual con buscador, índice lateral y modo claro u oscuro, ejecutar `make docs` desde la raíz, con uv instalado. Abrir la dirección local que indique el comando en la terminal. También se puede seguir completo desde los enlaces Markdown de GitHub.
+
+## Orden de estudio
+
+| Capítulo | Pregunta que resuelve | Al terminar se podrá… |
+|---|---|---|
+| [0. Preparación y primer pedido](getting-started.md) | ¿Qué hace el ejemplo y cómo se ejecuta? | Reconocer sus aplicaciones, usuarios y resultado de la demostración. |
+| [1. Organización del código](handbook/architecture.md) | ¿Dónde debe vivir cada responsabilidad? | Seguir un caso de uso a través de módulos, puertos y adaptadores. |
+| [2. Contratos HTTP](handbook/api-contracts.md) | ¿Cómo se define lo que una API acepta y devuelve? | Interpretar errores y recorrer páginas sin saltarse permisos. |
+| [3. Transacciones y concurrencia](handbook/transactions.md) | ¿Qué ocurre si dos compradores piden la última unidad? | Explicar atomicidad, bloqueo e idempotencia con ese caso. |
+| [4. Eventos y Kafka Streams](handbook/events.md) | ¿Cómo llega el pedido a otros procesos? | Distinguir publicación, consumo, repetición y agregación por ventanas. |
+| [5. Documentos e IA](handbook/retrieval.md) | ¿En qué evidencia se apoya una respuesta? | Separar recuperación de generación y leer sus métricas. |
+| [6. Devoluciones y aprobación](handbook/workflows.md) | ¿Cómo se reanuda una operación sin repetir su efecto? | Diferenciar progreso guardado, autorización y estado de negocio. |
+| [7. Seguridad y resiliencia](handbook/security.md) | ¿Quién puede actuar y qué ocurre si falla una dependencia? | Razonar sobre tokens, permisos, tiempos de espera y reintentos. |
+| [8. Observabilidad y diagnóstico](handbook/operations.md) | ¿Cómo se localiza y se investiga un fallo? | Relacionar métricas, trazas y logs de una misma operación. |
+| [9. Despliegue y cambios](handbook/delivery.md) | ¿Qué se comprueba antes de desplegar o escalar? | Distinguir las garantías de Compose, Kubernetes y Terraform. |
 
 <a id="topic-cuando-aplicar-cada-mecanismo"></a>
 
-## Cuándo aplicar cada mecanismo
+## Volver a una explicación
 
-| Necesidad | Por qué y cómo se resuelve |
-|---|---|
-| Cambiar transporte o persistencia | [Puertos por responsabilidad](handbook/architecture.md), sin interfaces por clase. |
-| Mantener una integración compatible | [Contrato HTTP y errores](handbook/api-contracts.md), verificados contra respuestas reales. |
-| Proteger stock o una devolución | [Transacción y constraints](handbook/transactions.md), antes de distribuir servicios. |
-| Publicar un hecho tras guardar | [Outbox/inbox](handbook/events.md), admitiendo entregas repetidas y fallos. |
-| Responder con documentos autorizados | [RAG y evaluación](handbook/retrieval.md), con abstención y límites de proveedor. |
-| Coordinar un efecto aprobado | [Workflow persistente](handbook/workflows.md), sin delegar autoridad a la IA. |
-| Defender fronteras de confianza | [Identidad y autorización](handbook/security.md), con negativos ejecutables. |
-| Explicar un fallo o una degradación | [Métricas, trazas y logs](handbook/operations.md), correlacionados sin contenido sensible. |
-| Escalar una capacidad medida | [HPA y entrega](handbook/delivery.md), comprobando estado compartido e idempotencia. |
+Para localizar una implementación, usar el [mapa por preguntas](reference-map.md). Para entender una decisión, consultar los [ADR](decisions/index.md): registros breves del problema, las alternativas y sus consecuencias. La [verificación](verification.md) separa resultados comprobados y limitaciones pendientes.
 
-Cada ficha enlaza la implementación, una prueba, una alternativa y su límite. El [mapa por pregunta](reference-map.md) lleva directamente al código; la presencia de una herramienta no obliga a usarla en otro sistema.
+El manual se centra en backend e integración fiable de IA. La simulación permite estudiar permisos y coordinación sin pagar un modelo; su resultado no mide la calidad de una respuesta generativa real. Las lecturas enlazadas amplían los temas que el ejemplo solo introduce.
 
-La [matriz de aceptación](acceptance.md) expresa lo exigido. La [evidencia](verification.md) indica qué se ejecutó realmente y las limitaciones pendientes. El modo `fake` permite verificar integración; no mide calidad de un modelo generativo real. Terraform se valida con mocks, sin crear recursos cloud.
-
-Código e identificadores en inglés; explicación en español. English: Small reference implementations connecting transactional Java, event processing and reliable AI integration, with explicit trade-offs and reproducible checks.
+**Siguiente: [0. Preparar el entorno y ejecutar el primer pedido →](getting-started.md)**

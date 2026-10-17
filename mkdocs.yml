@@ -1,15 +1,24 @@
-site_name: Software Architecture & Applied AI
-site_description: Decisiones, código y pruebas de arquitectura aplicada
+site_name: Arquitectura de software e integración de IA
+site_description: Manual práctico de backend, eventos e integración fiable de IA
 docs_dir: docs
 site_dir: site
 theme:
   name: material
   language: es
   palette:
-    scheme: slate
-    primary: indigo
-    accent: cyan
-  features: [navigation.sections, content.code.copy, navigation.top]
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Cambiar a modo oscuro
+    - scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Cambiar a modo claro
+  features: [navigation.sections, navigation.footer, content.code.copy, navigation.top, toc.follow]
 plugins: [search]
 hooks: [tools/docs/source_links.py]
 markdown_extensions:
@@ -17,23 +26,23 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
 nav:
-  - Inicio: index.md
-  - Arquitectura:
-      - Diseño: repository-design.md
+  - Manual:
+      - Cómo estudiar este manual: index.md
+      - 0. Preparación y primer pedido: getting-started.md
+      - 1. Organización del código: handbook/architecture.md
+      - 2. Contratos HTTP: handbook/api-contracts.md
+      - 3. Transacciones y concurrencia: handbook/transactions.md
+      - 4. Eventos y Kafka Streams: handbook/events.md
+      - 5. Documentos e IA: handbook/retrieval.md
+      - 6. Devoluciones y aprobación: handbook/workflows.md
+      - 7. Seguridad y resiliencia: handbook/security.md
+      - 8. Observabilidad y diagnóstico: handbook/operations.md
+      - 9. Despliegue y cambios: handbook/delivery.md
+  - Consulta:
+      - Aplicaciones y datos: repository-design.md
       - Mapa de referencia: reference-map.md
-      - Límites y patrones: handbook/architecture.md
-      - Contratos HTTP: handbook/api-contracts.md
-      - Datos y concurrencia: handbook/transactions.md
-      - Eventos y streaming: handbook/events.md
-  - IA y seguridad:
-      - RAG y evaluación: handbook/retrieval.md
-      - Workflows y permisos: handbook/workflows.md
-      - Resiliencia y amenazas: handbook/security.md
-  - Operación:
-      - Observabilidad y fallos: handbook/operations.md
-      - Kubernetes y Terraform: handbook/delivery.md
-  - Contratos y decisiones:
+      - Decisiones de arquitectura: decisions/index.md
       - Especificación: specification.md
-      - ADR: decisions/index.md
-      - Aceptación: acceptance.md
-      - Evidencia: verification.md
+      - Criterios de aceptación: acceptance.md
+      - Verificación y límites: verification.md
+      - Contribuir: contributing.md

@@ -1,6 +1,6 @@
 # Diseño del repositorio
 
-Tres servicios, un dominio sintético y límites comprobables. La [especificación](specification.md) fija contratos; [aceptación](acceptance.md) define el resultado exigido y [verificación](verification.md) distingue implementación de evidencia. Esta página sustituye el diseño preliminar de dos servicios.
+Esta página sirve para consultar las aplicaciones, sus datos y las decisiones de organización. Para estudiar el ejemplo en orden, empezar por el [manual](index.md). Los contratos se mantienen en la [especificación](specification.md) y los resultados comprobados en la [verificación](verification.md).
 
 <a id="component-map"></a>
 
@@ -15,7 +15,7 @@ El ejemplo representa una tienda pequeña: crear un pedido reserva unidades de `
 | Resumen de pedidos | `order-analytics` | Proceso Java con Kafka Streams. Lee eventos y cuenta pedidos creados por organización, producto y minuto. No calcula ventas netas tras devoluciones. |
 | Registro de eventos | `kafka` | Servidor Apache Kafka. Conserva mensajes en canales llamados *topics*. Los productores publican; cada consumidor lleva su posición de lectura. Kafka Streams es una biblioteca del proceso de resúmenes, no otro servidor. |
 | Servidor de identidad | `keycloak` | Aplicación independiente, ya construida por el proyecto Keycloak. Comprueba credenciales y emite tokens. Se levanta con el núcleo Compose; no es un módulo de Spring Boot ni código de negocio propio. |
-| Scripts de prueba | `scenarios/`, `scenarios/smoke.py` | Programas que llaman a nuestras APIs actuando como comprador o responsable. Son *clientes HTTP*: no son otra API ni un conector hacia terceros. No hay interfaz web propia. |
+| Scripts de prueba | `scenarios/`, `scenarios/smoke.py` | Programas que llaman a las APIs del ejemplo actuando como comprador o responsable. Son *clientes HTTP*: no son otra API ni un conector hacia terceros. No hay interfaz web propia. |
 | Datos de comercio | BD `commerce` / PostgreSQL | Pedidos, inventario y registros de idempotencia, outbox e inbox. Solo Comercio accede a estas tablas. |
 | Progreso de devoluciones | SQLite / LangGraph | Archivo con puntos de reanudación del asistente. No es otra aplicación ni contiene los tokens de los usuarios. |
 | Documentos vectoriales | BD `ai` / pgvector | Variante opcional para buscar documentos por similitud. Por defecto se buscan palabras en el corpus JSON incluido. |
@@ -23,7 +23,7 @@ El ejemplo representa una tienda pequeña: crear un pedido reserva unidades de `
 
 **Aplicación, módulo y tecnología son niveles distintos.** `orders`, `inventory` y `returns` son módulos Java dentro de Comercio: comparten proceso y despliegue. Spring Boot y FastAPI son frameworks de aplicaciones. LangGraph y Kafka Streams son bibliotecas dentro de una aplicación. Keycloak y Kafka son servidores independientes. En C4, *contenedor* significa una aplicación o un almacén; no implica una conexión de red ni equivale necesariamente a un contenedor Docker.
 
-**Identidad sin siglas implícitas.** OIDC (*OpenID Connect*) es un protocolo de identidad. JWT es el formato del token firmado que envía el cliente. JWKS es el formato de las claves públicas que las APIs descargan y guardan temporalmente para comprobar la firma. Cada API valida token, organización y permisos localmente; el servidor de identidad no decide por ella si una devolución es admisible. En el laboratorio se usa un login automatizable con credenciales sintéticas; las limitaciones están en [seguridad](handbook/security.md).
+**Identidad y permisos.** OIDC (*OpenID Connect*) es un protocolo de identidad. JWT es el formato del token firmado que envía el cliente. JWKS es el formato de las claves públicas que las APIs descargan y guardan temporalmente para comprobar la firma. Cada API valida token, organización y permisos localmente; el servidor de identidad no decide por ella si una devolución es admisible. En el laboratorio se usa un login automatizable con credenciales sintéticas; las limitaciones están en [seguridad](handbook/security.md).
 
 Los diagramas usan el nombre funcional como título y el identificador técnico en segundo plano. Los nombres ingleses de servicios, rutas HTTP, eventos y configuración se conservan para que los comandos y los contratos sigan correspondiendo al código.
 
@@ -51,7 +51,7 @@ Commerce mantiene las invariantes y es dueño exclusivo de su base. AI consume s
 
 [![Contexto: personas y sistemas externos](diagrams/c4-context.svg)](diagrams/c4-context.svg)
 
-[Maestro draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
+
 
 <a id="topic-c4-contenedores-nivel-2"></a>
 
@@ -61,7 +61,7 @@ Aquí «contenedor» significa aplicación o almacén en [C4](https://c4model.co
 
 [![C4 de nivel 2: aplicaciones, almacenes y relaciones de negocio](diagrams/c4-containers.svg)](diagrams/c4-containers.svg)
 
-[Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene dieciséis páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
+[Abrir el diagrama a tamaño completo](diagrams/c4-containers.svg). Para modificarlo, consultar la [guía de contribución](contributing.md).
 
 La vista contrasta `compose.yaml`, la [composición de AI](../apps/ai-service/src/ai_service/main.py), el [publicador outbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxPublisher.java), el [consumidor de auditoría](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/AuditConsumer.java) y la configuración de [trazas](../infra/observability/collector.yaml), [métricas](../infra/observability/prometheus.yaml) y [datasources](../infra/observability/datasources.yaml).
 
@@ -92,7 +92,7 @@ Las aplicaciones Java comparten raíz `dev.reference` (`commerce` y `analytics`)
 
 Las interfaces representan responsabilidades reemplazables. No se crea una interfaz por clase ni un servicio independiente por entidad. `shared` conserva actor, Quantity, errores semánticos, idempotencia y publicación; los controladores de negocio pertenecen a su módulo. Domain no contiene códigos HTTP: ProblemAdvice traduce Kind a status en infraestructura. Python expresa puertos con `Protocol`, sin replicar todas las capas de Java. CommerceGateway ofrece crear, consultar, aprobar y ejecutar devolución; ReturnResult es un resultado tipado, sin Response ni rutas HTTP.
 
-## Entregas y puertas de calidad
+## Comprobar un cambio antes de entregarlo
 
 | Paso | Implementar | Validar antes de avanzar |
 |---|---|---|
@@ -113,4 +113,4 @@ Cada entrega sigue contrato → implementación → pruebas y fallos → explica
 
 Español para explicación; inglés para identificadores y nombres. La documentación describe decisiones y resultados, sin narrativa personal ni afirmaciones de experiencia industrial. Datos y usuarios son sintéticos. La versión local privilegia reproducción: un broker, una base y OIDC de desarrollo. No demuestra alta disponibilidad, rendimiento industrial ni calidad de un LLM real.
 
-No se copia un proyecto externo: se conservan convenciones útiles y se justifican los cambios. Referencias y licencias se revisan antes de reutilizar código; popularidad no sustituye una prueba. Publicación y licencia definitiva se deciden por separado.
+No se copia un proyecto externo: se conservan convenciones útiles y se justifican los cambios. Referencias y licencias se revisan antes de reutilizar código; popularidad no sustituye una prueba. Las referencias externas conservan sus propias licencias.

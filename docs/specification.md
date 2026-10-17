@@ -79,6 +79,9 @@ Terraform: base VPC, Artifact Registry y GKE Autopilot/IAM. Backends DB/Kafka cl
 
 ## Calidad editorial y referencias
 
+El manual se organiza como una lectura progresiva: preparación del entorno y nueve capítulos sobre la misma tienda de ejemplo. Cada capítulo conecta con el anterior, indica el objetivo, guía la lectura y comprobación del código y termina con una pregunta razonada y el enlace al siguiente. Las instrucciones de mantenimiento y la evidencia de entrega se consultan aparte. Usar español natural de España y explicar los términos técnicos antes de apoyarse en ellos; conservar nombres de código y contratos. La estructura se inspira en la progresión de The Rust Book y el tutorial de Django, sin copiar su contenido ni ampliar el stack.
+
+
 La cobertura didáctica conecta módulos y contratos, concurrencia e idempotencia, broker y consumidores, recuperación y evaluación, coordinación y autorización, fallos y operación. Explicar los términos al aparecer y usar ejemplos pequeños: cursor con sobrelectura, última unidad concurrente, ventana temporal y ranking recuperado. Tres vistas específicas explican topología Kafka, concurrencia SQL y estados del circuito IA; complementan secuencias y flujos existentes dentro del mismo maestro editable. Los ejemplos ilustran el contrato actual sin añadir capacidades al runtime ni atribuir resultados nuevos.
 
 El [mapa de componentes](repository-design.md#component-map) fija nombres funcionales y correspondencia con el código. Las explicaciones y diagramas distinguen aplicación ejecutable, módulo interno, biblioteca, servidor y protocolo; OIDC/JWT/JWKS no se representan como servicios propios. Cada vista tiene una página canónica del maestro `diagrams/architecture.drawio` y una exportación SVG.

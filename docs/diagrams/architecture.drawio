@@ -487,10 +487,10 @@
         <mxCell id="buyer-kind" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" value="PERSONA" vertex="1" parent="buyer">
           <mxGeometry as="geometry" x="16" y="9" width="328" height="24" />
         </mxCell>
-        <mxCell id="buyer-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" value="Persona compradora" vertex="1" parent="buyer">
+        <mxCell id="buyer-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" value="Comprador" vertex="1" parent="buyer">
           <mxGeometry as="geometry" x="16" y="35" width="328" height="32" />
         </mxCell>
-        <mxCell id="buyer-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Crea pedidos y consulta políticas." vertex="1" parent="buyer">
+        <mxCell id="buyer-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Compra y consulta condiciones." vertex="1" parent="buyer">
           <mxGeometry as="geometry" x="16" y="76" width="328" height="55" />
         </mxCell>
         <mxCell id="manager" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
@@ -517,10 +517,10 @@
         <mxCell id="shop-kind" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" value="SISTEMA DE SOFTWARE" vertex="1" parent="shop">
           <mxGeometry as="geometry" x="16" y="9" width="328" height="24" />
         </mxCell>
-        <mxCell id="shop-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" value="Tienda de referencia" vertex="1" parent="shop">
+        <mxCell id="shop-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" value="Tienda de ejemplo" vertex="1" parent="shop">
           <mxGeometry as="geometry" x="16" y="35" width="328" height="32" />
         </mxCell>
-        <mxCell id="shop-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" value="Pedidos y resúmenes.&#10;Asistente de políticas." vertex="1" parent="shop">
+        <mxCell id="shop-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" value="Pedidos y resúmenes.&#10;Asistente de consultas." vertex="1" parent="shop">
           <mxGeometry as="geometry" x="16" y="76" width="328" height="75" />
         </mxCell>
         <mxCell id="identity" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
@@ -587,7 +587,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="No hay interfaz web propia: los escenarios locales realizan las peticiones HTTP como usuarios sintéticos." vertex="1" parent="1">
+        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="No hay interfaz web propia: los escenarios locales realizan las peticiones HTTP como usuarios de ejemplo." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="950" width="990" height="50" />
         </mxCell>
       </root>
@@ -1666,12 +1666,12 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="cloud-foundation" name="Fundación GCP · diseño Terraform">
+  <diagram id="cloud-foundation" name="Infraestructura GCP · diseño Terraform">
     <mxGraphModel dx="1120" dy="1210" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1120" pageHeight="1210" background="#FFFFFF">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" value="Fundación GCP · diseño Terraform" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=32;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="title" value="Infraestructura GCP · diseño Terraform" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=32;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="40" y="25" width="1040" height="50" as="geometry" />
         </mxCell>
         <mxCell id="subtitle" value="Configuración y planes con mocks · sin apply ni aplicaciones desplegadas." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
@@ -1746,7 +1746,7 @@
         <mxCell id="nat-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="nat">
           <mxGeometry x="0" y="0" width="280" height="160" as="geometry" />
         </mxCell>
-        <mxCell id="nat-kind" value="EGRESO DE NODOS" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nat">
+        <mxCell id="nat-kind" value="TRÁFICO SALIENTE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nat">
           <mxGeometry x="18" y="12" width="244" height="24" as="geometry" />
         </mxCell>
         <mxCell id="nat-title" value="Salida Cloud NAT" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nat">
@@ -1788,7 +1788,7 @@
         <mxCell id="nodes-nat" value="Salida" source="nodes" target="nat" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.42;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=95;labelBackgroundColor=#FFFFFF;">
           <mxGeometry relative="1" x="0" y="0" as="geometry" />
         </mxCell>
-        <mxCell id="nat-internet" value="Egreso" source="nat" target="internet" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=100;labelBackgroundColor=#FFFFFF;">
+        <mxCell id="nat-internet" value="Salida" source="nat" target="internet" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=100;labelBackgroundColor=#FFFFFF;">
           <mxGeometry relative="1" x="0" y="0" as="geometry" />
         </mxCell>
         <mxCell id="nodes-registry" value="Descarga imágenes" source="nodes" target="registry" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.16;entryX=0.5;entryY=1;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=205;labelBackgroundColor=#FFFFFF;">
@@ -1800,7 +1800,7 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="cloud-pending" value="DB, Kafka, OIDC, DNS/TLS y secretos: dependencias externas o trabajo de despliegue pendiente." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+        <mxCell id="cloud-pending" value="BD, Kafka, OIDC, DNS/TLS y secretos: dependencias externas o trabajo de despliegue pendiente." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
           <mxGeometry x="40" y="1120" width="1040" height="32" as="geometry" />
         </mxCell>
         <mxCell id="cloud-limit" value="El plan mock no acredita conectividad, cuotas, IAM efectivo, costes ni disponibilidad cloud." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">

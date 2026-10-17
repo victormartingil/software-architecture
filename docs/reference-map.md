@@ -1,6 +1,6 @@
 # Mapa de referencia
 
-Consultar por pregunta; ejecutar antes de ampliar el stack. El [estado comprobado](verification.md) prevalece sobre cualquier descripción de capacidad.
+Usar esta página para volver a una explicación o localizar su código después de estudiar el [manual](index.md). El [estado comprobado](verification.md) prevalece sobre cualquier descripción de capacidad.
 
 | Pregunta | Código | Explicación | AC |
 |---|---|---|---|
@@ -13,13 +13,13 @@ Consultar por pregunta; ejecutar antes de ampliar el stack. El [estado comprobad
 | ¿Qué permite una aprobación? | [Devolución](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/application/service/ManageReturnService.java) · [workflow](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [Workflows](handbook/workflows.md) | RET/WF |
 | ¿Qué se considera una frontera de seguridad? | [JWT](../apps/ai-service/src/ai_service/infrastructure/security.py) · [proveedor](../apps/ai-service/src/ai_service/infrastructure/providers.py) | [Seguridad](handbook/security.md) | SEC |
 | ¿Cómo detectar y reparar un fallo? | [Dashboard](../infra/observability/dashboard.json) · [señales reales](../scenarios/observability.py) | [Operación](handbook/operations.md) | OBS/OPS |
-| ¿Cómo entregar sin atribuir garantías no medidas? | [HPA](../scripts/kind-scale-check.py) · [Terraform](../infra/cloud/main.tf) | [Delivery](handbook/delivery.md) | K8S/TF |
+| ¿Cómo entregar sin atribuir garantías no medidas? | [HPA](../scripts/kind-scale-check.py) · [Terraform](../infra/cloud/main.tf) | [Despliegue y cambios](handbook/delivery.md) | K8S/TF |
 
 <a id="topic-vistas-visuales"></a>
 
 ## Vistas visuales
 
-Un [maestro draw.io de dieciséis páginas](diagrams/architecture.drawio), con objetos y relaciones editables. Editar el `.drawio` con draw.io y volver a exportar el SVG correspondiente. Las imágenes se insertan en su explicación; abrir el SVG para leer los detalles a tamaño completo, especialmente C4 nivel 2 y secuencias.
+Cada diagrama se explica en el capítulo correspondiente. Abrir el SVG para ampliar los detalles de las secuencias y del mapa de aplicaciones. Las instrucciones para modificar las imágenes están en la [guía de contribución](contributing.md).
 
 | Pregunta | Vista SVG | Explicación |
 |---|---|---|
@@ -37,8 +37,8 @@ Un [maestro draw.io de dieciséis páginas](diagrams/architecture.drawio), con o
 | ¿Cuándo responde o se abstiene la IA? | [RAG](diagrams/answer-flow.svg) | [Recuperación](handbook/retrieval.md) |
 | ¿Cómo se reanuda una devolución? | [Secuencia aprobada](diagrams/return-sequence.svg) | [Workflows](handbook/workflows.md) |
 | ¿Qué transiciones autoriza Comercio? | [Estados](diagrams/return-states.svg) | [Workflows](handbook/workflows.md) |
-| ¿Dónde corre cada proceso local? | [Compose y kind](diagrams/deployment-local.svg) | [Delivery](handbook/delivery.md) |
-| ¿Qué define Terraform y qué queda pendiente? | [Fundación GCP](diagrams/cloud-foundation.svg) | [Delivery](handbook/delivery.md) |
+| ¿Dónde corre cada proceso local? | [Compose y kind](diagrams/deployment-local.svg) | [Despliegue y cambios](handbook/delivery.md) |
+| ¿Qué define Terraform y qué queda pendiente? | [Infraestructura GCP](diagrams/cloud-foundation.svg) | [Despliegue y cambios](handbook/delivery.md) |
 
 ## Herramientas elegidas y alternativas
 
@@ -50,17 +50,28 @@ Spring AI, MCP, event sourcing, sagas, service mesh, Backstage y múltiples prov
 
 ## Lecturas y ejemplos externos
 
-Cada ficha termina con las fuentes oficiales del concepto y, cuando ayuda a estudiarlo, una lectura o un ejemplo de código externo:
+Cada capítulo incluye las fuentes oficiales del concepto y, cuando ayuda a estudiarlo, una lectura o un ejemplo de código externo:
 
 | Tema | Recursos complementarios |
 |---|---|
 | Módulos y límites | [Arquitectura](handbook/architecture.md#topic-lectura-y-repositorio-de-referencia) |
-| Datos y transacciones | [Transacciones](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad) · DDIA en la ficha de eventos |
+| Datos y transacciones | [Transacciones](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad) · DDIA en el capítulo de eventos |
 | Eventos y Kafka Streams | [Eventos](handbook/events.md#topic-lecturas-y-ejemplo-de-referencia) |
 | RAG y evaluación | [Recuperación](handbook/retrieval.md#topic-lectura-y-ejemplo-de-referencia) |
 | Fallos y resiliencia | [Circuito IA, Release It! y Resilience4j](handbook/security.md#topic-lectura-y-ejemplo-de-resiliencia) |
 | Métricas, trazas y logs | [Operación](handbook/operations.md#topic-ejemplo-de-observabilidad) |
-| Kubernetes | [Delivery](handbook/delivery.md#topic-ejemplo-de-kubernetes) |
+| Kubernetes | [Despliegue y cambios](handbook/delivery.md#topic-ejemplo-de-kubernetes) |
 | TLS de base de datos | [Canal y certificados](handbook/delivery.md#topic-tls-en-conexiones-a-postgresql) |
 
-Las estrellas son una señal de alcance del repositorio, no una garantía de calidad o compatibilidad. Sus cifras muestran la consulta del 17-10-2026; comprobar la página enlazada antes de usar una referencia en una implementación.
+## Repositorios enlazados
+
+Las siguientes cifras registran la consulta del 17-10-2026. Sirven como contexto de las referencias, no como criterio de calidad ni como requisito para seguir el manual. Los capítulos enlazan la parte concreta que complementa su explicación.
+
+| Repositorio | Estrellas registradas | Capítulo |
+|---|---:|---|
+| Spring Modulith | 1.200 | [Módulos y dependencias](handbook/architecture.md#topic-lectura-y-repositorio-de-referencia) |
+| Apache Kafka | 34.036 | [Topología WordCount](handbook/events.md#topic-lecturas-y-ejemplo-de-referencia) |
+| LlamaIndex | 52.539 | [Recuperación de documentos](handbook/retrieval.md#topic-lectura-y-ejemplo-de-referencia) |
+| Resilience4j | 10.787 | [Circuito de protección](handbook/security.md#topic-lectura-y-ejemplo-de-resiliencia) |
+| OpenTelemetry Demo | 3.409 | [Configuración de señales](handbook/operations.md#topic-ejemplo-de-observabilidad) |
+| Online Boutique | 21.060 | [Manifiestos Kubernetes](handbook/delivery.md#topic-ejemplo-de-kubernetes) |
