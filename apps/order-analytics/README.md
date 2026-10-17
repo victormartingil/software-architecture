@@ -54,4 +54,4 @@ Límite: el barrido horario de deduplicación recorre el store. Es sencillo y ve
 
 Fuentes oficiales consultadas: [Processor API 4.0](https://kafka.apache.org/40/streams/developer-guide/processor-api/), [pruebas](https://kafka.apache.org/40/streams/developer-guide/testing/), [memoria](https://kafka.apache.org/40/streams/developer-guide/memory-mgmt/), [ciclo de vida](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/KafkaStreams.html). Los ejemplos se implementan para el contrato de esta referencia.
 
-El ingreso aplica un máximo de treinta segundos de adelanto sobre reloj UTC del proceso antes de asignar tiempo de evento. Inválidos se aíslan en DLT sin adelantar ventanas; ver [relojes y cuarentena](../../docs/handbook/events.md#relojes-incorrectos-y-cuarentena).
+El ingreso aplica un máximo de treinta segundos de adelanto sobre reloj UTC del proceso antes de asignar tiempo de evento. Inválidos se aíslan en DLT sin adelantar ventanas; ver [relojes y cuarentena](../../docs/handbook/events.md#topic-relojes-incorrectos-y-cuarentena).

@@ -26,7 +26,7 @@ La implementación del plan está autorizada; su estado y evidencia vigentes est
 
 - Español para la explicación inicial; código, identificadores y nombres de archivos en inglés. Bilingüismo completo pendiente de decisión, sin duplicar documentos por defecto.
 - Cada unidad explica problema, solución mínima, alternativa, coste o límite y verificación observable.
-- Los diagramas tienen un único maestro editable de trece páginas en `docs/diagrams/architecture.drawio`; cada SVG se exporta desde su página y se inserta en su explicación. Actualizar el maestro, reexportar e inspeccionar; no reintroducir un maestro Mermaid de la misma vista. Mantener el límite funcional separado del despliegue y de los sistemas de apoyo.
+- Los diagramas tienen un único maestro editable de dieciséis páginas en `docs/diagrams/architecture.drawio`; cada SVG se exporta desde su página y se inserta en su explicación. Actualizar el maestro, reexportar e inspeccionar; no reintroducir un maestro Mermaid de la misma vista. Mantener el límite funcional separado del despliegue y de los sistemas de apoyo.
 - Nomenclatura: título funcional y después identificador/tecnología. El mapa canónico está en `docs/repository-design.md#component-map`. Distinguir aplicaciones, módulos internos, bibliotecas, servidores y protocolos; conservar IDs de despliegue y contratos salvo migración explícita.
 - Preferir un dominio ficticio compartido y pocos componentes. Introducir Kafka, Kubernetes o un agente solo cuando el caso muestre para qué hacen falta.
 - Enseñar corrección, datos, fiabilidad, seguridad, evaluación, costes y comunicación técnica además de frameworks.

@@ -4,7 +4,7 @@ Una tienda sintética permite estudiar transacciones, eventos y herramientas de 
 
 Antes del recorrido técnico, consultar [qué hace cada pieza](repository-design.md#component-map): aplicaciones, módulos, servidores y protocolos.
 
-Los diagramas están integrados en cada tema. El [índice de vistas](reference-map.md#vistas-visuales) permite elegir contexto, estructura, datos, comportamiento o despliegue sin mezclar sus niveles.
+Los diagramas están integrados en cada tema. El [índice de vistas](reference-map.md#topic-vistas-visuales) permite elegir contexto, estructura, datos, comportamiento o despliegue sin mezclar sus niveles.
 
 ## Punto de entrada
 
@@ -28,6 +28,8 @@ make down
 6. [Workflow aprobado](handbook/workflows.md): efectos autorizados y reanudación.
 7. [Seguridad y resiliencia](handbook/security.md): amenazas y fallos concretos.
 8. [Operación](handbook/operations.md) y [delivery](handbook/delivery.md): señales, despliegue y límites.
+
+<a id="topic-cuando-aplicar-cada-mecanismo"></a>
 
 ## Cuándo aplicar cada mecanismo
 

@@ -1,5 +1,7 @@
 # Transacciones, idempotencia y concurrencia
 
+<a id="topic-la-invariante-primero"></a>
+
 ## La invariante primero
 
 Dos compradores pueden leer stock uno al mismo tiempo. Si ambos restan en memoria y guardan cero, se venden dos unidades aunque el contador parezca correcto. La regla relevante es que cada pedido aceptado corresponde a una reserva efectiva, sin stock negativo. Una transacción no arregla por sí sola una secuencia de lecturas y escrituras mal diseñada.
@@ -10,11 +12,23 @@ El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference
 
 [Maestro draw.io](../diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
 
+<a id="topic-dos-peticiones-y-la-ultima-unidad"></a>
+
+## Dos peticiones y la última unidad
+
+La siguiente secuencia muestra una intercalación posible con Read Committed, el aislamiento predeterminado de PostgreSQL. La segunda actualización espera el bloqueo de la fila; después del commit de la primera, PostgreSQL vuelve a evaluar `stock >= quantity` sobre la fila actualizada. Sin unidades disponibles, no devuelve filas y el adaptador produce un conflicto. Si la primera transacción revierte, la segunda puede reservar.
+
+[![Dos transacciones compiten por la última unidad](../diagrams/stock-concurrency.svg)](../diagrams/stock-concurrency.svg)
+
+[Maestro draw.io](../diagrams/architecture.drawio). El ejemplo usa dos compras con claves distintas. Un reintento de la misma clave se serializa antes mediante idempotencia; recuperar su resultado evita reservar otra vez.
+
 ## Esquema que sostiene las garantías
 
 [![Modelo físico de las siete tablas de Comercio](../diagrams/commerce-data.svg)](../diagrams/commerce-data.svg)
 
 [Maestro draw.io](../diagrams/architecture.drawio). PK identifica una fila; FK exige una referencia existente. La cardinalidad se lee izquierda:derecha: un pedido tiene cero o una propuesta y cada propuesta corresponde a un pedido. Solo se dibujan las dos FK declaradas en Flyway; las referencias lógicas sin FK se enumeran aparte.
+
+<a id="topic-repetir-una-peticion-es-normal"></a>
 
 ## Repetir una petición es normal
 
@@ -49,4 +63,4 @@ Mantener inventario y pedidos en la misma base evita una transacción distribuid
 
 En operación se debe definir retención de claves, volumen de outbox, tiempo de bloqueo y estrategia de migración compatible. No borrar registros idempotentes durante un plazo en el que clientes todavía puedan repetir solicitudes.
 
-Fuentes: [PostgreSQL concurrencia](https://www.postgresql.org/docs/16/mvcc.html), [bloqueos explícitos](https://www.postgresql.org/docs/16/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html).
+Fuentes: [PostgreSQL: Read Committed y actualización concurrente](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED), [bloqueos explícitos](https://www.postgresql.org/docs/17/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html). Para profundizar en aislamiento y sistemas de datos, la [lectura DDIA recomendada en eventos](events.md#topic-lecturas-y-ejemplo-de-referencia) complementa este caso SQL.

@@ -1,12 +1,18 @@
 # Seguridad, límites y resiliencia
 
+<a id="topic-autenticacion-y-autorizacion"></a>
+
 ## Autenticación y autorización
 
 OIDC es el protocolo de identidad que permite autenticar al usuario; JWT es el formato del token que reciben las APIs y JWKS publica las claves para verificar su firma. Validar un token responde quién llama, no qué puede hacer: la autorización se aplica después en reglas de negocio. Commerce y AI comprueban firma, issuer, audiencia y caducidad, además de subject y tenant válidos. El claim de rol debe tener la estructura esperada. Un token firmado pero sin vencimiento no es una credencial aceptable en esta referencia.
 
-El tenant siempre procede del token. Buscar un pedido exige tenant y propietario, salvo MANAGER del mismo tenant. Un identificador UUID difícil de adivinar no sustituye esa condición. Se devuelve 404 para recursos ajenos para limitar divulgación. Los tests incluyen firma, issuer y audiencia incorrectos, token caducado, claims ausentes y acceso cruzado.
+Estas APIs reciben el access token de Keycloak. El ID token informa al cliente OIDC de la autenticación y está destinado a ese cliente; cada token tiene su destinatario y su uso. JWT es un formato: en esta referencia está firmado, por lo que se puede verificar su integridad, pero su contenido no está cifrado. JWKS expone claves públicas de verificación, nunca la clave privada del emisor. Véase [OpenID Connect: ID Token](https://openid.net/specs/openid-connect-core-1_0.html#IDToken).
+
+Un tenant es el ámbito de aislamiento de una organización; un actor es la identidad que realiza la operación. El tenant siempre procede del token. Buscar un pedido exige tenant y propietario, salvo MANAGER del mismo tenant. Un identificador UUID difícil de adivinar no sustituye esa condición. Se devuelve 404 para recursos ajenos para limitar divulgación. Los tests incluyen firma, issuer y audiencia incorrectos, token caducado, claims ausentes y acceso cruzado.
 
 Keycloak local tiene credenciales sintéticas y password grant para automatizar escenarios. Solo se publica en loopback. Es una excepción de laboratorio; un cliente público productivo debe usar Authorization Code + PKCE, TLS y configuración endurecida. Las aplicaciones no ofrecen un endpoint para inventar tokens ni elegir un rol en el cuerpo de login.
+
+<a id="topic-modelo-de-amenazas-minimo"></a>
 
 ## Modelo de amenazas mínimo
 
@@ -21,11 +27,21 @@ Keycloak local tiene credenciales sintéticas y password grant para automatizar 
 
 La prompt injection es contenido no confiable intentando cambiar instrucciones. No se resuelve con «ignora instrucciones maliciosas» como única defensa. El generador solo recibe documentos autorizados y no tiene la herramienta de ejecutar devoluciones. El workflow usa endpoints explícitos que vuelven a autorizar la acción. El dataset adversarial verifica controles concretos; no prueba ausencia de todos los ataques posibles.
 
+<a id="topic-fallos-de-dependencias"></a>
+
 ## Fallos de dependencias
 
-Una llamada remota necesita un plazo. El plazo total de doce segundos incluye espera de capacidad, recuperación y generación. El proveedor tiene un presupuesto máximo de once segundos y timeout HTTP de diez por intento, con como máximo dos intentos para errores transitorios y circuito abierto tras tres fallos, con recuperación de prueba a treinta segundos. Errores de entrada, permisos o esquema no deben reintentarse ciegamente. Las pruebas usan reloj/transporte controlados, sin esperar a un proveedor real.
+Una llamada remota necesita un plazo. El plazo total de doce segundos incluye espera de capacidad, recuperación y generación. El proveedor tiene un presupuesto máximo de once segundos y timeout HTTP de diez segundos por fase de red, con como máximo dos intentos para errores transitorios y circuito abierto tras tres fallos, con recuperación de prueba a treinta segundos. Errores de entrada, permisos o esquema no deben reintentarse ciegamente. Las pruebas usan reloj/transporte controlados, sin esperar a un proveedor real.
 
 El semáforo limita cuatro tareas de respuesta. Un deadline agotado durante generación cuenta como fallo del circuito; una desconexión del cliente solo cancela y libera capacidad, sin atribuir al proveedor ese fallo. El plazo total evita acumular trabajo indefinidamente; cancelar SSE cancela su tarea. El circuit breaker evita insistir cuando la dependencia falla, pero no ofrece capacidad adicional ni sustituye una cola limitada. Backoff, jitter y presupuesto total deben revisarse juntos: varios niveles reintentando multiplican llamadas.
+
+<a id="topic-circuito-del-proveedor"></a>
+
+### Circuito del proveedor
+
+[![Estados y recuperación del circuito del proveedor IA](../diagrams/provider-circuit.svg)](../diagrams/provider-circuit.svg)
+
+[Maestro draw.io](../diagrams/architecture.drawio). Los nombres cerrado/abierto/prueba describen la lógica de `OpenAIProvider`, no un enum de una biblioteca añadida. Tres fallos de operaciones abren el circuito; los dos intentos HTTP de una misma operación no cuentan como dos fallos. El resultado completo se valida antes de considerarlo éxito. Timeout limita duración, retry repite un intento transitorio y breaker rechaza nuevas operaciones durante una caída: cada control resuelve una parte distinta.
 
 Fallback sin evidencia significa abstenerse, no inventar una respuesta más barata. Una salida estructurada garantiza forma cuando se valida; no garantiza verdad. Las citas deben pertenecer al contexto autorizado y la fidelidad semántica se evalúa aparte.
 
@@ -48,4 +64,10 @@ Lockfiles, versiones explícitas y análisis de dependencias reducen deriva; un 
 
 **Alternativa:** un gateway puede limitar clientes antes de admitir trabajo; no sustituye autorización ni presupuesto interno. ¿Qué límite necesitaría compartirse si hubiera varios procesos? Los cupos y locks actuales no son globales.
 
-Fuentes: [OWASP API Security](https://owasp.org/API-Security/), [OWASP GenAI](https://genai.owasp.org/), [Keycloak contenedores](https://www.keycloak.org/server/containers), [RFC 9700 OAuth Security BCP](https://www.rfc-editor.org/rfc/rfc9700.html).
+<a id="topic-lectura-y-ejemplo-de-resiliencia"></a>
+
+## Lectura y ejemplo de resiliencia
+
+[*Release It!*, 2.ª edición, de Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) complementa límites, fallos de dependencias y recuperación. La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/master/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten contrastar una biblioteca especializada (10.787 estrellas, consultadas el 17-10-2026). Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
+
+Fuentes: [HTTPX: plazos por fase](https://www.python-httpx.org/advanced/timeouts/), [OWASP API Security](https://owasp.org/API-Security/), [OWASP: autorización por operación](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html), [OWASP GenAI: prompt injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/), [Keycloak contenedores](https://www.keycloak.org/server/containers), [RFC 9700 OAuth Security BCP](https://www.rfc-editor.org/rfc/rfc9700.html).

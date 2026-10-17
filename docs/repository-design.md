@@ -53,13 +53,15 @@ Commerce mantiene las invariantes y es dueño exclusivo de su base. AI consume s
 
 [Maestro draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
 
+<a id="topic-c4-contenedores-nivel-2"></a>
+
 ## C4: contenedores, nivel 2
 
 Aquí «contenedor» significa aplicación o almacén en [C4](https://c4model.com/diagrams/container), sin exigir Docker. El límite representa el sistema funcional; identidad y observabilidad se muestran en vistas complementarias como sistemas de apoyo, aunque se ejecuten localmente. No representa un perímetro de seguridad ni una topología de despliegue.
 
 [![C4 de nivel 2: aplicaciones, almacenes y relaciones de negocio](diagrams/c4-containers.svg)](diagrams/c4-containers.svg)
 
-[Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene trece páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
+[Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene dieciséis páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
 
 La vista contrasta `compose.yaml`, la [composición de AI](../apps/ai-service/src/ai_service/main.py), el [publicador outbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxPublisher.java), el [consumidor de auditoría](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/AuditConsumer.java) y la configuración de [trazas](../infra/observability/collector.yaml), [métricas](../infra/observability/prometheus.yaml) y [datasources](../infra/observability/datasources.yaml).
 

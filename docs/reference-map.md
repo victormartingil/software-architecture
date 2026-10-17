@@ -15,9 +15,11 @@ Consultar por pregunta; ejecutar antes de ampliar el stack. El [estado comprobad
 | ¿Cómo detectar y reparar un fallo? | [Dashboard](../infra/observability/dashboard.json) · [señales reales](../scenarios/observability.py) | [Operación](handbook/operations.md) | OBS/OPS |
 | ¿Cómo entregar sin atribuir garantías no medidas? | [HPA](../scripts/kind-scale-check.py) · [Terraform](../infra/cloud/main.tf) | [Delivery](handbook/delivery.md) | K8S/TF |
 
+<a id="topic-vistas-visuales"></a>
+
 ## Vistas visuales
 
-Un [maestro draw.io de trece páginas](diagrams/architecture.drawio), con objetos y relaciones editables. Editar el `.drawio` con draw.io y volver a exportar el SVG correspondiente. Las imágenes se insertan en su explicación; abrir el SVG para leer los detalles a tamaño completo, especialmente C4 nivel 2 y secuencias.
+Un [maestro draw.io de dieciséis páginas](diagrams/architecture.drawio), con objetos y relaciones editables. Editar el `.drawio` con draw.io y volver a exportar el SVG correspondiente. Las imágenes se insertan en su explicación; abrir el SVG para leer los detalles a tamaño completo, especialmente C4 nivel 2 y secuencias.
 
 | Pregunta | Vista SVG | Explicación |
 |---|---|---|
@@ -26,9 +28,12 @@ Un [maestro draw.io de trece páginas](diagrams/architecture.drawio), con objeto
 | ¿Quién emite y valida tokens? | [Identidad](diagrams/c4-identity.svg) | [Seguridad](handbook/security.md) |
 | ¿Por dónde circulan trazas y métricas? | [Señales](diagrams/c4-observability.svg) | [Operación](handbook/operations.md) |
 | ¿Cómo se invierten dependencias? | [Puertos y adaptadores](diagrams/ports-and-adapters.svg) | [Arquitectura](handbook/architecture.md) |
+| ¿Qué pasa con dos compras de la última unidad? | [Concurrencia SQL](diagrams/stock-concurrency.svg) | [Transacciones](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad) |
 | ¿Qué ocurre antes y después del commit? | [Pedido y outbox](diagrams/order-sequence.svg) | [Transacciones](handbook/transactions.md) |
 | ¿Qué restricciones hay en SQL? | [Modelo físico](diagrams/commerce-data.svg) | [Transacciones](handbook/transactions.md) |
+| ¿Qué diferencia al broker de una biblioteca Streams? | [Kafka y lectores](diagrams/kafka-consumers.svg) | [Eventos](handbook/events.md#topic-kafka-eventos-y-streams) |
 | ¿Cómo se obtiene el resumen por ventana? | [Procesamiento de eventos](diagrams/order-summary-flow.svg) | [Eventos](handbook/events.md) |
+| ¿Cuándo deja de llamar y prueba recuperar el proveedor? | [Circuito IA](diagrams/provider-circuit.svg) | [Resiliencia](handbook/security.md#topic-circuito-del-proveedor) |
 | ¿Cuándo responde o se abstiene la IA? | [RAG](diagrams/answer-flow.svg) | [Recuperación](handbook/retrieval.md) |
 | ¿Cómo se reanuda una devolución? | [Secuencia aprobada](diagrams/return-sequence.svg) | [Workflows](handbook/workflows.md) |
 | ¿Qué transiciones autoriza Comercio? | [Estados](diagrams/return-states.svg) | [Workflows](handbook/workflows.md) |
@@ -49,10 +54,13 @@ Cada ficha termina con las fuentes oficiales del concepto y, cuando ayuda a estu
 
 | Tema | Recursos complementarios |
 |---|---|
-| Módulos y límites | [Arquitectura](handbook/architecture.md#lectura-y-repositorio-de-referencia) |
-| Eventos y Kafka Streams | [Eventos](handbook/events.md#lecturas-y-ejemplo-de-referencia) |
-| RAG y evaluación | [Recuperación](handbook/retrieval.md#lectura-y-ejemplo-de-referencia) |
-| Métricas, trazas y logs | [Operación](handbook/operations.md#ejemplo-de-observabilidad) |
-| Kubernetes y TLS de base de datos | [Delivery](handbook/delivery.md#ejemplo-de-kubernetes) |
+| Módulos y límites | [Arquitectura](handbook/architecture.md#topic-lectura-y-repositorio-de-referencia) |
+| Datos y transacciones | [Transacciones](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad) · DDIA en la ficha de eventos |
+| Eventos y Kafka Streams | [Eventos](handbook/events.md#topic-lecturas-y-ejemplo-de-referencia) |
+| RAG y evaluación | [Recuperación](handbook/retrieval.md#topic-lectura-y-ejemplo-de-referencia) |
+| Fallos y resiliencia | [Circuito IA, Release It! y Resilience4j](handbook/security.md#topic-lectura-y-ejemplo-de-resiliencia) |
+| Métricas, trazas y logs | [Operación](handbook/operations.md#topic-ejemplo-de-observabilidad) |
+| Kubernetes | [Delivery](handbook/delivery.md#topic-ejemplo-de-kubernetes) |
+| TLS de base de datos | [Canal y certificados](handbook/delivery.md#topic-tls-en-conexiones-a-postgresql) |
 
 Las estrellas son una señal de alcance del repositorio, no una garantía de calidad o compatibilidad. Sus cifras muestran la consulta del 17-10-2026; comprobar la página enlazada antes de usar una referencia en una implementación.

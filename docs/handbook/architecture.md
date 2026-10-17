@@ -1,5 +1,7 @@
 # Límites, puertos y patrones
 
+<a id="topic-problema-y-decision"></a>
+
 ## Problema y decisión
 
 Una regla como «no vender más unidades de las disponibles» debe sobrevivir a un cambio de transporte o base de datos. Una regla de HTTP, en cambio, pertenece al borde del sistema. Separar estas responsabilidades reduce el número de conceptos que hay que entender para modificar cada una.
@@ -12,17 +14,23 @@ En [ManageOrderService](../../apps/commerce-api/src/main/java/dev/reference/comm
 
 [Maestro draw.io](../diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
 
-Las dependencias de código apuntan al núcleo. En ejecución el caso de uso invoca un adaptador mediante su puerto: inversión de dependencias no significa invertir todas las llamadas. Se permite `@Transactional` en aplicación para que la frontera de commit sea fácil de localizar. Es un acoplamiento deliberado a Spring, descrito en el ADR; el dominio sigue independiente.
+Un módulo reúne una capacidad del negocio; una capa separa responsabilidades dentro de ese módulo. `orders` e `inventory` comparten proceso Java y transacción, mientras `ai-service` es otro proceso con una frontera HTTP. Una interfaz Java es un contrato de código; no crea por sí sola un servicio de red.
+
+Las dependencias de código apuntan al núcleo. En ejecución el caso de uso invoca un adaptador mediante su puerto: inversión de dependencias no significa invertir todas las llamadas. Se permite `@Transactional` en aplicación para que la frontera de commit sea fácil de localizar. Es un acoplamiento deliberado a Spring, descrito en el ADR; el dominio sigue independiente. Spring interpone un proxy: un objeto que rodea la llamada y abre/confirma/revierte la transacción. Una llamada directa al objeto fuera del proxy pierde esa intervención, como demuestra el negativo de la micropráctica. Véase [cómo funciona la transacción declarativa](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-decl-explained.html).
 
 El dominio incorpora tipos pequeños con una responsabilidad: `Quantity` valida 1..100 aun cuando se invoca el caso de uso sin HTTP; `OrderStatus` y `ReturnStatus` evitan estados escritos arbitrariamente. `ReturnProposal.requireExecutable` comprueba aprobación, versión y vencimiento usando una fecha recibida. No consulta base de datos ni reloj global. Las carreras siguen protegidas por transacciones, SQL condicional y constraints: validar un objeto no sustituye el control concurrente.
 
 `BusinessException.Kind` expresa INVALID_INPUT, NOT_FOUND, CONFLICT o FORBIDDEN. El dominio no conoce 400, 404 o 409; [ProblemAdvice](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/ProblemAdvice.java) traduce a Problem Details. Los controladores pertenecen a su módulo; persistencia, mensajería y seguridad se distinguen por subpaquetes.
+
+<a id="topic-por-que-tres-servicios"></a>
 
 ## Por qué tres servicios
 
 Commerce tiene una única transacción de negocio. Dividir pedidos e inventario en servicios introduciría consistencia eventual y compensaciones sin mejorar este ejemplo. Analytics escala y reconstruye una proyección independiente. AI tiene dependencias, costes y ciclo de ejecución distintos; solo accede a comercio por HTTP. Estas diferencias justifican procesos separados. El tamaño de una clase o una entidad no los justifica por sí solo.
 
 Un monolito modular sería una alternativa razonable para una tienda real pequeña. La referencia separa procesos para poder observar fallos de red, replay y permisos entre sistemas. No propone copiar esta topología en cualquier producto.
+
+<a id="topic-patrones-con-una-responsabilidad-concreta"></a>
 
 ## Patrones con una responsabilidad concreta
 
@@ -36,7 +44,7 @@ Un monolito modular sería una alternativa razonable para una tienda real peque�
 | Outbox/Inbox | Publicación/auditoría | Resuelve ventanas de fallo; requiere retención y operación |
 | Circuit Breaker | Proveedor IA | Acota fallos repetidos; no corrige una dependencia caída |
 
-Command y Query nombran intenciones; no implican CQRS con almacenes separados. Un evento publicado tampoco implica event sourcing. Factory, Observer o Decorator se explican cuando resuelven un caso concreto; no se añaden capas para demostrar nombres. Para patrones adicionales, consultar el [catálogo de Refactoring.Guru](https://refactoring.guru/design-patterns) y contrastar ejemplos antes de reutilizar código.
+Un Command pide un cambio y una Query solicita información. CQRS (separación de responsabilidades de comandos y consultas) separa los modelos de escritura y lectura; no obliga a desplegar dos servicios. Event-driven comunica hechos mediante eventos. Event sourcing conserva el historial de eventos como fuente de verdad para reconstruir el estado. Commerce mantiene el estado actual en SQL y publica un outbox; Analytics construye un resumen derivado. Esas decisiones no convierten el dominio en event sourcing. Factory, Observer o Decorator se explican cuando resuelven un caso concreto; no se añaden capas para demostrar nombres. Para patrones adicionales, consultar el [catálogo de Refactoring.Guru](https://refactoring.guru/design-patterns) y contrastar ejemplos antes de reutilizar código.
 
 ## Micropráctica: un límite que también sabe fallar
 
@@ -55,6 +63,8 @@ Command y Query nombran intenciones; no implican CQRS con almacenes separados. U
 **Alternativa:** llamar directamente a JDBC ahorra un puerto, pero acopla el caso de uso a persistencia. Justificar cada abstracción por una sustitución o responsabilidad concreta; la revisión sigue siendo necesaria para detectar interfaces vacías o conceptos filtrados.
 
 Fuentes: [arquitectura hexagonal original](https://alistair.cockburn.us/hexagonal-architecture), [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), [import-linter](https://import-linter.readthedocs.io/en/stable/contract_types/layers/).
+
+<a id="topic-lectura-y-repositorio-de-referencia"></a>
 
 ## Lectura y repositorio de referencia
 

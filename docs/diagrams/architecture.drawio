@@ -1946,4 +1946,309 @@
       </root>
     </mxGraphModel>
   </diagram>
+  <diagram id="kafka-consumers" name="Un evento, dos lectores independientes">
+    <mxGraphModel dx="960" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="960" pageHeight="1080" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Un evento, dos lectores independientes" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=30;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="15" width="900" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Kafka conserva registros; Kafka Streams es una biblioteca dentro de una aplicación." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="75" width="900" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="producer" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="310" y="145" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="producer-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="producer">
+          <mxGeometry x="0" y="0" width="340" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="producer-kind" value="PRODUCTOR" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="producer">
+          <mxGeometry x="16" y="8" width="308" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="producer-title" value="Publicar pedido" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="producer">
+          <mxGeometry x="16" y="35" width="308" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="producer-body" value="commerce-api · publicador outbox" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="producer">
+          <mxGeometry x="16" y="76" width="308" height="38" as="geometry" />
+        </mxCell>
+        <mxCell id="topic" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="350" width="840" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="topic-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="topic">
+          <mxGeometry x="0" y="0" width="840" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="topic-kind" value="TOPIC EN EL SERVIDOR KAFKA" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="topic">
+          <mxGeometry x="16" y="8" width="808" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="topic-title" value="orders.placed.v1" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="topic">
+          <mxGeometry x="16" y="35" width="808" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="topic-body" value="Tres particiones · clave orderId&#10;El orden de escritura se conserva dentro de cada partición." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="topic">
+          <mxGeometry x="16" y="76" width="808" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="audit" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="620" width="390" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="audit">
+          <mxGeometry x="0" y="0" width="390" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-kind" value="DENTRO DE commerce-api" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="audit">
+          <mxGeometry x="16" y="8" width="358" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-title" value="Auditar el evento" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="audit">
+          <mxGeometry x="16" y="35" width="358" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-body" value="Listener Kafka + Inbox&#10;Deduplicación por eventId." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="audit">
+          <mxGeometry x="16" y="76" width="358" height="73" as="geometry" />
+        </mxCell>
+        <mxCell id="streams" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="530" y="620" width="390" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="streams-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="streams">
+          <mxGeometry x="0" y="0" width="390" height="155" as="geometry" />
+        </mxCell>
+        <mxCell id="streams-kind" value="PROCESO · order-analytics" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="streams">
+          <mxGeometry x="16" y="8" width="358" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="streams-title" value="Resumir por minuto" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="streams">
+          <mxGeometry x="16" y="35" width="358" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="streams-body" value="Biblioteca Kafka Streams&#10;Topología + estado local RocksDB." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="streams">
+          <mxGeometry x="16" y="76" width="358" height="73" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="880" width="390" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="inbox">
+          <mxGeometry x="0" y="0" width="390" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-title" value="Auditoría persistida" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="inbox">
+          <mxGeometry x="16" y="12" width="358" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-body" value="PostgreSQL · efecto + identidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="inbox">
+          <mxGeometry x="16" y="50" width="358" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="summary" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="530" y="880" width="390" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="summary-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="summary">
+          <mxGeometry x="0" y="0" width="390" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="summary-title" value="orders.summary.v1" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="summary">
+          <mxGeometry x="16" y="12" width="358" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="summary-body" value="Kafka · actualizaciones del resumen" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="summary">
+          <mxGeometry x="16" y="50" width="358" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="publish" edge="1" parent="1" source="producer" target="topic" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=250;labelBackgroundColor=#FFFFFF;" value="Publicar OrderPlaced">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="group-audit" edge="1" parent="1" source="topic" target="audit" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.21;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=210;labelBackgroundColor=#FFFFFF;" value="Grupo auditoría">
+          <mxGeometry as="geometry" relative="1" x="0" y="0">
+            <Array as="points">
+              <mxPoint x="236.4" y="555" />
+              <mxPoint x="235" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="group-streams" edge="1" parent="1" source="topic" target="streams" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.79;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=210;labelBackgroundColor=#FFFFFF;" value="Grupo Analytics">
+          <mxGeometry as="geometry" relative="1" x="0" y="0">
+            <Array as="points">
+              <mxPoint x="723.6" y="555" />
+              <mxPoint x="725" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="effect" edge="1" parent="1" source="audit" target="inbox" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=190;labelBackgroundColor=#FFFFFF;" value="Guardar efecto">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="update" edge="1" parent="1" source="streams" target="summary" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=250;labelBackgroundColor=#FFFFFF;" value="Publicar actualización">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="footer" value="Cada grupo conserva su propia posición de lectura. Leer no elimina registros.&#10;Se omiten topics internos de reparticionado/changelog y las rutas de error." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="1010" width="900" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="stock-concurrency" name="Dos compras y la última unidad">
+    <mxGraphModel dx="1000" dy="1080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1080" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Dos compras y la última unidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=30;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="15" width="940" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Intercalación posible en PostgreSQL · claves idempotentes distintas · stock inicial = 1." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="75" width="940" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="a" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="60" y="140" width="240" height="790" as="geometry" />
+        </mxCell>
+        <mxCell id="a-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="a">
+          <mxGeometry x="0" y="0" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="a-title" value="Transacción A" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="a">
+          <mxGeometry x="12" y="10" width="216" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="a-body" value="Compra con clave A" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=center;verticalAlign=middle;" vertex="1" parent="a">
+          <mxGeometry x="12" y="50" width="216" height="27" as="geometry" />
+        </mxCell>
+        <mxCell id="a-lifeline" edge="1" parent="1" source="a" target="a" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=none;exitX=0.5;exitY=0.11392405063291139;entryX=0.5;entryY=0.7215189873417721;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=170;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="db" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="390" y="140" width="240" height="790" as="geometry" />
+        </mxCell>
+        <mxCell id="db-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="db">
+          <mxGeometry x="0" y="0" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="db-title" value="Fila de inventario" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="db">
+          <mxGeometry x="12" y="10" width="216" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="db-body" value="PostgreSQL · stock = 1" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=center;verticalAlign=middle;" vertex="1" parent="db">
+          <mxGeometry x="12" y="50" width="216" height="27" as="geometry" />
+        </mxCell>
+        <mxCell id="db-lifeline" edge="1" parent="1" source="db" target="db" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=none;exitX=0.5;exitY=0.11392405063291139;entryX=0.5;entryY=1;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=170;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="b" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="140" width="240" height="790" as="geometry" />
+        </mxCell>
+        <mxCell id="b-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="b">
+          <mxGeometry x="0" y="0" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="b-title" value="Transacción B" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="b">
+          <mxGeometry x="12" y="10" width="216" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="b-body" value="Compra con clave B" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=center;verticalAlign=middle;" vertex="1" parent="b">
+          <mxGeometry x="12" y="50" width="216" height="27" as="geometry" />
+        </mxCell>
+        <mxCell id="b-lifeline" edge="1" parent="1" source="b" target="b" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=none;exitX=0.5;exitY=0.11392405063291139;entryX=0.5;entryY=0.9240506329113924;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=170;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="row-lock" value="" style="html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1;" vertex="1" parent="1">
+          <mxGeometry x="502" y="295" width="16" height="395" as="geometry" />
+        </mxCell>
+        <mxCell id="reserve-a" edge="1" parent="1" source="a" target="db" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.1962025316455696;entryX=0.5;entryY=0.1962025316455696;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;" value="UPDATE stock = stock − 1&#10;WHERE stock &gt;= 1">
+          <mxGeometry as="geometry" relative="1" x="0" y="35" />
+        </mxCell>
+        <mxCell id="reserved-a" edge="1" parent="1" source="db" target="a" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.2848101265822785;entryX=0.5;entryY=0.2848101265822785;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="1 fila actualizada · precio">
+          <mxGeometry as="geometry" relative="1" x="0" y="-30" />
+        </mxCell>
+        <mxCell id="reserve-b" edge="1" parent="1" source="b" target="db" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.379746835443038;entryX=0.5;entryY=0.379746835443038;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;" value="UPDATE stock = stock − 1&#10;WHERE stock &gt;= 1">
+          <mxGeometry as="geometry" relative="1" x="0" y="-30" />
+        </mxCell>
+        <mxCell id="wait-b" value="B espera el bloqueo&#10;de A." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#916623;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="550" y="485" width="250" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="commit-a" edge="1" parent="1" source="a" target="db" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.6012658227848101;entryX=0.5;entryY=0.6012658227848101;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;" value="Guardar pedido, outbox&#10;y resultado · COMMIT">
+          <mxGeometry as="geometry" relative="1" x="0" y="35" />
+        </mxCell>
+        <mxCell id="committed-a" edge="1" parent="1" source="db" target="a" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.6962025316455697;entryX=0.5;entryY=0.6962025316455697;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="Commit confirmado">
+          <mxGeometry as="geometry" relative="1" x="0" y="-30" />
+        </mxCell>
+        <mxCell id="accepted" value="API A devuelve 201.&#10;Stock confirmado = 0." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="45" y="740" width="270" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="reject-b" edge="1" parent="1" source="db" target="b" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.7911392405063291;entryX=0.5;entryY=0.7911392405063291;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;dashed=1;dashPattern=6 5;" value="WHERE se reevalúa: stock = 0&#10;0 filas actualizadas">
+          <mxGeometry as="geometry" relative="1" x="0" y="35" />
+        </mxCell>
+        <mxCell id="rollback-b" edge="1" parent="1" source="b" target="db" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=0.8987341772151899;entryX=0.5;entryY=0.8987341772151899;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=280;labelBackgroundColor=#FFFFFF;" value="ROLLBACK por conflicto">
+          <mxGeometry as="geometry" relative="1" x="0" y="-30" />
+        </mxCell>
+        <mxCell id="conflict" value="API B devuelve 409." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="690" y="885" width="280" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="footer" value="La primera actualización que obtiene la fila y confirma puede ganar: A o B.&#10;Si la primera transacción revierte, la otra puede reservar. El diagrama dibuja un commit.&#10;La guarda SQL, las escrituras de negocio y la idempotencia se coordinan en la transacción." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="970" width="940" height="85" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="provider-circuit" name="Dejar de insistir y probar la recuperación">
+    <mxGraphModel dx="1000" dy="1060" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1060" math="0" shadow="0" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Dejar de insistir y probar la recuperación" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=30;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="15" width="940" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Estados conceptuales del circuito implementado en OpenAIProvider · proveedor IA." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="75" width="940" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="closed" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="180" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="closed-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="closed">
+          <mxGeometry x="0" y="0" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="closed-kind" value="LLAMADAS PERMITIDAS" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="closed">
+          <mxGeometry x="16" y="8" width="268" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="closed-title" value="Cerrado" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="closed">
+          <mxGeometry x="16" y="35" width="268" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="closed-body" value="Permitir operaciones.&#10;Éxito válido reinicia fallos." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="closed">
+          <mxGeometry x="16" y="76" width="268" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="open" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="450" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="open-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="open">
+          <mxGeometry x="0" y="0" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="open-kind" value="PROTECCIÓN ACTIVA" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="open">
+          <mxGeometry x="16" y="8" width="268" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="open-title" value="Abierto" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="open">
+          <mxGeometry x="16" y="35" width="268" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="open-body" value="Rechazar nuevas operaciones.&#10;Esperar treinta segundos." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="open">
+          <mxGeometry x="16" y="76" width="268" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="probe" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="350" y="740" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="probe-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.5;" vertex="1" parent="probe">
+          <mxGeometry x="0" y="0" width="300" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="probe-kind" value="HALF-OPEN" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="probe">
+          <mxGeometry x="16" y="8" width="268" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="probe-title" value="Prueba de recuperación" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=23;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="probe">
+          <mxGeometry x="16" y="35" width="268" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="probe-body" value="Permitir una operación.&#10;Las demás se rechazan." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="probe">
+          <mxGeometry x="16" y="76" width="268" height="58" as="geometry" />
+        </mxCell>
+        <mxCell id="trip" edge="1" parent="1" source="closed" target="open" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=270;labelBackgroundColor=#FFFFFF;" value="Tres fallos de operación">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="next-call" edge="1" parent="1" source="open" target="probe" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=300;labelBackgroundColor=#FFFFFF;" value="Tras 30 s, siguiente llamada&#10;reserva la única prueba">
+          <mxGeometry as="geometry" relative="1" x="0" y="0" />
+        </mxCell>
+        <mxCell id="recover" edge="1" parent="1" source="probe" target="closed" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=180;labelBackgroundColor=#FFFFFF;" value="Respuesta completa&#10;válida: cerrar">
+          <mxGeometry as="geometry" relative="1" x="0" y="0">
+            <Array as="points">
+              <mxPoint x="100" y="810" />
+              <mxPoint x="100" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="reopen" edge="1" parent="1" source="probe" target="open" style="edgeStyle=none;rounded=0;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=1;exitY=0.5;entryX=1;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=180;labelBackgroundColor=#FFFFFF;" value="Fallo, timeout&#10;o salida inválida">
+          <mxGeometry as="geometry" relative="1" x="0" y="0">
+            <Array as="points">
+              <mxPoint x="900" y="810" />
+              <mxPoint x="900" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="footer" value="Una operación admite hasta dos intentos HTTP transitorios dentro de su presupuesto.&#10;La desconexión del cliente libera capacidad y no suma un fallo al proveedor.&#10;Una respuesta de una época anterior no modifica el circuito actual." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="30" y="940" width="940" height="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>

@@ -6,11 +6,15 @@ Una API puede devolver JSON válido y romper a sus consumidores: cambia un estad
 
 Los controladores de pedidos, inventario y devoluciones adaptan cada entrada a su puerto de aplicación. El JSON conserva nombres y estados anteriores. `quantity` y `version` requieren literales enteros: cadenas como `"2"` y números escritos como `1.9` o `2.0` producen 400, en vez de conversiones silenciosas. OpenAPI/JSON Schema considera entero el valor matemático 2.0; esa restricción de representación se indica en la descripción y se comprueba en HTTP. Los campos extra de entrada se toleran por compatibilidad; las respuestas conservan esquema acotado. No hay una clase compartida que concentre todas las rutas de negocio. Las llamadas del asistente usan operaciones por intención; solo el adaptador HTTP conoce rutas y verbos. Que una integración use HTTP no obliga a exponer `request(method, path)` en su puerto.
 
+<a id="topic-significado-antes-que-transporte"></a>
+
 ## Significado antes que transporte
 
 El dominio expresa errores como NOT_FOUND o CONFLICT, sin importar Spring ni devolver un status HTTP. `ProblemAdvice` traduce esos significados a 404 o 409. Otro adaptador podría traducir el mismo fallo a un resultado de mensajería. Esta separación evita que la regla «aprobación vencida» dependa del protocolo con el que se ejecuta.
 
 Las respuestas de error mantienen Problem Details: status, title, detail y correlationId, con mensajes controlados. No devuelven el cuerpo del proveedor ni un stacktrace. Un fallo de autorización y una dependencia caída no son equivalentes: preservar 401/403/404/409 cuando corresponde permite que el consumidor decida correctamente. Un 503 no autoriza a repetir cualquier escritura: hace falta identidad idempotente y una política explícita.
+
+<a id="topic-un-listado-pequeno-y-estable"></a>
 
 ## Un listado pequeño y estable
 
@@ -19,6 +23,15 @@ Las respuestas de error mantienen Problem Details: status, title, detail y corre
 La consulta aplica tenant y propietario en SQL; MANAGER ve únicamente su tenant. Recupera como máximo límite más uno: la fila adicional indica si existe otra página. El cursor procede del último elemento devuelto, no de la fila adicional. Un cursor no concede permisos; la consulta vuelve a aplicar el aislamiento en cada petición.
 
 El orden por UUID es determinista, pero no representa fecha de creación. Las páginas no son una instantánea: escrituras concurrentes pueden aparecer detrás de un cursor ya recorrido o cambiar la pertenencia a un filtro. Si el consumidor necesita una exportación consistente, hacen falta requisitos distintos. No se promete un total exacto ni se añade una consulta count para esta capacidad.
+
+Ejemplo ilustrativo con tres pedidos autorizados ordenados `A < B < C`: las letras representan UUID completos, no cursores válidos para copiar.
+
+| Petición | Filas leídas | Elementos devueltos | nextCursor |
+|---|---|---|---|
+| limit=2 | A, B, C | A, B | B |
+| limit=2, after=B | C | C | null |
+
+La fila C permite detectar otra página en la primera petición; devolverla también haría que la página superase su límite. El cursor B solo expresa una posición: permisos y filtros vuelven a aplicarse en la segunda consulta.
 
 El cursor acota la respuesta, no garantiza un coste constante. Antes de reutilizar el [listado JDBC](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/persistence/JdbcOrderRepositoryAdapter.java) con mucho volumen, examinar `EXPLAIN (ANALYZE, BUFFERS)` sobre datos representativos. Índices compuestos que empiecen por tenant y, según consulta, actor pueden reducir filas recorridas; también cuestan escritura y espacio. El filtro status y su selectividad cambian el plan. No se atribuye rendimiento industrial al dataset pequeño.
 
@@ -39,4 +52,4 @@ La alternativa offset es más sencilla para saltar a un número de página, pero
 
 **Alternativa:** generar clientes desde OpenAPI puede aportar valor si existen consumidores que los necesitan. Aquí no se añade un generador ni modelos duplicados: el contrato se verifica contra el comportamiento. Una modificación de ruta, seguridad, entrada o respuesta exige actualizar contrato y pruebas en el mismo cambio.
 
-Fuentes: [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/16/using-explain.html), [OpenAPI](https://spec.openapis.org/oas/v3.1.0), [JSON Schema](https://json-schema.org/draft/2020-12), [Problem Details](https://www.rfc-editor.org/rfc/rfc9457).
+Fuentes: [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/17/using-explain.html), [OpenAPI](https://spec.openapis.org/oas/v3.1.0), [JSON Schema: tipos numéricos y enteros](https://json-schema.org/understanding-json-schema/reference/numeric), [Problem Details](https://www.rfc-editor.org/rfc/rfc9457).

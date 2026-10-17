@@ -66,6 +66,7 @@
 | DOC-05 | Cada ficha incluye ruta de lectura, micropráctica ejecutable, salida esperada, fallo y alternativa | Revisión especializada y comandos comprobados |
 | DOC-04 | Nombre funcional y nombre técnico se corresponden; se distinguen aplicaciones, módulos, bibliotecas, servidores y protocolos | Mapa canónico, diagramas y referencias a código |
 | DOC-06 | Cada tema enlaza código y prueba, documentación oficial específica y, solo cuando aporta, una lectura o repositorio público pertinente. Los repositorios externos llevan enlace a código/README concreto y estrellas con fecha de consulta; las estrellas no se presentan como aval | Revisión de fuentes y enlaces; comprobación de estrellas y fecha |
+| DOC-07 | Las nueve fichas aclaran vocabulario y un ejemplo concreto donde exista ambigüedad; vistas de topología Kafka, concurrencia SQL y circuito IA trazan a código y conviven en el maestro único. Ejemplos numéricos son ilustrativos, no mediciones nuevas | Revisión por ficha, contraste con código, exportación e inspección de los tres SVG; enlaces y MkDocs estricto |
 | QA-01 | Tests significativos y revisiones sin hallazgos altos abiertos | Informes especialistas |
 | QA-03 | Verificación canónica local y CI rechazan skips Java/Python; una omisión deliberada demuestra el gate | JUnit y experimento negativo reversible |
 | QA-04 | Acciones CI mantenidas con Node24, fijadas a SHA verificado; checkout sin persistir credenciales y permisos read mínimos | action.yml oficial y ejecución remota de los tres jobs |

@@ -1,5 +1,7 @@
 # Workflow persistente y aprobación de efectos
 
+<a id="topic-una-propuesta-no-es-un-permiso"></a>
+
 ## Una propuesta no es un permiso
 
 Recuperar una política o generar una recomendación no autoriza una devolución. La API de comercio conserva las reglas y comprueba al actor en cada operación. El workflow coordina pasos y recuerda progreso; no otorga roles ni escribe directamente en tablas de negocio.
@@ -14,13 +16,17 @@ El [puerto de Comercio](../../apps/ai-service/src/ai_service/application/ports.p
 
 El JWT se usa transitoriamente para la llamada y no se guarda en checkpoints. Guardarlo convertiría el almacén del workflow en una colección de credenciales reutilizables. La identidad de propietario y tenant sí debe persistir para controlar consultas y reanudaciones.
 
+<a id="topic-estado-y-fallo-entre-sistemas"></a>
+
 ## Estado y fallo entre sistemas
 
 [![Estados de negocio de una devolución](../diagrams/return-states.svg)](../diagrams/return-states.svg)
 
 [Maestro draw.io](../diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
 
-Este diagrama describe el estado de negocio. Una nueva aprobación explícita cambia versión y vencimiento; no es una repetición idempotente de la misma aprobación. El vencimiento se verifica como condición de ejecución, sin un estado EXPIRED persistido. Un checkpoint es una copia guardada del progreso del grafo para poder pausar y reanudar; no contiene el estado de negocio ni concede permisos. No existe commit atómico entre la llamada HTTP y el checkpoint: comercio puede confirmar y la respuesta perderse. Al reintentar, la clave estable devuelve el efecto anterior y el backend vuelve a validar la autorización. LangGraph no proporciona por sí solo «exactamente una ejecución» sobre sistemas externos.
+Este diagrama describe el estado de negocio. Una nueva aprobación explícita cambia versión y vencimiento; no es una repetición idempotente de la misma aprobación. El vencimiento se verifica como condición de ejecución, sin un estado EXPIRED persistido. Un checkpoint es una copia guardada del progreso del grafo para poder pausar y reanudar; puede guardar IDs y un estado observado, pero no es la fuente de verdad del negocio ni concede permisos. No existe commit atómico entre la llamada HTTP y el checkpoint: comercio puede confirmar y la respuesta perderse. Al reintentar, la clave estable devuelve el efecto anterior y el backend vuelve a validar la autorización. LangGraph no proporciona por sí solo «exactamente una ejecución» sobre sistemas externos.
+
+Al reanudar un `interrupt`, LangGraph vuelve a ejecutar el nodo desde su principio. Cualquier efecto anterior a la pausa debe admitir repetición. Aquí el nodo de espera solo interrumpe; propuesta y ejecución usan claves estables frente a reinicios o respuestas perdidas. La pausa se conserva entre peticiones HTTP distintas: no mantiene una conexión abierta esperando al responsable. Véanse las [reglas de reanudación e idempotencia de interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent).
 
 La aprobación cambia versión. Ejecutar con la versión anterior debe fallar. Una propuesta aprobada no se edita silenciosamente; cualquier cambio requiere nueva aprobación. La caducidad de diez minutos limita una autorización que dejó de representar la intención actual. El backend aplica estos controles dentro de su transacción, incluso si se invoca sin pasar por AI.
 

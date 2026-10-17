@@ -1,5 +1,7 @@
 # Observar, diagnosticar y recuperar
 
+<a id="topic-senales-con-una-pregunta"></a>
+
 ## Señales con una pregunta
 
 Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta.
@@ -15,6 +17,8 @@ make demo
 **Cómo:** [configuración y dashboard](../../infra/observability/dashboard.json), [instrumentación HTTP Python](../../apps/ai-service/src/ai_service/main.py) y [registro Java](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java). Los logs JSON contienen ruta plantilla, status, duración y correlación; usar `docker compose logs --since=5m commerce-api ai-service` y buscar el `correlationId`. No se añade Loki: consultar stdout basta para este caso. La latencia HTTP Python termina al enviar cabeceras; la métrica de operación IA incluye el trabajo de la respuesta SSE.
 
 [El escenario](../../scenarios/observability.py) verifica scrapes de los tres servicios, un incremento nuevo, una traza W3C exacta AI → Commerce y logs JSON correlacionados sin JWT ni cuerpo. Imprime `traceId`: abrir Grafana → Explore → Tempo → Trace ID. No basta encontrar una traza antigua o ver el dashboard vacío.
+
+Un span representa un tramo de trabajo; una traza reúne spans relacionados bajo un traceId. correlationId es el identificador de correlación de la aplicación y no sustituye el contexto de trazado. Propagar contexto permite enlazar el trabajo asíncrono con su origen; el [modelo de OpenTelemetry](https://opentelemetry.io/docs/concepts/context-propagation/) explica esa relación.
 
 El dashboard es diagnóstico local: retención corta, muestreo 100% para la práctica, infraestructura efímera y sin HA. En producción, ajustar muestreo, retención, autenticación y presupuesto según tráfico. El colector limita memoria y exporta por lotes. Las APIs no registran tokens ni cuerpos; al añadir instrumentación revisar atributos y exclusiones para no convertir trazas en otro almacén de secretos.
 
@@ -70,7 +74,15 @@ uv run --project tools/docs python scripts/replay_event.py --file /ruta/evento-r
 
 No renombrar identidades para eludir deduplicación. Un evento tardío fuera de grace no debe recuperarse como si hubiera llegado a tiempo: reconstruir una proyección histórica con applicationId y topics separados, después reconciliar. Retención y siete días de deduplicación delimitan qué replay está soportado.
 
+<a id="topic-sli-slo-y-capacidad"></a>
+
 ## SLI, SLO y capacidad
+
+SLI es la medida observada, por ejemplo la proporción de operaciones válidas completadas; SLO es el objetivo de esa medida en una ventana temporal acordada. Un presupuesto de error expresa el margen de incumplimiento admitido por ese objetivo. Estos términos no fijan un objetivo productivo para la referencia.
+
+El percentil p95 describe el valor bajo el que cae aproximadamente el 95 % de las observaciones; la media puede ocultar la cola lenta. Prometheus estima percentiles de histogramas con buckets: su precisión depende de esos intervalos y no permite promediar p95 de varios pods como si fueran una media. Véase [histogramas y cuantiles](https://prometheus.io/docs/practices/histograms/).
+
+Cardinalidad es el número de series distintas generadas por combinaciones de etiquetas. `route=/orders/{id}` mantiene un conjunto acotado; etiquetar cada UUID multiplicaría series y expondría identificadores.
 
 Medir éxito de operaciones válidas, latencia y frescura; IA añade fidelidad y abstención correcta. El SLO depende del negocio. Las alertas son umbrales didácticos, sin disponibilidad histórica atribuida.
 
@@ -94,6 +106,8 @@ Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del prov
 **Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
 
 Fuentes: [Spring logging estructurado](https://docs.spring.io/spring-boot/reference/features/logging.html), [Tempo API](https://grafana.com/docs/tempo/latest/api_docs/), [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).
+
+<a id="topic-ejemplo-de-observabilidad"></a>
 
 ## Ejemplo de observabilidad
 
