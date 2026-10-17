@@ -60,11 +60,12 @@
 | K8S-01 | Namespace dedicado, rollout y probes correctos | kind smoke |
 | K8S-02 | HPA escala 1->2 con carga sin duplicar efecto | kind/metrics-server/load |
 | TF-01 | fmt/validate/tests plan mocks aprueban sin cloud; rol mínimo GKE y permisos de imágenes por intención; IPv6 rechazado en operator_cidr IPv4 /32 | CLI fijada |
-| DOC-01 | Cada ficha explica problema, decisión, alternativa y prueba | Revisión editorial independiente |
-| DOC-02 | Links/código/comandos/diagramas coinciden con sistema | Build estricto y visual QA |
-| DOC-03 | C4, identidad/señales, dependencias internas, secuencias/estados, RAG/Streams, modelo SQL y despliegue local/cloud trazan a implementación o propuesta explícita; ADR y patrones justifican decisiones | Matriz, revisión de código/configuración, SVG insertados y maestro draw.io editable |
+| DOC-01 | Cada ficha explica problema, decisión, alternativa y prueba; los conceptos no obvios para un lector junior reciben una introducción breve y una distinción clara | Revisión editorial independiente |
+| DOC-02 | Links/código/comandos/diagramas coinciden con sistema; el README ofrece un temario jerárquico visible con enlaces válidos a las secciones | Build estricto, verificación de enlaces y revisión editorial |
+| DOC-03 | C4, identidad/señales, dependencias internas, secuencias/estados, RAG/Streams, modelo SQL y despliegue local/cloud trazan a implementación o propuesta explícita; los diagramas de aprendizaje aclaran una relación concreta sin duplicar vistas existentes | Revisión de código/configuración, SVG insertados y maestro draw.io editable; inspección visual de cada SVG modificado |
 | DOC-05 | Cada ficha incluye ruta de lectura, micropráctica ejecutable, salida esperada, fallo y alternativa | Revisión especializada y comandos comprobados |
 | DOC-04 | Nombre funcional y nombre técnico se corresponden; se distinguen aplicaciones, módulos, bibliotecas, servidores y protocolos | Mapa canónico, diagramas y referencias a código |
+| DOC-06 | Cada tema enlaza código y prueba, documentación oficial específica y, solo cuando aporta, una lectura o repositorio público pertinente. Los repositorios externos llevan enlace a código/README concreto y estrellas con fecha de consulta; las estrellas no se presentan como aval | Revisión de fuentes y enlaces; comprobación de estrellas y fecha |
 | QA-01 | Tests significativos y revisiones sin hallazgos altos abiertos | Informes especialistas |
 | QA-03 | Verificación canónica local y CI rechazan skips Java/Python; una omisión deliberada demuestra el gate | JUnit y experimento negativo reversible |
 | QA-04 | Acciones CI mantenidas con Node24, fijadas a SHA verificado; checkout sin persistir credenciales y permisos read mínimos | action.yml oficial y ejecución remota de los tres jobs |

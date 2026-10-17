@@ -1,10 +1,18 @@
 # Eventos fiables y tiempo de procesamiento
 
+## Kafka: eventos y Streams
+
+Un evento es un registro que cuenta algo que ya ocurrió, como `OrderPlaced`; no es una consulta del estado actual del pedido. Kafka conserva esos registros en topics divididos en particiones. La clave `orderId` mantiene el orden de los eventos de un pedido dentro de su partición, pero no establece un orden global entre todas las particiones.
+
+Kafka es el servidor que recibe y entrega registros. Kafka Streams es una biblioteca Java que se ejecuta dentro de una aplicación consumidora: puede filtrar, agrupar y resumir esos registros y publicar resultados en otro topic. Un consumidor Kafka común también puede escuchar eventos sin usar Streams. En esta referencia, Commerce publica `OrderPlaced`; el consumidor de auditoría aplica Inbox, mientras `order-analytics` usa Streams para resumir pedidos por tenant, SKU y minuto. El evento describe un hecho; el resumen es una proyección derivada y puede recibir varias actualizaciones.
+
 ## Publicar después de confirmar
 
 Guardar un pedido y enviar Kafka son dos escrituras en sistemas distintos. Si la primera funciona y la segunda falla, el consumidor nunca recibe el hecho. Enviar primero invierte el problema: puede publicarse un pedido que luego no existe. `@Async` cambia el hilo, sin crear atomicidad.
 
 El outbox guarda el evento junto al pedido. Un publicador reclama lotes pendientes con `FOR UPDATE SKIP LOCKED`, envía y espera confirmación del broker antes de marcarlos. Si cae tras enviar y antes de marcar, publicará de nuevo. La garantía es entrega al menos una vez dentro de las condiciones de retención y recuperación; el consumidor debe tolerar duplicados.
+
+`OutboxPublisher` consulta cada segundo hasta veinte filas pendientes, con bloqueo para que varios publicadores no reclamen la misma fila. Es polling del outbox para entregar eventos, no polling del estado del pedido por parte del cliente. La respuesta HTTP no espera a Kafka.
 
 El consumidor de auditoría usa una tabla inbox con `UNIQUE(eventId)`. Registrar identidad y efecto se hace en una transacción; el offset se confirma después. Un reinicio puede repetir un mensaje pero la restricción evita un segundo efecto. La identidad de evento debe mantenerse en los reintentos y en el reproceso. Generar un UUID nuevo convierte la repetición en otro hecho.
 
@@ -57,4 +65,8 @@ El tiempo de evento decide cuándo se cierra una ventana. Un `occurredAt` de 209
 
 **Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
 
-Fuentes: [Kafka y retención por timestamp](https://kafka.apache.org/40/implementation/log/), [TimestampExtractor](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/processor/TimestampExtractor.html), [Kafka Streams conceptos](https://kafka.apache.org/40/streams/core-concepts/), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox](https://microservices.io/patterns/data/transactional-outbox.html).
+Fuentes: [Kafka y retención por timestamp](https://kafka.apache.org/40/implementation/log/), [Kafka Streams: conceptos](https://kafka.apache.org/40/streams/core-concepts/), [pruebas de Streams](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox transaccional](https://microservices.io/patterns/data/transactional-outbox.html).
+
+## Lecturas y ejemplo de referencia
+
+Lectura complementaria: [*Designing Data-Intensive Applications*, 2.ª edición](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html), para comparar sistemas de datos, procesamiento y sus trade-offs. El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/trunk/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) muestra una topología mínima en el repositorio Apache Kafka (34.036 estrellas, consultadas el 17-10-2026); sirve para estudiar la API, no como dependencia de esta implementación.

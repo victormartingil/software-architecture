@@ -2,7 +2,7 @@
 
 ## Autenticación y autorización
 
-OIDC establece quién llama; las reglas de negocio establecen qué puede hacer. Commerce y AI validan firma, issuer, audiencia y caducidad del JWT, además de subject y tenant válidos. El claim de rol debe tener la estructura esperada. Un token firmado pero sin vencimiento no es una credencial aceptable en esta referencia.
+OIDC es el protocolo de identidad que permite autenticar al usuario; JWT es el formato del token que reciben las APIs y JWKS publica las claves para verificar su firma. Validar un token responde quién llama, no qué puede hacer: la autorización se aplica después en reglas de negocio. Commerce y AI comprueban firma, issuer, audiencia y caducidad, además de subject y tenant válidos. El claim de rol debe tener la estructura esperada. Un token firmado pero sin vencimiento no es una credencial aceptable en esta referencia.
 
 El tenant siempre procede del token. Buscar un pedido exige tenant y propietario, salvo MANAGER del mismo tenant. Un identificador UUID difícil de adivinar no sustituye esa condición. Se devuelve 404 para recursos ajenos para limitar divulgación. Los tests incluyen firma, issuer y audiencia incorrectos, token caducado, claims ausentes y acceso cruzado.
 

@@ -10,6 +10,42 @@ Tres servicios pequeños para explicar y verificar arquitectura de backend, even
 
 Comercio publica los avisos de pedidos en **Kafka**, un servidor de eventos. **Keycloak** es otro servidor: gestiona identidades y emite tokens, sin formar parte de Spring Boot. Los scripts locales son los clientes que llaman a nuestras APIs. El [mapa de componentes](docs/repository-design.md#component-map) explica cada pieza y su correspondencia con el código. No hay frontend propio.
 
+## Temario
+
+Recorrido de lo esencial a la operación. Cada concepto enlaza con la explicación, el código y las pruebas del tema.
+
+1. [Límites de arquitectura y patrones](docs/handbook/architecture.md#problema-y-decisión)
+   1. [Módulos, servicios y puertos/adaptadores](docs/handbook/architecture.md#por-que-tres-servicios)
+   2. [Adapter, Repository, Strategy, Outbox/Inbox y Circuit Breaker](docs/handbook/architecture.md#patrones-con-una-responsabilidad-concreta)
+2. [Contratos de API](docs/handbook/api-contracts.md#significado-antes-que-transporte)
+   1. [Errores de dominio y Problem Details](docs/handbook/api-contracts.md#significado-antes-que-transporte)
+   2. [OpenAPI, cursor y paginación por clave](docs/handbook/api-contracts.md#un-listado-pequeno-y-estable)
+3. [Datos, transacciones y concurrencia](docs/handbook/transactions.md#la-invariante-primero)
+   1. [Invariantes, constraints y stock concurrente](docs/handbook/transactions.md#la-invariante-primero)
+   2. [Idempotencia, reintentos y devoluciones aprobadas](docs/handbook/transactions.md#repetir-una-petición-es-normal)
+4. [Comunicación asíncrona y eventos](docs/handbook/events.md#kafka-eventos-y-streams)
+   1. [Eventos, topics, claves y particiones](docs/handbook/events.md#kafka-eventos-y-streams)
+   2. [Outbox/Inbox, entrega repetida, DLT y replay](docs/handbook/events.md#publicar-despues-de-confirmar)
+   3. [Kafka Streams frente al evento: ventanas, tiempo y estado](docs/handbook/events.md#ventanas-y-deduplicacion)
+5. [Integración de IA y RAG](docs/handbook/retrieval.md#evidencia-antes-de-redactar)
+   1. [Recuperación lexical/vectorial, citas y aislamiento tenant](docs/handbook/retrieval.md#evidencia-antes-de-redactar)
+   2. [Abstención y evaluación de recuperación](docs/handbook/retrieval.md#que-medir)
+   3. [Proveedor, salidas estructuradas y streaming SSE](docs/handbook/retrieval.md#simulacion-y-proveedor-real)
+6. [Workflows persistentes y aprobación humana](docs/handbook/workflows.md#una-propuesta-no-es-un-permiso)
+   1. [Checkpoint, pausa y reanudación](docs/handbook/workflows.md#estado-y-fallo-entre-sistemas)
+   2. [Autorización, versión e idempotencia del efecto](docs/handbook/workflows.md#una-propuesta-no-es-un-permiso)
+7. [Seguridad y resiliencia](docs/handbook/security.md#autenticacion-y-autorizacion)
+   1. [OIDC, JWT, JWKS y autorización por tenant](docs/handbook/security.md#autenticacion-y-autorizacion)
+   2. [Prompt injection y límites de confianza](docs/handbook/security.md#modelo-de-amenazas-minimo)
+   3. [Timeouts, reintentos, breaker y cancelación](docs/handbook/security.md#fallos-de-dependencias)
+8. [Operación y observabilidad](docs/handbook/operations.md#señales-con-una-pregunta)
+   1. [Métricas, logs, trazas y correlación](docs/handbook/operations.md#señales-con-una-pregunta)
+   2. [Alertas, runbooks, SLI/SLO y capacidad](docs/handbook/operations.md#sli-slo-y-capacidad)
+9. [Entrega y verificación](docs/handbook/delivery.md#tres-niveles-distintos-de-prueba)
+   1. [Compose, contenedores y CI](docs/handbook/delivery.md#delivery-cambios-y-reversion)
+   2. [Kubernetes, probes y HPA](docs/handbook/delivery.md#laboratorio-kubernetes)
+   3. [Terraform, mocks y límites de una validación cloud](docs/handbook/delivery.md#fundacion-cloud)
+
 [![Contexto: quién utiliza la tienda y sus sistemas externos](docs/diagrams/c4-context.svg)](docs/diagrams/c4-context.svg)
 
 [Aplicaciones y datos · C4 nivel 2](docs/repository-design.md#c4-contenedores-nivel-2) · [Índice de vistas](docs/reference-map.md#vistas-visuales) · [Maestro editable draw.io](docs/diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.

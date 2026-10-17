@@ -2,7 +2,7 @@
 
 ## Evidencia antes de redactar
 
-Una respuesta fluida puede ser falsa. El asistente de políticas necesita recuperar documentos autorizados, decidir si hay evidencia y devolver referencias verificables. El corpus es pequeño y sintético: no hace falta comenzar por embeddings. El baseline lexical permite aislar la calidad de recuperación del comportamiento generativo.
+Una respuesta fluida puede ser falsa. RAG (Retrieval-Augmented Generation, generación aumentada por recuperación) busca primero evidencia en documentos autorizados y después entrega esa evidencia al generador. Recuperar documentos y redactar una respuesta son dos pasos distintos; una base vectorial es una opción de recuperación, no un requisito de RAG. El corpus es pequeño y sintético: no hace falta comenzar por embeddings. El baseline lexical permite aislar la calidad de recuperación del comportamiento generativo.
 
 El [recuperador](../../apps/ai-service/src/ai_service/infrastructure/retrieval.py) filtra por tenant antes de seleccionar los tres documentos más relevantes. El tenant procede del JWT validado. No se recupera de todos los usuarios para filtrar después de generar: el contenido ya habría cruzado una frontera de seguridad. No hay endpoint público de subida de documentos ni caché compartida entre tenants.
 
@@ -44,3 +44,7 @@ make eval
 **Alternativa:** comparar embeddings o búsqueda híbrida con las mismas etiquetas, sin asumir que mayor complejidad mejora resultados. Antes de cambiar el ranking, preguntar si el problema es ausencia de evidencia, orden de documentos o fidelidad de generación: requieren controles distintos.
 
 Fuentes: [Responses](https://platform.openai.com/docs/api-reference/responses), [salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs), [pgvector](https://github.com/pgvector/pgvector), [FastAPI respuestas](https://fastapi.tiangolo.com/advanced/custom-response/).
+
+## Lectura y ejemplo de referencia
+
+Lectura: [*AI Engineering*, de Chip Huyen](https://www.oreilly.com/library/view/ai-engineering/9781098166298/), para diseño, evaluación y operación de aplicaciones con modelos fundacionales. [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/main/docs/examples/low_level/retrieval.ipynb) muestra código de retrieval en otro stack (52.539 estrellas, consultadas el 17-10-2026); sirve para comparar estrategias, no para sustituir los filtros de autorización de esta referencia.

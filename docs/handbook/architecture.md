@@ -55,3 +55,7 @@ Command y Query nombran intenciones; no implican CQRS con almacenes separados. U
 **Alternativa:** llamar directamente a JDBC ahorra un puerto, pero acopla el caso de uso a persistencia. Justificar cada abstracción por una sustitución o responsabilidad concreta; la revisión sigue siendo necesaria para detectar interfaces vacías o conceptos filtrados.
 
 Fuentes: [arquitectura hexagonal original](https://alistair.cockburn.us/hexagonal-architecture), [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), [import-linter](https://import-linter.readthedocs.io/en/stable/contract_types/layers/).
+
+## Lectura y repositorio de referencia
+
+Lectura: [*Fundamentals of Software Architecture*, 2.ª edición](https://www.oreilly.com/library/view/fundamentals-of-software/9781098175504/), para estilos, límites, decisiones y evolución de arquitectura. Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/main/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring (1.200 estrellas, consultadas el 17-10-2026). Es una referencia de la biblioteca, no una dependencia de este proyecto.

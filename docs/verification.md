@@ -60,11 +60,12 @@ Estado local del **2026-10-17**, ARM64, Java 21 y Docker con 2 CPU/10 GiB. Una �
 | K8S-02 | Transición CPU real 1→2, dos pods/endpoints listos; 89.974 GET correctos y cero errores en 300 s (cap 300/s, 16 workers) | Verificado, laboratorio |
 | K8S-03 | Dos POST simultáneos por port-forward a pods distintos, misma respuesta y decremento único; devolución restaura stock | Verificado en kind |
 | TF-01 | fmt/validate y cuatro planes mock; rol GKE mínimo, imágenes por repositorio, rechazo IPv6/IPv4 inválida/red abierta; mutación Owner rechazada | Verificado, sin cloud |
-| DOC-01 | Nueve fichas, ejemplos/alternativas/límites/fuentes y revisión editorial independiente | Verificado |
-| DOC-02 | Trece SVG inspeccionados a 1000/688 px, medición geométrica en navegador y MkDocs/enlaces aprobados; etiquetas C4 corregidas (F4) | Verificado |
-| DOC-03 | Trece vistas: estructura, identidad/señales, comportamiento, SQL y despliegues local/cloud; seis ADR conectados a código | Verificado |
+| DOC-01 | Nueve fichas, ejemplos/alternativas/límites/fuentes y definiciones breves de conceptos no obvios; revisión editorial independiente previa | Verificado |
+| DOC-02 | Temario jerárquico del README enlaza a nueve áreas y sus subtemas; `make verify` comprueba enlaces y MkDocs estricto | Verificado, 2026-10-17 |
+| DOC-03 | Trece vistas: estructura, identidad/señales, comportamiento, SQL y despliegues local/cloud; una vista Kafka Streams ajustada en el maestro y SVG inspeccionado a 680 px | Verificado, 2026-10-17 |
 | DOC-05 | Nueve microprácticas con archivos/comando/resultado/fallo/alternativa; runbook autenticado con broker detenido ejecutado literalmente | Verificado |
 | DOC-04 | Mapa funcional/código, servicios de apoyo y distinción de niveles en explicaciones y trece vistas | Verificado |
+| DOC-06 | Fichas seleccionadas enlazan libros y código/README externo pertinente; páginas oficiales concretas y conteos de estrellas fechados. Revisión de contenido y enlaces en `make verify` | Verificado, 2026-10-17 |
 | QA-03 | JUnit obligatorio local/CI; siete pruebas de scripts y omisión deliberada rechazada aunque pytest termine 0 | Verificado |
 | QA-01 | Revisor independiente detectó dos P2: cola de workflow y timestamp futuro; reparados y validados con negativos | Verificado en alcance revisado |
 | QA-04 | Preparación CI migrada de acciones obsoletas a Node24, SHA e inputs contrastados con origen oficial; runtime de apps sin cambios | Revisado independientemente; resultado por commit en Actions |
@@ -104,7 +105,7 @@ Los AC de organización y contratos precedieron su implementación. La ampliaci�
 
 ## Documentación y diagramas
 
-Nueve fichas enlazan cuándo aplicar el mecanismo, decisión, código, prueba, alternativa y límite; el [recorrido](index.md#cuando-aplicar-cada-mecanismo) y el [mapa](reference-map.md) evitan duplicar teoría. Se consolidó esta verificación retirando estados y notas sustituidos. Dominio/datos públicos sintéticos, sin copiar material privado.
+El README organiza nueve áreas y 22 subtemas con enlaces directos a las fichas. Las fichas enlazan cuándo aplicar el mecanismo, decisión, código, prueba, alternativa, límite y fuentes oficiales; se añaden libros y repositorios solo donde ayudan a profundizar. `make verify` aprobó el 2026-10-17: 180 pruebas de aplicaciones, siete pruebas de scripts, dos contratos import-linter, higiene, enlaces y MkDocs estricto; no hubo fallos ni omisiones. La evaluación offline obtuvo recall@3=1, hit-rate@3=1, MRR@3=0,953125, aislamiento=1 y abstención=1 sobre 42 casos sintéticos (32 respondibles), sin modelo real. El diagrama Kafka/Streams se exportó desde el maestro y se inspeccionó a 680 px; las otras doce vistas no cambiaron. Dominio/datos públicos sintéticos, sin copiar material privado.
 
 Un [maestro draw.io](diagrams/architecture.drawio) contiene trece vistas con SVG por página. La revisión visual anterior midió 447 líneas y 80 relaciones con getBBox/transformaciones/muestreo ≤3 unidades, cero incidencias detectadas; inspección a 1000/688 px y carga nativa del maestro, sin prometer ausencia universal de defectos. F4 corrigió etiquetas tapadas que el comprobador no detectó. Último cambio visual: OrderController en dependencias, resto de doce SVG idéntico. No se reabren diagramas sin cambio semántico de topología: observabilidad mantiene los mismos componentes/relaciones.
 

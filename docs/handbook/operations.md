@@ -94,3 +94,7 @@ Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del prov
 **Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
 
 Fuentes: [Spring logging estructurado](https://docs.spring.io/spring-boot/reference/features/logging.html), [Tempo API](https://grafana.com/docs/tempo/latest/api_docs/), [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).
+
+## Ejemplo de observabilidad
+
+La [configuración del OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/main/otel-config.yml) muestra un Collector conectado a varias aplicaciones y backends (3.409 estrellas, consultadas el 17-10-2026). Es un sistema mucho mayor que este laboratorio; úsalo para seguir la configuración de señales, no como topología mínima recomendada.

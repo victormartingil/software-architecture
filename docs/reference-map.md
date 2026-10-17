@@ -43,8 +43,16 @@ Docker Compose es el punto de entrada. Kubernetes y Terraform son laboratorios s
 
 Spring AI, MCP, event sourcing, sagas, service mesh, Backstage y múltiples proveedores no se añaden por completar un catálogo. Criterio de entrada: una necesidad observable, una alternativa más simple descartada y un AC que muestre el beneficio.
 
-## Referencias orientativas
+## Lecturas y ejemplos externos
 
-Los libros guían preguntas, sin sustituir fuentes actuales del stack: *Software Architecture: The Hard Parts* (Ford et al.), *Fundamentals of Software Architecture* (Richards/Ford), *Designing Data-Intensive Applications* (Kleppmann), *Enterprise Integration Patterns* (Hohpe/Woolf), *Release It!* (Nygard), *Building Microservices* (Newman), *Domain-Driven Design* (Evans) y *AI Engineering* (Huyen). No se reproducen sus textos.
+Cada ficha termina con las fuentes oficiales del concepto y, cuando ayuda a estudiarlo, una lectura o un ejemplo de código externo:
 
-Para ejemplos públicos, contrastar alcance antes de adaptar: [Spring Modulith](https://github.com/spring-projects/spring-modulith) sobre módulos verificables, [Confluent tutorials](https://github.com/confluentinc/tutorials) sobre Kafka, [OpenTelemetry demo](https://github.com/open-telemetry/opentelemetry-demo) sobre señales y [Google microservices demo](https://github.com/GoogleCloudPlatform/microservices-demo) sobre despliegue. Son referencias, no dependencias ni avales. Ningún número de estrellas garantiza corrección o compatibilidad con este caso.
+| Tema | Recursos complementarios |
+|---|---|
+| Módulos y límites | [Arquitectura](handbook/architecture.md#lectura-y-repositorio-de-referencia) |
+| Eventos y Kafka Streams | [Eventos](handbook/events.md#lecturas-y-ejemplo-de-referencia) |
+| RAG y evaluación | [Recuperación](handbook/retrieval.md#lectura-y-ejemplo-de-referencia) |
+| Métricas, trazas y logs | [Operación](handbook/operations.md#ejemplo-de-observabilidad) |
+| Kubernetes y TLS de base de datos | [Delivery](handbook/delivery.md#ejemplo-de-kubernetes) |
+
+Las estrellas son una señal de alcance del repositorio, no una garantía de calidad o compatibilidad. Sus cifras muestran la consulta del 17-10-2026; comprobar la página enlazada antes de usar una referencia en una implementación.
