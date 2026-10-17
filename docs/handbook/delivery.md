@@ -6,6 +6,10 @@ Compose verifica colaboración local de servicios. kind verifica manifiestos y c
 
 Las aplicaciones usan imágenes separadas y usuarios no-root, probes y memoria acotada. Las dependencias locales son deliberadamente simples: un PostgreSQL/pgvector, un broker KRaft y Keycloak de desarrollo. Las bases tienen usuarios distintos por dueño. Los puertos host se enlazan a loopback; no exponer esta configuración a Internet.
 
+[![Comparación de despliegue local con Compose y kind](../diagrams/deployment-local.svg)](../diagrams/deployment-local.svg)
+
+[Maestro draw.io](../diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. Las cajas agrupan recursos de despliegue; las conexiones entre aplicaciones están en el [C4](../repository-design.md).
+
 ## Laboratorio Kubernetes
 
 ```bash
@@ -31,6 +35,10 @@ make terraform-check
 ```
 
 La [configuración GCP](../../infra/cloud/main.tf) define red, subredes, salida NAT, Artifact Registry, identidad de nodos y GKE Autopilot. Fija CLI y provider. El plano de control limita acceso a un `/32` de operador; nodos privados y Workload Identity forman parte de la base. DB, Kafka gestionado, OIDC, TLS, secretos y sus permisos son entradas o trabajo de despliegue explícito. No se crea un cluster con `apply`.
+
+[![Diseño de la fundación GCP: red, GKE e identidades](../diagrams/cloud-foundation.svg)](../diagrams/cloud-foundation.svg)
+
+[Maestro draw.io](../diagrams/architecture.drawio). Esta vista describe configuración comprobada con mocks, no infraestructura desplegada.
 
 Cuatro pruebas mock comprueban la base y rechazan CIDR abierto, IPv6 e IPv4 inválida. La identidad de nodos recibe el rol mínimo GKE a nivel de proyecto y lectura de imágenes acotada al repositorio; las aserciones verifican intención y ámbito, no un número de roles. No verifican cuotas, IAM real, conectividad, facturación ni disponibilidad de recursos. Antes de producción harían falta backend de estado remoto con bloqueo, pipelines de plan/aprobación, política de secretos, backup probado y presupuesto. NAT y GKE generan costes incluso sin usuarios.
 

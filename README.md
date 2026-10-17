@@ -10,6 +10,10 @@ Tres servicios pequeños para explicar y verificar arquitectura de backend, even
 
 Comercio publica los avisos de pedidos en **Kafka**, un servidor de eventos. **Keycloak** es otro servidor: gestiona identidades y emite tokens, sin formar parte de Spring Boot. Los scripts locales son los clientes que llaman a nuestras APIs. El [mapa de componentes](docs/repository-design.md#component-map) explica cada pieza y su correspondencia con el código. No hay frontend propio.
 
+[![Contexto: quién utiliza la tienda y sus sistemas externos](docs/diagrams/c4-context.svg)](docs/diagrams/c4-context.svg)
+
+[Aplicaciones y datos · C4 nivel 2](docs/repository-design.md#c4-contenedores-nivel-2) · [Índice de vistas](docs/reference-map.md#vistas-visuales) · [Maestro editable draw.io](docs/diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
+
 ## Ejecutar
 
 Requisitos: Docker Engine 25+ con Compose v2 y 10 GiB de memoria disponibles; Python 3.12, uv y Make. Para pruebas Java: JDK 21; Maven Wrapper descarga Maven. kind y kubectl solo para el laboratorio Kubernetes. La primera construcción necesita Internet.

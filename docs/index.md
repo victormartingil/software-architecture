@@ -4,6 +4,8 @@ Una tienda sintética permite estudiar transacciones, eventos y herramientas de 
 
 Antes del recorrido técnico, consultar [qué hace cada pieza](repository-design.md#component-map): aplicaciones, módulos, servidores y protocolos.
 
+Los diagramas están integrados en cada tema. El [índice de vistas](reference-map.md#vistas-visuales) permite elegir contexto, estructura, datos, comportamiento o despliegue sin mezclar sus niveles.
+
 ## Punto de entrada
 
 Desde la raíz del repositorio, con Docker Compose, Java 21, Python 3.12 y uv:

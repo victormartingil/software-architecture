@@ -50,7 +50,7 @@
 | TF-01 | fmt/validate/tests plan mocks aprueban sin cloud; rol mínimo GKE y permisos de imágenes por intención; IPv6 rechazado en operator_cidr IPv4 /32 | CLI fijada |
 | DOC-01 | Cada ficha explica problema, decisión, alternativa y prueba | Revisión editorial independiente |
 | DOC-02 | Links/código/comandos/diagramas coinciden con sistema | Build estricto y visual QA |
-| DOC-03 | C4, secuencias, ADR y patrones trazan a implementación | Matriz y revisión |
+| DOC-03 | C4, identidad/señales, dependencias internas, secuencias/estados, RAG/Streams, modelo SQL y despliegue local/cloud trazan a implementación o propuesta explícita; ADR y patrones justifican decisiones | Matriz, revisión de código/configuración, SVG insertados y maestro draw.io editable |
 | DOC-05 | Cada ficha incluye ruta de lectura, micropráctica ejecutable, salida esperada, fallo y alternativa | Revisión especializada y comandos comprobados |
 | DOC-04 | Nombre funcional y nombre técnico se corresponden; se distinguen aplicaciones, módulos, bibliotecas, servidores y protocolos | Mapa canónico, diagramas y referencias a código |
 | QA-01 | Tests significativos y revisiones sin hallazgos altos abiertos | Informes especialistas |

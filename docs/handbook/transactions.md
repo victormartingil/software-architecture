@@ -10,6 +10,12 @@ El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference
 
 [Maestro draw.io](../diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG.
 
+## Esquema que sostiene las garantías
+
+[![Modelo físico de las siete tablas de Comercio](../diagrams/commerce-data.svg)](../diagrams/commerce-data.svg)
+
+[Maestro draw.io](../diagrams/architecture.drawio). PK identifica una fila; FK exige una referencia existente. La cardinalidad se lee izquierda:derecha: un pedido tiene cero o una propuesta y cada propuesta corresponde a un pedido. Solo se dibujan las dos FK declaradas en Flyway; las referencias lógicas sin FK se enumeran aparte.
+
 ## Repetir una petición es normal
 
 El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor, operación y recurso. Se almacena también el hash del cuerpo: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.

@@ -48,7 +48,7 @@
           <mxGeometry x="18" y="84" width="254" height="34" as="geometry" />
         </mxCell>
         <mxCell id="commerce" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="400" y="400" width="300" height="170" as="geometry" />
+          <mxGeometry x="420.0" y="400" width="300" height="170" as="geometry" />
         </mxCell>
         <mxCell id="commerce-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#173C46;strokeColor=#173C46;strokeWidth=1.3;" vertex="1" parent="commerce">
           <mxGeometry x="0" y="0" width="300" height="170" as="geometry" />
@@ -63,7 +63,7 @@
           <mxGeometry x="18" y="84" width="264" height="74" as="geometry" />
         </mxCell>
         <mxCell id="ai" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="940" y="400" width="340" height="170" as="geometry" />
+          <mxGeometry x="960.0" y="400" width="340" height="170" as="geometry" />
         </mxCell>
         <mxCell id="ai-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="ai">
           <mxGeometry x="0" y="0" width="340" height="170" as="geometry" />
@@ -78,7 +78,7 @@
           <mxGeometry x="18" y="84" width="304" height="74" as="geometry" />
         </mxCell>
         <mxCell id="kafka" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="60" y="420" width="250" height="150" as="geometry" />
+          <mxGeometry x="40.0" y="420" width="250" height="150" as="geometry" />
         </mxCell>
         <mxCell id="kafka-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kafka">
           <mxGeometry x="0" y="0" width="250" height="150" as="geometry" />
@@ -108,7 +108,7 @@
           <mxGeometry x="18" y="84" width="264" height="64" as="geometry" />
         </mxCell>
         <mxCell id="commerce-db" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
-          <mxGeometry x="410" y="780" width="300" height="160" as="geometry" />
+          <mxGeometry x="430.0" y="780" width="300" height="160" as="geometry" />
         </mxCell>
         <mxCell id="commerce-db-shape" value="" style="rounded=1;arcSize=8;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="commerce-db">
           <mxGeometry x="0" y="0" width="300" height="160" as="geometry" />
@@ -178,12 +178,12 @@
             <mxPoint x="0.30239651641204546" y="-7.000725747459114" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="publish-order" edge="1" parent="1" source="commerce" target="kafka" value="Publica evento&#10;Pedido creado" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0;exitY=0.28;entryX=1;entryY=0.184;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontColor=#58697A;fontSize=14;labelWidth=82;labelBackgroundColor=#FFFFFF;">
+        <mxCell id="publish-order" edge="1" parent="1" source="commerce" target="kafka" value="Publica evento&#10;Pedido creado" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0;exitY=0.28;entryX=1;entryY=0.184;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontColor=#58697A;fontSize=16;labelWidth=110;labelBackgroundColor=#FFFFFF;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="0.0" y="-23.600000000000023" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="audit-order" edge="1" parent="1" source="kafka" target="commerce" value="Lee evento&#10;para auditoría" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.7846666667;entryX=0;entryY=0.81;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontColor=#58697A;fontSize=14;labelWidth=82;labelBackgroundColor=#FFFFFF;">
+        <mxCell id="audit-order" edge="1" parent="1" source="kafka" target="commerce" value="Lee evento&#10;para auditoría" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.7846666667;entryX=0;entryY=0.81;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontColor=#58697A;fontSize=16;labelWidth=110;labelBackgroundColor=#FFFFFF;">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="0.0" y="10.299999997499981" as="offset" />
           </mxGeometry>
@@ -834,7 +834,7 @@
         <mxCell id="begin-to" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="db">
           <mxGeometry as="geometry" x="90" y="210" width="0" height="0" />
         </mxCell>
-        <mxCell id="begin" source="begin-from" target="begin-to" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0;exitY=0;entryX=0;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=17;fontColor=#58697A;align=center;verticalAlign=middle;labelWidth=240;labelBackgroundColor=#FFFFFF;" value="BEGIN y bloquear clave">
+        <mxCell id="begin" source="begin-from" target="begin-to" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0;exitY=0;entryX=0;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=17;fontColor=#58697A;align=center;verticalAlign=middle;labelWidth=240;labelBackgroundColor=#FFFFFF;" value="BEGIN + advisory lock&#10;Ámbito idempotente V2">
           <mxGeometry as="geometry" relative="1" x="0" y="25" />
         </mxCell>
         <mxCell id="reserve-from" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="commerce">
@@ -882,7 +882,7 @@
         <mxCell id="created" source="created-from" target="created-to" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0;exitY=0;entryX=0;entryY=0;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=6 5;fontFamily=Arial;fontSize=17;fontColor=#58697A;align=center;verticalAlign=middle;labelWidth=240;labelBackgroundColor=#FFFFFF;" value="201 · pedido creado">
           <mxGeometry as="geometry" relative="1" x="0" y="25" />
         </mxCell>
-        <mxCell id="separation" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" value="Publicador interno: tras el commit SQL; no espera a que el cliente reciba el HTTP." vertex="1" parent="1">
+        <mxCell id="separation" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" value="Publicador tras commit SQL; no espera al cliente. Scope: array JSON de cinco componentes.&#10;scope_version=2 se guarda aparte. Publicación y respuesta HTTP pueden intercalarse." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="710" width="1060" height="48" />
         </mxCell>
         <mxCell id="read-from" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="publisher">
@@ -1106,10 +1106,10 @@
           <mxGeometry as="geometry" x="16" y="53" width="348" height="47" />
         </mxCell>
         <mxCell id="retrieve" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
-          <mxGeometry as="geometry" x="80" y="340" width="380" height="140" />
+          <mxGeometry as="geometry" x="80" y="340" width="380" height="166" />
         </mxCell>
         <mxCell id="retrieve-shape" style="rounded=1;arcSize=8;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.5;" value="" vertex="1" parent="retrieve">
-          <mxGeometry as="geometry" x="0" y="0" width="380" height="140" />
+          <mxGeometry as="geometry" x="0" y="0" width="380" height="166" />
         </mxCell>
         <mxCell id="retrieve-kind" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=14;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" value="RECUPERACIÓN · HASTA TRES FRAGMENTOS" vertex="1" parent="retrieve">
           <mxGeometry as="geometry" x="16" y="9" width="348" height="24" />
@@ -1117,8 +1117,8 @@
         <mxCell id="retrieve-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" value="Buscar documentos permitidos" vertex="1" parent="retrieve">
           <mxGeometry as="geometry" x="16" y="35" width="348" height="32" />
         </mxCell>
-        <mxCell id="retrieve-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Filtrar primero por organización (tenant).&#10;Búsqueda por palabras; vectorial optativa." vertex="1" parent="retrieve">
-          <mxGeometry as="geometry" x="16" y="76" width="348" height="55" />
+        <mxCell id="retrieve-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Filtrar documentos por tenant.&#10;Lexical: coincidencias de palabras.&#10;Vector: embedding de pregunta + SQL." vertex="1" parent="retrieve">
+          <mxGeometry as="geometry" x="16" y="76" width="348" height="80" />
         </mxCell>
         <mxCell id="evidence" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
           <mxGeometry as="geometry" x="140" y="555" width="260" height="115" />
@@ -1138,7 +1138,7 @@
         <mxCell id="abstain-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" value="Abstenerse" vertex="1" parent="abstain">
           <mxGeometry as="geometry" x="16" y="12" width="268" height="32" />
         </mxCell>
-        <mxCell id="abstain-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="No llamar al proveedor.&#10;200 · abstained=true" vertex="1" parent="abstain">
+        <mxCell id="abstain-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Sin generar una respuesta.&#10;200 · abstained=true" vertex="1" parent="abstain">
           <mxGeometry as="geometry" x="16" y="53" width="268" height="57" />
         </mxCell>
         <mxCell id="generate" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
@@ -1216,7 +1216,7 @@
         <mxCell id="limit" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="El asistente no puede consultar&#10;la base de comercio directamente.&#10;&#10;Una cita permitida demuestra&#10;que el documento fue recuperado;&#10;no demuestra por sí sola&#10;que el texto sea fiel." vertex="1" parent="1">
           <mxGeometry as="geometry" x="590" y="190" width="350" height="220" />
         </mxCell>
-        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Timeout, rechazo o fallo del proveedor también terminan en error de dependencia. SSE entrega un resultado completo validado." vertex="1" parent="1">
+        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Total 12 s: cola, recuperación y generación. Hasta cuatro respuestas en ejecución.&#10;Generación: 11 s y hasta dos intentos; HTTP: 10 s por fase. SSE entrega resultado validado." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="1360" width="940" height="50" />
         </mxCell>
       </root>
@@ -1232,6 +1232,9 @@
         </mxCell>
         <mxCell id="subtitle" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Secuencia    —    El asistente coordina; Comercio autoriza y confirma el cambio de negocio." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="75" width="1040" height="50" />
+        </mxCell>
+        <mxCell id="not-executed-frame" value="" style="html=0;fillColor=none;strokeColor=#CBD5DF;strokeWidth=1.2;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="365" y="880" width="460" height="415" as="geometry" />
         </mxCell>
         <mxCell id="user" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">
           <mxGeometry as="geometry" x="35" y="145" width="180" height="1275.0" />
@@ -1402,8 +1405,11 @@
         <mxCell id="result" source="result-from" target="result-to" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.5;endArrow=open;exitX=0;exitY=0;entryX=0;entryY=0;exitPerimeter=0;entryPerimeter=0;dashed=1;dashPattern=6 5;fontFamily=Arial;fontSize=17;fontColor=#58697A;align=center;verticalAlign=middle;labelWidth=240;labelBackgroundColor=#FFFFFF;" value="Resultado único">
           <mxGeometry as="geometry" relative="1" x="0" y="25" />
         </mxCell>
-        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="El checkpoint se actualiza a EXECUTED; nunca guarda JWT. Si la propuesta ya está ejecutada, se devuelve el estado sin repetir el efecto." vertex="1" parent="1">
+        <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="Checkpoint EXECUTED: responde sin GET. Comercio EXECUTED: omite el bloque opt.&#10;Se guarda el progreso final; nunca JWT. El reintento no repite el efecto de negocio." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="1440" width="1040" height="50" />
+        </mxCell>
+        <mxCell id="not-executed-condition" value="opt · estado distinto de EXECUTED" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="430" y="825" width="390" height="25" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
@@ -1483,6 +1489,459 @@
         </mxCell>
         <mxCell id="footer" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="El asistente añade checkpoints de coordinación; no sustituye estas transiciones transaccionales de Comercio." vertex="1" parent="1">
           <mxGeometry as="geometry" x="30" y="1230" width="1160" height="50" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="deployment-local" name="Despliegue local · Compose y kind">
+    <mxGraphModel dx="1120" dy="1320" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1120" pageHeight="1320" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Despliegue local · Compose y kind" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=32;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1040" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Mismas aplicaciones; distintas unidades de despliegue y persistencia." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="85" width="1040" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="local-host" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="145" width="1080" height="1075" as="geometry" />
+        </mxCell>
+        <mxCell id="local-host-name" value="MÁQUINA LOCAL · Docker Engine" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="160" width="1000" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="compose" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="210" width="500" height="920" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-environment" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F5F8FA;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="compose">
+          <mxGeometry x="0" y="0" width="500" height="920" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-name" value="Docker Compose" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=27;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose">
+          <mxGeometry x="25" y="16" width="450" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-scope" value="Proyecto architecture-reference" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="compose">
+          <mxGeometry x="25" y="57" width="450" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-entry" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="compose">
+          <mxGeometry x="30" y="105" width="440" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-entry-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="compose-entry">
+          <mxGeometry x="0" y="0" width="440" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-entry-kind" value="ENTRADA DESDE EL HOST" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#28609A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-entry">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-entry-title" value="Puertos en loopback" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-entry">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-entry-body" value="8080 Comercio · 8081 Asistente&#10;8088 Identidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="compose-entry">
+          <mxGeometry x="18" y="84" width="404" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-apps" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="compose">
+          <mxGeometry x="30" y="310" width="440" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-apps-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="compose-apps">
+          <mxGeometry x="0" y="0" width="440" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-apps-kind" value="CONTENEDORES DE APLICACIÓN" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-apps">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-apps-title" value="Tres procesos propios" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-apps">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-apps-body" value="commerce-api · 1 contenedor&#10;ai-service · 1 contenedor&#10;order-analytics · 1 contenedor" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="compose-apps">
+          <mxGeometry x="18" y="84" width="404" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-deps" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="compose">
+          <mxGeometry x="30" y="570" width="440" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-deps-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="compose-deps">
+          <mxGeometry x="0" y="0" width="440" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-deps-kind" value="CONTENEDORES DE APOYO" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-deps">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-deps-title" value="Datos e identidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-deps">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-deps-body" value="PostgreSQL/pgvector · Kafka&#10;Keycloak · sin alta disponibilidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="compose-deps">
+          <mxGeometry x="18" y="84" width="404" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-storage" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="compose">
+          <mxGeometry x="30" y="780" width="440" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-storage-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="compose-storage">
+          <mxGeometry x="0" y="0" width="440" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-storage-title" value="Volúmenes del proyecto" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="compose-storage">
+          <mxGeometry x="18" y="12" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-storage-body" value="postgres · kafka&#10;workflows (SQLite) · streams (RocksDB)" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="compose-storage">
+          <mxGeometry x="18" y="55" width="404" height="63" as="geometry" />
+        </mxCell>
+        <mxCell id="compose-ingress" value="HTTP" source="compose-entry" target="compose-apps" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=90;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="kind" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="580" y="210" width="500" height="920" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-environment" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F5F8FA;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kind">
+          <mxGeometry x="0" y="0" width="500" height="920" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-name" value="Kubernetes con kind" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=27;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind">
+          <mxGeometry x="25" y="16" width="450" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-scope" value="Clúster de un nodo Docker · namespace propio" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=17;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="kind">
+          <mxGeometry x="25" y="57" width="450" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-entry" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="kind">
+          <mxGeometry x="30" y="105" width="440" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-entry-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kind-entry">
+          <mxGeometry x="0" y="0" width="440" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-entry-kind" value="ENTRADA DESDE EL HOST" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#28609A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-entry">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-entry-title" value="Puertos en loopback" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-entry">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-entry-body" value="8080 Comercio · 8081 Asistente&#10;8088 Identidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="kind-entry">
+          <mxGeometry x="18" y="84" width="404" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-apps" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="kind">
+          <mxGeometry x="30" y="310" width="440" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-apps-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kind-apps">
+          <mxGeometry x="0" y="0" width="440" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-apps-kind" value="DEPLOYMENTS DEL NAMESPACE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-apps">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-apps-title" value="Pods de aplicación" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-apps">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-apps-body" value="Commerce · HPA 1–2 réplicas&#10;AI · 1 réplica, Recreate&#10;Streams · 1 réplica, Recreate" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="kind-apps">
+          <mxGeometry x="18" y="84" width="404" height="104" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-deps" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="kind">
+          <mxGeometry x="30" y="570" width="440" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-deps-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kind-deps">
+          <mxGeometry x="0" y="0" width="440" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-deps-kind" value="RECURSOS DEL NAMESPACE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-deps">
+          <mxGeometry x="18" y="12" width="404" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-deps-title" value="Datos e identidad" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-deps">
+          <mxGeometry x="18" y="42" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-deps-body" value="StatefulSets: PostgreSQL y Kafka&#10;Deployment: Keycloak" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="kind-deps">
+          <mxGeometry x="18" y="84" width="404" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-storage" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="kind">
+          <mxGeometry x="30" y="780" width="440" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-storage-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="kind-storage">
+          <mxGeometry x="0" y="0" width="440" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-storage-title" value="PVC dentro del clúster" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="kind-storage">
+          <mxGeometry x="18" y="12" width="404" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-storage-body" value="Postgres · Kafka&#10;SQLite → AI · RocksDB → Streams" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="kind-storage">
+          <mxGeometry x="18" y="55" width="404" height="63" as="geometry" />
+        </mxCell>
+        <mxCell id="kind-ingress" value="HTTP" source="kind-entry" target="kind-apps" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=90;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="local-signals" value="Señales completas: perfil optativo de Compose; no se instalan en kind." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="55" y="1148" width="1010" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="local-lifecycle" value="Compose down conserva volúmenes. kind-down elimina el nodo y sus datos." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1234" width="1040" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="local-limit" value="Comparación de configuración local; las conexiones entre servicios están en el C4." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1274" width="1040" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="cloud-foundation" name="Fundación GCP · diseño Terraform">
+    <mxGraphModel dx="1120" dy="1210" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1120" pageHeight="1210" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Fundación GCP · diseño Terraform" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=32;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1040" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Configuración y planes con mocks · sin apply ni aplicaciones desplegadas." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="85" width="1040" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="operator" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="160" width="260" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="operator-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F0F6FD;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="operator">
+          <mxGeometry x="0" y="0" width="260" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="operator-kind" value="OPERADOR · IPv4 /32" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#28609A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="operator">
+          <mxGeometry x="18" y="12" width="224" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="operator-title" value="Operador" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="operator">
+          <mxGeometry x="18" y="42" width="224" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="operator-body" value="Una IP pública autorizada." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="operator">
+          <mxGeometry x="18" y="84" width="224" height="49" as="geometry" />
+        </mxCell>
+        <mxCell id="control" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="160" width="330" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="control-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="control">
+          <mxGeometry x="0" y="0" width="330" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="control-kind" value="SERVICIO GESTIONADO" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="control">
+          <mxGeometry x="18" y="12" width="294" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="control-title" value="Control de Kubernetes" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="control">
+          <mxGeometry x="18" y="42" width="294" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="control-body" value="GKE Autopilot&#10;Endpoint público restringido" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="control">
+          <mxGeometry x="18" y="84" width="294" height="49" as="geometry" />
+        </mxCell>
+        <mxCell id="registry" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="870" y="160" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="registry-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="registry">
+          <mxGeometry x="0" y="0" width="210" height="145" as="geometry" />
+        </mxCell>
+        <mxCell id="registry-title" value="Imágenes" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="registry">
+          <mxGeometry x="18" y="12" width="174" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="registry-body" value="Artifact Registry&#10;Repositorio Docker" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="registry">
+          <mxGeometry x="18" y="55" width="174" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="vpc" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F5F8FA;strokeColor=#CBD5DF;strokeWidth=1.3;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="1040" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="vpc-name" value="VPC · subred y rangos secundarios" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="60" y="445" width="450" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="510" width="520" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="nodes">
+          <mxGeometry x="0" y="0" width="520" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-kind" value="RED PRIVADA DEL CLÚSTER" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nodes">
+          <mxGeometry x="18" y="12" width="484" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-title" value="Nodos privados GKE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nodes">
+          <mxGeometry x="18" y="42" width="484" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-body" value="Rangos separados: Pods y Services&#10;Workload Identity configurada&#10;Sin aplicaciones desplegadas" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=20;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="nodes">
+          <mxGeometry x="18" y="84" width="484" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="nat" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="750" y="510" width="280" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFFFFF;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="nat">
+          <mxGeometry x="0" y="0" width="280" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-kind" value="EGRESO DE NODOS" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#1B7569;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nat">
+          <mxGeometry x="18" y="12" width="244" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-title" value="Salida Cloud NAT" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="nat">
+          <mxGeometry x="18" y="42" width="244" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-body" value="Salida hacia Internet.&#10;No publica aplicaciones." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="nat">
+          <mxGeometry x="18" y="84" width="244" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="node-identity" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="770" width="520" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="node-identity-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F7F3FC;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="node-identity">
+          <mxGeometry x="0" y="0" width="520" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="node-identity-title" value="Identidad de nodos" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="node-identity">
+          <mxGeometry x="18" y="12" width="484" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="node-identity-body" value="Rol mínimo GKE + lectura acotada del registro.&#10;Permisos Workload Identity de apps: pendientes." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="node-identity">
+          <mxGeometry x="18" y="55" width="484" height="53" as="geometry" />
+        </mxCell>
+        <mxCell id="internet" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="750" y="980" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="internet-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#F7F3FC;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="internet">
+          <mxGeometry x="0" y="0" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="internet-title" value="Internet" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="internet">
+          <mxGeometry x="18" y="12" width="244" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="internet-body" value="Destino de salida NAT." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="internet">
+          <mxGeometry x="18" y="55" width="244" height="33" as="geometry" />
+        </mxCell>
+        <mxCell id="operator-control" value="API /32" source="operator" target="control" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.5;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=100;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="control-nodes" value="Gestión GKE" source="control" target="nodes" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.9;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=145;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="-5" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-nat" value="Salida" source="nodes" target="nat" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.42;entryX=0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=95;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="nat-internet" value="Egreso" source="nat" target="internet" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=100;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="nodes-registry" value="Descarga imágenes" source="nodes" target="registry" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=1;exitY=0.16;entryX=0.5;entryY=1;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=18;fontColor=#58697A;labelWidth=205;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0.35" y="0" as="geometry">
+            <Array as="points">
+              <mxPoint x="690" y="540.4" />
+              <mxPoint x="690" y="365" />
+              <mxPoint x="975" y="365" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cloud-pending" value="DB, Kafka, OIDC, DNS/TLS y secretos: dependencias externas o trabajo de despliegue pendiente." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1120" width="1040" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cloud-limit" value="El plan mock no acredita conectividad, cuotas, IAM efectivo, costes ni disponibilidad cloud." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1160" width="1040" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="commerce-data" name="Datos de Comercio · modelo físico">
+    <mxGraphModel dx="1120" dy="1280" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1120" pageHeight="1280" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Datos de Comercio · modelo físico" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=32;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="25" width="1040" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="PostgreSQL · columnas esenciales y restricciones declaradas en Flyway V1 + V2." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="85" width="1040" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="orders-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="190" width="450" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="orders-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#173C46;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="orders-table">
+          <mxGeometry x="0" y="0" width="450" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="orders-table-kind" value="PEDIDO" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#D4E6E5;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="orders-table">
+          <mxGeometry x="18" y="12" width="414" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="orders-table-title" value="orders" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#FFFFFF;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="orders-table">
+          <mxGeometry x="18" y="42" width="414" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="orders-table-body" value="PK id&#10;tenant · actor · sku&#10;quantity · total_cents&#10;status · version" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=20;fontColor=#D4E6E5;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="orders-table">
+          <mxGeometry x="18" y="84" width="414" height="174" as="geometry" />
+        </mxCell>
+        <mxCell id="returns-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="650" y="190" width="430" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="returns-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="returns-table">
+          <mxGeometry x="0" y="0" width="430" height="270" as="geometry" />
+        </mxCell>
+        <mxCell id="returns-table-kind" value="PROPUESTA DE DEVOLUCIÓN" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="returns-table">
+          <mxGeometry x="18" y="12" width="394" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="returns-table-title" value="return_proposals" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="returns-table">
+          <mxGeometry x="18" y="42" width="394" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="returns-table-body" value="PK id&#10;FK + UNIQUE order_id → orders.id&#10;status · version&#10;approved_until · approved_by" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="returns-table">
+          <mxGeometry x="18" y="84" width="394" height="174" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="550" width="450" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="inbox-table">
+          <mxGeometry x="0" y="0" width="450" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-table-kind" value="IDENTIDAD YA CONSUMIDA" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="inbox-table">
+          <mxGeometry x="18" y="12" width="414" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-table-title" value="inbox" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="inbox-table">
+          <mxGeometry x="18" y="42" width="414" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="inbox-table-body" value="PK event_id&#10;processed_at" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=20;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="inbox-table">
+          <mxGeometry x="18" y="84" width="414" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="650" y="550" width="430" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="audit-table">
+          <mxGeometry x="0" y="0" width="430" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-table-kind" value="EFECTO DE AUDITORÍA" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="audit-table">
+          <mxGeometry x="18" y="12" width="394" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-table-title" value="audit_orders" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="audit-table">
+          <mxGeometry x="18" y="42" width="394" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-table-body" value="PK + FK event_id → inbox.event_id&#10;order_id · tenant" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=19;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="audit-table">
+          <mxGeometry x="18" y="84" width="394" height="114" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="40" y="850" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="inventory-table">
+          <mxGeometry x="0" y="0" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory-table-kind" value="INVENTARIO" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="inventory-table">
+          <mxGeometry x="18" y="12" width="264" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory-table-title" value="inventory" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="inventory-table">
+          <mxGeometry x="18" y="42" width="264" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="inventory-table-body" value="PK (tenant, sku)&#10;stock ≥ 0 · price &gt; 0&#10;version" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="inventory-table">
+          <mxGeometry x="18" y="84" width="264" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="outbox-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="410" y="850" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="outbox-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="outbox-table">
+          <mxGeometry x="0" y="0" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="outbox-table-kind" value="EVENTO PENDIENTE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="outbox-table">
+          <mxGeometry x="18" y="12" width="264" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="outbox-table-title" value="outbox" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="outbox-table">
+          <mxGeometry x="18" y="42" width="264" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="outbox-table-body" value="PK event_id&#10;aggregate_id · payload&#10;published_at · attempts" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="outbox-table">
+          <mxGeometry x="18" y="84" width="264" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency-table" value="" style="group;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="780" y="850" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency-table-shape" value="" style="rounded=1;arcSize=5;html=0;fillColor=#FFF8E9;strokeColor=#CBD5DF;strokeWidth=1.3;" vertex="1" parent="idempotency-table">
+          <mxGeometry x="0" y="0" width="300" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency-table-kind" value="RESULTADO REUTILIZABLE" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=15;fontColor=#916623;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="idempotency-table">
+          <mxGeometry x="18" y="12" width="264" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency-table-title" value="idempotency" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=25;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" vertex="1" parent="idempotency-table">
+          <mxGeometry x="18" y="42" width="264" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="idempotency-table-body" value="PK scope · JSON (5 campos)&#10;scope_version = 2&#10;request_hash · result" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="idempotency-table">
+          <mxGeometry x="18" y="84" width="264" height="134" as="geometry" />
+        </mxCell>
+        <mxCell id="return-order-fk" value="1 : 0..1&#10;FK order_id" source="returns-table" target="orders-table" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0;exitY=0.5;entryX=1;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=17;fontColor=#58697A;labelWidth=140;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="audit-inbox-fk" value="1 : 0..1&#10;FK event_id" source="audit-table" target="inbox-table" edge="1" parent="1" style="edgeStyle=none;rounded=1;html=0;strokeColor=#7D8D9C;strokeWidth=1.6;endArrow=open;exitX=0;exitY=0.5;entryX=1;entryY=0.5;exitPerimeter=0;entryPerimeter=0;fontFamily=Arial;fontSize=17;fontColor=#58697A;labelWidth=140;labelBackgroundColor=#FFFFFF;">
+          <mxGeometry relative="1" x="0" y="0" as="geometry" />
+        </mxCell>
+        <mxCell id="data-legend" value="Líneas: FK reales. Un pedido admite 0..1 propuesta; un inbox admite 0..1 efecto de auditoría." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1115" width="1040" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="logical-refs" value="Sin FK: orders → inventory; outbox.aggregate_id → orders; audit_orders.order_id → orders." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1155" width="1040" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="scope-note" value="scope contiene cinco componentes JSON; scope_version es una columna separada." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1195" width="1040" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="data-scope" value="Solo BD commerce. SQLite, pgvector y Keycloak tienen otros esquemas y responsabilidades." style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1235" width="1040" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

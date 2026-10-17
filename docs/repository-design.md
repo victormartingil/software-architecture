@@ -58,7 +58,7 @@ Aquí «contenedor» significa aplicación o almacén en [C4](https://c4model.co
 
 [![C4 de nivel 2: aplicaciones, almacenes y relaciones de negocio](diagrams/c4-containers.svg)](diagrams/c4-containers.svg)
 
-[Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene diez páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
+[Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene trece páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
 
 La vista contrasta `compose.yaml`, la [composición de AI](../apps/ai-service/src/ai_service/main.py), el [publicador outbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/OutboxPublisher.java), el [consumidor de auditoría](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/AuditConsumer.java) y la configuración de [trazas](../infra/observability/collector.yaml), [métricas](../infra/observability/prometheus.yaml) y [datasources](../infra/observability/datasources.yaml).
 

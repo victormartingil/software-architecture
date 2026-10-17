@@ -14,6 +14,26 @@ Consultar por pregunta; ejecutar antes de ampliar el stack. El [estado comprobad
 | ¿Cómo detectar y reparar un fallo? | métricas y escenarios | [Operación](handbook/operations.md) | OBS/OPS |
 | ¿Cómo entregar sin atribuir garantías no medidas? | kind y Terraform | [Delivery](handbook/delivery.md) | K8S/TF |
 
+## Vistas visuales
+
+Un [maestro draw.io de trece páginas](diagrams/architecture.drawio), con objetos y relaciones editables. Editar el `.drawio` con draw.io y volver a exportar el SVG correspondiente. Las imágenes se insertan en su explicación; abrir el SVG para leer los detalles a tamaño completo, especialmente C4 nivel 2 y secuencias.
+
+| Pregunta | Vista SVG | Explicación |
+|---|---|---|
+| ¿Quién usa el sistema? | [C4 contexto](diagrams/c4-context.svg) | [Diseño](repository-design.md) |
+| ¿Qué aplicaciones y datos existen? | [C4 contenedores](diagrams/c4-containers.svg) | [Diseño](repository-design.md) |
+| ¿Quién emite y valida tokens? | [Identidad](diagrams/c4-identity.svg) | [Seguridad](handbook/security.md) |
+| ¿Por dónde circulan trazas y métricas? | [Señales](diagrams/c4-observability.svg) | [Operación](handbook/operations.md) |
+| ¿Cómo se invierten dependencias? | [Puertos y adaptadores](diagrams/ports-and-adapters.svg) | [Arquitectura](handbook/architecture.md) |
+| ¿Qué ocurre antes y después del commit? | [Pedido y outbox](diagrams/order-sequence.svg) | [Transacciones](handbook/transactions.md) |
+| ¿Qué restricciones hay en SQL? | [Modelo físico](diagrams/commerce-data.svg) | [Transacciones](handbook/transactions.md) |
+| ¿Cómo se obtiene el resumen por ventana? | [Procesamiento de eventos](diagrams/order-summary-flow.svg) | [Eventos](handbook/events.md) |
+| ¿Cuándo responde o se abstiene la IA? | [RAG](diagrams/answer-flow.svg) | [Recuperación](handbook/retrieval.md) |
+| ¿Cómo se reanuda una devolución? | [Secuencia aprobada](diagrams/return-sequence.svg) | [Workflows](handbook/workflows.md) |
+| ¿Qué transiciones autoriza Comercio? | [Estados](diagrams/return-states.svg) | [Workflows](handbook/workflows.md) |
+| ¿Dónde corre cada proceso local? | [Compose y kind](diagrams/deployment-local.svg) | [Delivery](handbook/delivery.md) |
+| ¿Qué define Terraform y qué queda pendiente? | [Fundación GCP](diagrams/cloud-foundation.svg) | [Delivery](handbook/delivery.md) |
+
 ## Herramientas elegidas y alternativas
 
 Java/Spring Boot concentra reglas de negocio y transacciones. Python/FastAPI aísla la integración de IA; LangGraph aporta checkpoint y reanudación, no autoridad. Kafka muestra entrega y replay; Streams añade una pregunta concreta sobre tiempo de evento. PostgreSQL sirve datos transaccionales y pgvector permite una comparación de recuperación sin introducir otra base.
