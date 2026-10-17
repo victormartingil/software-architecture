@@ -74,6 +74,24 @@
 | LIVE | Opcional: modelo real con presupuesto y dataset medidos | Solo con configuración explícita |
 | CLOUD-DEPLOY | Fuera de entrega: despliegue real GCP | No ejecutar ni afirmar validado |
 
+## Mejoras selectivas de la referencia
+
+| ID | Condición y resultado observable | Verificación |
+|---|---|---|
+| REF-ARCH-01 | el código productivo pasa con los tres módulos realmente seleccionados; un patrón que no seleccione clases no acredita éxito. | Pruebas enfocadas, negativos y gate integrado |
+| REF-ARCH-02 | las dos fixtures cíclicas fallan por el ciclo real e identifican sus dos módulos/clases, no por otra regla o una importación vacía. | Pruebas enfocadas, negativos y gate integrado |
+| REF-ARCH-03 | la colaboración acíclica por input y el uso permitido de tipos compartidos pasan; siguen fallando los negativos de frameworks y repositorios ajenos. | Pruebas enfocadas, negativos y gate integrado |
+| REF-ARCH-04 | no cambia ningún endpoint, evento, transacción, paquete productivo o dependencia Maven. | Pruebas enfocadas, negativos y gate integrado |
+| REF-AI-01 | el dataset conserva 42 casos y sus etiquetas de relevancia; todos tienen IDs únicos y referencias válidas. Cualquier corrección material de etiquetas exige justificación separada. | Pruebas enfocadas, negativos y gate integrado |
+| REF-AI-02 | sin cambios del recuperador, los agregados mantienen el baseline registrado. El detalle permite localizar qué casos explican un MRR inferior a uno. | Pruebas enfocadas, negativos y gate integrado |
+| REF-AI-03 | una fixture de ranking degradado cambia el caso afectado y el agregado coherentemente. Duplicados, múltiples relevantes y relevantes fuera del top3 siguen midiendo las propiedades actuales. | Pruebas enfocadas, negativos y gate integrado |
+| REF-AI-04 | el informe identifica corpus/dataset y no incluye credenciales, datos de usuarios reales ni afirmaciones de calidad generativa. Datos ausentes o evaluación no aplicada no se convierten en ceros/unos engañosos. | Pruebas enfocadas, negativos y gate integrado |
+| REF-AI-05 | `make eval` sigue sin red, Docker, claves ni facturación; el informe se genera solo cuando se solicita y permanece ignorado. | Pruebas enfocadas, negativos y gate integrado |
+| REF-OBS-01 | promtool valida las dos reglas existentes y sus estados temporales, incluidos umbral exacto y recuperación, sin servidores ni datos reales. | Pruebas enfocadas, negativos y gate integrado |
+| REF-OBS-02 | una mutación reversible del umbral y otra del `for` hacen fallar los casos pertinentes. Registrar el resultado y restaurar las reglas; no conservar mutaciones ni un framework de mutation testing. | Pruebas enfocadas, negativos y gate integrado |
+| REF-OBS-03 | el comando devuelve fallo cuando promtool falla, reutiliza la versión fijada y no modifica servicios ni requiere credenciales. Con la imagen disponible, se ejecuta sin red. | Pruebas enfocadas, negativos y gate integrado |
+| REF-OBS-04 | la verificación automatizada ejecuta los fixtures y la documentación distingue pruebas de reglas de observabilidad extremo a extremo. | Pruebas enfocadas, negativos y gate integrado |
+
 ## Protocolo de entrega
 
 Por fase: verificar contratos y AC, implementar el mínimo, ejecutar tests/fallos, escribir explicación y ADR, revisar con especialista independiente, reparar como máximo dos rondas, actualizar evidencia. Un bloqueo material mantiene la entrega incompleta; no rebajar criterio. Los cambios a alcance exigen motivo explícito.

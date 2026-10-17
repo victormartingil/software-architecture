@@ -88,6 +88,12 @@ Medir éxito de operaciones válidas, latencia y frescura; IA añade fidelidad y
 
 Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del proveedor. Más réplicas pueden trasladar el cuello de botella. El coste por tarea completada incluye errores, reintentos y recursos ociosos, no solo tokens.
 
+## Prueba rápida de las reglas de alerta
+
+`make observability-rules-test` ejecuta [series sintéticas](../../infra/observability/alerts.test.yaml) con `promtool test rules`: ambas alertas se mantienen inactivas en condiciones normales, esperan su plazo `for`, disparan con etiquetas/anotaciones previstas y se resuelven al desaparecer la condición. Por ejemplo, un pendiente aparece al minuto uno; `OutboxBacklog` dispara al minuto tres tras dos minutos continuos. No basta un pico aislado.
+
+El comando forma parte de `make verify`, reutiliza la imagen Prometheus fijada en Compose, monta reglas/fixtures en solo lectura y ejecuta un contenedor efímero sin red. Requiere Docker y la imagen disponible; para la primera descarga usar `docker compose --profile observability pull prometheus` (requiere red). No arranca servidores. Las pruebas de reglas no acreditan scrape, entrega de notificaciones ni recuperación real: para señales actuales se conserva `make observability-smoke`. Véase [pruebas unitarias de reglas](https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/).
+
 ## Ciclo de vida local
 
 `make down` apaga sin borrar volúmenes. `make up` recupera datos. `make reset CONFIRM=delete-local-data` elimina únicamente volúmenes del proyecto Compose y exige intención explícita. Un reset no sustituye una migración ni una prueba de restauración. Ejecutar kind después de apagar Compose para evitar puertos y memoria competidos.

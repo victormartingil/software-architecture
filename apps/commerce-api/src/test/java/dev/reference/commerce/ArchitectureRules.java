@@ -3,6 +3,10 @@ package dev.reference.commerce;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.library.dependencies.SliceAssignment;
+import com.tngtech.archunit.library.dependencies.SliceIdentifier;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,10 +28,21 @@ final class ArchitectureRules {
           .dependOnClassesThat()
           .resideInAPackage(ROOT + "..infrastructure..");
 
+  static final SliceAssignment BUSINESS_MODULES = new SliceAssignment() {
+    public SliceIdentifier getIdentifierOf(JavaClass type) {
+      for (String module : List.of("orders", "inventory", "returns")) {
+        if (type.getPackageName().startsWith(ROOT + "." + module + ".")) return SliceIdentifier.of(module);
+      }
+      return SliceIdentifier.ignore();
+    }
+    public String getDescription() { return "business modules excluding shared and composition"; }
+  };
+  static final ArchRule MODULE_CYCLES = slices().assignedFrom(BUSINESS_MODULES).should().beFreeOfCycles();
+
   static final List<ArchRule> ALL = rules();
 
   private static List<ArchRule> rules() {
-    var rules = new ArrayList<ArchRule>(List.of(DOMAIN, APPLICATION));
+    var rules = new ArrayList<ArchRule>(List.of(DOMAIN, APPLICATION, MODULE_CYCLES));
     rules.add(
         classes()
             .that()

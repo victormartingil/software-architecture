@@ -36,6 +36,8 @@ jobs:
           version: "0.8.22"
           enable-cache: true
           cache-dependency-glob: "**/uv.lock"
+      - name: Fetch the Compose-pinned image for offline alert tests
+        run: docker compose --profile observability pull prometheus
       - name: Tests, architecture, fixtures, documentation and evaluation
         run: make verify eval
       - name: Terraform format, validation and mocked plans

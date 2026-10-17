@@ -84,7 +84,8 @@ Para volver a consultar una operación concreta: `make kafka-summary ORDER_ID=..
 | [Verificación](docs/verification.md) | Evidencia ejecutada, revisión y límites |
 
 ```bash
-make verify                 # Tests reales, arquitectura, contratos, higiene y docs
+docker compose --profile observability pull prometheus  # Primera descarga para pruebas de alertas
+make verify                 # Tests reales, arquitectura, contratos, alertas, higiene y docs
 make eval                   # Dataset fijo de recuperación, sin LLM real
 make terraform-check        # Planes con mocks; no crea recursos cloud
 make down

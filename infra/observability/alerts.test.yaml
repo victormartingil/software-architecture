@@ -1,0 +1,40 @@
+rule_files:
+  - alerts.yaml
+evaluation_interval: 30s
+tests:
+  - name: outbox threshold, pending, firing and resolution
+    interval: 30s
+    input_series:
+      - series: 'commerce_outbox_pending{job="commerce-api",instance="commerce-api:8080"}'
+        values: '0 0 1 1 1 1 1 0'
+    alert_rule_test:
+      - {eval_time: 0m, alertname: OutboxBacklog, exp_alerts: []}
+      - {eval_time: 30s, alertname: OutboxBacklog, exp_alerts: []}
+      - {eval_time: 1m, alertname: OutboxBacklog, exp_alerts: []}
+      - {eval_time: 2m30s, alertname: OutboxBacklog, exp_alerts: []}
+      - eval_time: 3m
+        alertname: OutboxBacklog
+        exp_alerts:
+          - exp_labels: {job: commerce-api, instance: 'commerce-api:8080', severity: warning}
+            exp_annotations:
+              summary: Pending outbox persists; check broker before replay
+              runbook: docs/handbook/operations.md
+      - {eval_time: 3m30s, alertname: OutboxBacklog, exp_alerts: []}
+  - name: service availability, pending, firing and resolution
+    interval: 30s
+    input_series:
+      - series: 'up{job="ai-service",instance="ai-service:8000"}'
+        values: '1 1 0 0 0 1'
+    alert_rule_test:
+      - {eval_time: 0m, alertname: ReferenceServiceDown, exp_alerts: []}
+      - {eval_time: 30s, alertname: ReferenceServiceDown, exp_alerts: []}
+      - {eval_time: 1m, alertname: ReferenceServiceDown, exp_alerts: []}
+      - {eval_time: 1m30s, alertname: ReferenceServiceDown, exp_alerts: []}
+      - eval_time: 2m
+        alertname: ReferenceServiceDown
+        exp_alerts:
+          - exp_labels: {job: ai-service, instance: 'ai-service:8000', severity: warning}
+            exp_annotations:
+              summary: Scrape failed; inspect health and recent logs
+              runbook: docs/handbook/operations.md
+      - {eval_time: 2m30s, alertname: ReferenceServiceDown, exp_alerts: []}

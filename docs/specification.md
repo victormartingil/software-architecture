@@ -102,3 +102,7 @@ Se conservan los tres servicios, contratos existentes, datos sintéticos y versi
 - Gateway Python expresa crear/consultar/aprobar/ejecutar devolución con resultados tipados; infraestructura contiene verbos, rutas, JSON y traducción de errores. No guardar JWT ni reintentar escrituras arbitrariamente.
 - Prueba mínima de proxy Spring acredita transacción/rollback y muestra fallo de auto-invocación o llamada directa fuera del proxy. Se extrae soporte de integración solo donde realmente se comparte.
 - Streams conserva Kafka y proceso propio: límites explícitos de consumo, arranque/cierre probado, plazo de cierre y readiness comprobables. No se incorpora Pub/Sub, autoscaler ni plataforma de caos. Documentar lag frente a capacidad y cierre sin prometer HA ni ausencia universal de duplicados.
+
+## Garantías selectivas de mantenimiento
+
+Sin cambiar contratos ni dependencias: ArchUnit comprueba ausencia de ciclos entre los módulos completos orders, inventory y returns, excluyendo shared y composición; positivos y negativos usan la política canónica. La evaluación lexical conserva sus 42 casos y agregados, añade IDs y un informe JSON optativo dentro de reports/, con hashes de entradas, métricas por caso y alcance exclusivamente de recuperación offline. Las reglas Prometheus existentes se prueban con series sintéticas, incluidos umbrales, plazos y resolución; el gate reutiliza la imagen fijada en Compose, sin levantar servidores para esa comprobación.

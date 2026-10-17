@@ -15,6 +15,12 @@ class ArchitectureTest {
         new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages(ArchitectureRules.ROOT);
+    for (String module : java.util.List.of("orders", "inventory", "returns")) {
+      assertThat(classes.stream()
+              .filter(type -> type.getPackageName().startsWith(ArchitectureRules.ROOT + "." + module + "."))
+              .count())
+          .isPositive();
+    }
     ArchitectureRules.ALL.forEach(rule -> rule.check(classes));
   }
 
@@ -48,6 +54,35 @@ class ArchitectureTest {
     var classes =
         new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class);
     ArchitectureRules.ALL.forEach(rule -> rule.allowEmptyShould(true).check(classes));
+  }
+
+  @Test
+  void rejectsFirstModuleCycle() {
+    rejectsCycle(dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.First.class,
+        dev.reference.commerce.returns.application.port.input.ModuleCycleFixtures.First.class);
+  }
+
+  @Test
+  void rejectsSecondModuleCycle() {
+    rejectsCycle(dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.Second.class,
+        dev.reference.commerce.returns.application.port.input.ModuleCycleFixtures.Second.class);
+  }
+
+  @Test
+  void acceptsAcyclicBusinessCollaborationAndSharedTypes() {
+    var classes = new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class,
+        dev.reference.commerce.orders.application.port.input.OrderUseCase.class, ApplicationBoundaryFixtures.SharedType.class);
+    ArchitectureRules.ALL.forEach(rule -> rule.allowEmptyShould(true).check(classes));
+  }
+
+  private static void rejectsCycle(Class<?> first, Class<?> second) {
+    var classes = new ClassFileImporter().importClasses(first, second);
+    var result = ArchitectureRules.MODULE_CYCLES.evaluate(classes);
+    assertThat(result.hasViolation()).isTrue();
+    assertThat(result.getFailureReport().toString())
+        .contains("Cycle detected", "orders", "returns", first.getName(), second.getName());
+    ArchitectureRules.ALL.stream().filter(rule -> rule != ArchitectureRules.MODULE_CYCLES)
+        .forEach(rule -> rule.allowEmptyShould(true).check(classes));
   }
 
   private static void rejects(Class<?> fixture, String target) {

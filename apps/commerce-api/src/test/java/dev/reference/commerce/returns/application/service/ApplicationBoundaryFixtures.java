@@ -10,6 +10,9 @@ public final class ApplicationBoundaryFixtures {
     dev.reference.commerce.orders.application.port.output.OrderRepository forbidden;
   }
 
+  public static class SharedType {
+    dev.reference.commerce.shared.domain.BusinessException allowed;
+  }
   public static class InputPort {
     dev.reference.commerce.orders.application.port.input.OrderUseCase allowed;
   }

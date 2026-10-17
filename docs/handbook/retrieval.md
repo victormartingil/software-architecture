@@ -44,10 +44,13 @@ SSE (Server-Sent Events) mantiene una respuesta HTTP abierta para enviar eventos
 
 ```bash
 make eval
+make eval EVAL_REPORT=reports/ai-evaluation.json
 (cd apps/ai-service && uv run pytest tests/test_evaluate.py tests/test_answers.py -q)
 ```
 
 **Resultado del dataset actual:** 42 casos, 32 respondibles, recall@3 e hit-rate@3 de 1 y MRR@3 de 0,953125. Son mediciones de recuperación offline, sin evaluar modelo real. La prueba multirrelevancia fuerza una recuperación incompleta y distingue recall de hit-rate; otra rechaza una cita no recuperada. Las pruebas rápidas no incluyen PostgreSQL: `make verify` también comprueba pgvector real.
+
+El informe JSON es optativo y permanece ignorado: identifica versión de esquema, hashes SHA-256 del dataset/corpus y alcance `offline-retrieval-only`. Cada caso conserva un ID estable, documentos esperados/recuperados y métricas; localizar un `mrrAt3 < 1` permite revisar el ranking que explica el agregado. Los casos sin evidencia llevan métricas de recuperación nulas, con aislamiento y abstención por separado. Solo se aceptan archivos dentro de `reports/` del repositorio, sin escapes por rutas o enlaces simbólicos. Un gate fallido también guarda el diagnóstico solicitado. El informe mide recuperación lexical, no fidelidad de una respuesta generada.
 
 **Alternativa:** comparar embeddings o búsqueda híbrida con las mismas etiquetas, sin asumir que mayor complejidad mejora resultados. Antes de cambiar el ranking, preguntar si el problema es ausencia de evidencia, orden de documentos o fidelidad de generación: requieren controles distintos.
 
