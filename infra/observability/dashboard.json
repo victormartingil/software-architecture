@@ -26,9 +26,27 @@
       "targets": [
         {
           "expr": "commerce_outbox_pending",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "Outbox pending"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 2,
@@ -47,9 +65,27 @@
       "targets": [
         {
           "expr": "rate(commerce_audit_processed_total[1m])",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "Audit effects"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 3,
@@ -68,9 +104,27 @@
       "targets": [
         {
           "expr": "commerce_audit_duplicates_total",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "Audit duplicates"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 4,
@@ -89,9 +143,27 @@
       "targets": [
         {
           "expr": "analytics_records_lag_max",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "Streams max lag"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 5,
@@ -110,9 +182,27 @@
       "targets": [
         {
           "expr": "analytics_late_events_total + analytics_invalid_events_total",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "Late / invalid events"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 6,
@@ -131,9 +221,27 @@
       "targets": [
         {
           "expr": "sum by(outcome, mode)(rate(ai_requests_total[1m]))",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "{{outcome}} / {{mode}}"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 7,
@@ -152,9 +260,27 @@
       "targets": [
         {
           "expr": "histogram_quantile(0.95,sum by(le)(rate(ai_answer_seconds_bucket[5m])))",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "AI latency p95"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
     },
     {
       "id": 8,
@@ -173,9 +299,193 @@
       "targets": [
         {
           "expr": "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m]))",
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "HTTP server errors"
         }
-      ]
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Service scrape availability",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "up{job=~\"commerce|ai|analytics\"}",
+          "refId": "A",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short",
+          "max": 1
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "HTTP requests per second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 28
+      },
+      "targets": [
+        {
+          "expr": "sum by(job)(rate(http_server_requests_seconds_count{uri!~\"/actuator.*\"}[1m])) or sum by(job)(rate(ai_http_requests_total[1m]))",
+          "refId": "A",
+          "legendFormat": "{{job}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "Commerce HTTP p95 (seconds)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 35
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by(le)(rate(http_server_requests_seconds_bucket{uri!~\"/actuator.*\"}[5m])))",
+          "refId": "A",
+          "legendFormat": "Commerce HTTP p95 (seconds)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "AI HTTP errors per second",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 12,
+        "y": 35
+      },
+      "targets": [
+        {
+          "expr": "sum by(status)(rate(ai_http_requests_total{status=~\"5..\"}[1m]))",
+          "refId": "A",
+          "legendFormat": "{{status}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ],
+  "description": "RED HTTP, business outcomes and consumer health. Traces: Explore > Tempo; logs: docker compose logs.",
+  "links": [
+    {
+      "title": "Explore traces (Tempo)",
+      "type": "link",
+      "url": "/explore",
+      "targetBlank": false
     }
   ]
 }

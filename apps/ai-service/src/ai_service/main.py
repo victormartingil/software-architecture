@@ -1,5 +1,8 @@
 import asyncio
 import json
+import logging
+import time
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
@@ -22,6 +25,13 @@ from ai_service.infrastructure.commerce import HttpCommerceGateway
 from ai_service.infrastructure.workflows import ReturnApprovalWorkflow
 
 REQUESTS = Counter("ai_requests_total", "Answer outcomes", ["outcome", "mode"])
+HTTP_REQUESTS = Counter("ai_http_requests_total", "HTTP responses", ["method", "route", "status"])
+HTTP_LATENCY = Histogram("ai_http_request_seconds", "Time until response headers", ["method", "route"])
+ACCESS_LOG = logging.getLogger("ai_service.access")
+if not ACCESS_LOG.handlers:
+    ACCESS_LOG.addHandler(logging.StreamHandler())
+ACCESS_LOG.setLevel(logging.INFO)
+ACCESS_LOG.propagate = False
 LATENCY = Histogram("ai_answer_seconds", "Answer duration")
 DATA = Path(__file__).resolve().parents[2] / "data"
 
@@ -85,9 +95,32 @@ def create_app(settings: Settings | None = None):
             request.state.correlation = str(UUID(incoming))
         except ValueError:
             request.state.correlation = str(uuid4())
-        response = await call_next(request)
-        response.headers["X-Correlation-ID"] = request.state.correlation
-        return response
+        started = time.monotonic()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            response.headers["X-Correlation-ID"] = request.state.correlation
+            return response
+        except Exception:
+            status = 503  # Matches the outer sanitized unexpected_error handler.
+            raise
+        finally:
+            if request.url.path not in {"/health", "/metrics"}:
+                from opentelemetry import trace
+                route = getattr(request.scope.get("route"), "path", "unmatched")
+                method = request.method if request.method in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"} else "OTHER"
+                elapsed = time.monotonic() - started
+                HTTP_REQUESTS.labels(method, route, str(status)).inc()
+                HTTP_LATENCY.labels(method, route).observe(elapsed)
+                span = trace.get_current_span().get_span_context()
+                # Fixed fields only: no JWT, user/tenant, prompt, body, raw URL or exception text.
+                ACCESS_LOG.info(json.dumps({"event": "http_request", "service": "ai-service",
+                    "timestamp": datetime.now(timezone.utc).isoformat(), "level": "INFO",
+                    "route": route, "method": method, "status": status,
+                    "durationMs": round(elapsed * 1000, 3),
+                    "correlationId": request.state.correlation,
+                    "traceId": format(span.trace_id, "032x") if span.is_valid else None}))
 
     def problem(request, status, detail):
         return JSONResponse(status_code=status, content={"status": status,

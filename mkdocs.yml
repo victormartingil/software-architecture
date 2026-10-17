@@ -22,6 +22,7 @@ nav:
       - Diseño: repository-design.md
       - Mapa de referencia: reference-map.md
       - Límites y patrones: handbook/architecture.md
+      - Contratos HTTP: handbook/api-contracts.md
       - Datos y concurrencia: handbook/transactions.md
       - Eventos y streaming: handbook/events.md
   - IA y seguridad:

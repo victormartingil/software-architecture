@@ -6,6 +6,7 @@ import dev.reference.commerce.returns.application.model.*;
 import dev.reference.commerce.returns.application.port.input.ReturnUseCase;
 import dev.reference.commerce.returns.application.port.output.ReturnRepository;
 import dev.reference.commerce.returns.domain.ReturnProposal;
+import dev.reference.commerce.returns.domain.ReturnStatus;
 import dev.reference.commerce.shared.application.Idempotency;
 import dev.reference.commerce.shared.domain.*;
 import java.time.*;
@@ -43,8 +44,7 @@ public class ManageReturnService implements ReturnUseCase {
         ReturnProposal.class,
         () -> {
           var order = orders.visible(actor, command.orderId(), true);
-          if (!order.actor().equals(actor.subject()) || !order.status().equals("PLACED"))
-            throw new BusinessException(409, "Order not eligible");
+          order.requireReturnEligible(actor.subject());
           var proposal =
               new ReturnProposal(
                   UUID.randomUUID(),
@@ -52,7 +52,7 @@ public class ManageReturnService implements ReturnUseCase {
                   actor.subject(),
                   order.id(),
                   command.reason(),
-                  "PENDING",
+                  ReturnStatus.PENDING,
                   0,
                   null);
           proposals.save(proposal);
@@ -68,20 +68,23 @@ public class ManageReturnService implements ReturnUseCase {
     return proposals
         .find(id, lock)
         .filter(
-            proposal -> proposal.tenant().equals(actor.tenant()) && (actor.manager() || proposal.actor().equals(actor.subject())))
-        .orElseThrow(() -> new BusinessException(404, "Return not found"));
+            proposal ->
+                proposal.tenant().equals(actor.tenant())
+                    && (actor.manager() || proposal.actor().equals(actor.subject())))
+        .orElseThrow(
+            () -> new BusinessException(BusinessException.Kind.NOT_FOUND, "Return not found"));
   }
 
   private void manager(Actor actor) {
-    if (!actor.manager()) throw new BusinessException(403, "Manager role required");
+    if (!actor.manager())
+      throw new BusinessException(BusinessException.Kind.FORBIDDEN, "Manager role required");
   }
 
   @Transactional
   public ReturnProposal approve(Actor actor, UUID id, long version) {
     manager(actor);
     var proposal = visible(actor, id, true);
-    if (proposal.version() != version || proposal.status().equals("EXECUTED"))
-      throw new BusinessException(409, "Proposal version/state changed");
+    proposal.requireApprovable(version);
     proposals.approve(id, actor.subject(), clock.instant().plusSeconds(600));
     return visible(actor, id, false);
   }
@@ -90,16 +93,13 @@ public class ManageReturnService implements ReturnUseCase {
   public ReturnProposal execute(Actor actor, UUID id, String idempotencyKey, long version) {
     manager(actor);
     return idempotency.execute(
-        new Idempotency.Scope(actor.tenant(), actor.subject(), "execute", id.toString(), idempotencyKey),
+        new Idempotency.Scope(
+            actor.tenant(), actor.subject(), "execute", id.toString(), idempotencyKey),
         version,
         ReturnProposal.class,
         () -> {
           var proposal = visible(actor, id, true);
-          if (proposal.version() != version
-              || !proposal.status().equals("APPROVED")
-              || proposal.approvedUntil() == null
-              || !clock.instant().isBefore(proposal.approvedUntil()))
-            throw new BusinessException(409, "Approval missing, expired or changed");
+          proposal.requireExecutable(version, clock.instant());
           var order = orders.visible(actor, proposal.orderId(), true);
           orders.refund(order.id());
           inventory.restore(actor.tenant(), order.sku(), order.quantity());

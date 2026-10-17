@@ -116,6 +116,7 @@ services:
   order-analytics:
     image: architecture-reference/order-analytics:local
     build: ./apps/order-analytics
+    stop_grace_period: 30s
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       STATE_DIR: /state

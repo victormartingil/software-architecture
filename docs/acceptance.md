@@ -8,6 +8,13 @@
 | ARCH-01 | Dominio no importa framework; aplicación no importa adaptadores | ArchUnit e import-linter |
 | ARCH-02 | Módulos no usan persistencia ajena; puertos input/output explícitos | Reglas y revisión independiente |
 | ARCH-03 | Las mismas reglas que verifican producción rechazan dependencias prohibidas representativas (framework en dominio, persistencia ajena, aplicación → adaptador), identificando origen y destino; comunicación por input permitida | Negativos ejecutables sin reglas alternativas ni fallos por selección vacía |
+| EVOL-01 | Controladores por módulo y adaptadores por tecnología; parámetros descriptivos; raíz Java dev.reference uniforme; sin cambiar contratos existentes | ArchUnit, compilación y regresión HTTP/eventos |
+| EVOL-02 | Errores de negocio por significado sin status HTTP en dominio; estados tipados y Quantity protegen invariantes también sin controlador | Tests de dominio y traducción Problem Details |
+| EVOL-03 | Gateway de Comercio por intención y resultados tipados; traduce transporte/JSON inválido sin filtrar datos; conserva JWT efímero, claves y reanudación | Mock HTTP y workflow/reinicio |
+| EVOL-04 | OpenAPI canónico de Comercio comprobado contra rutas, seguridad, entradas y respuestas reales; quantity/version HTTP rechazan coerción string/decimal, tolerancia extra/path legado y restricción wire explícitas; negativos independientes, sin modelos generados duplicados | Tests contractuales positivos/negativos y API |
+| EVOL-05 | Listado de pedidos con límite 1..50, filtro status opcional, cursor UUID y orden id ASC; tenant/propietario en SQL, sin total ni snapshot prometido | Páginas completas/finales, filtros, límites e aislamiento en PostgreSQL |
+| EVOL-06 | Pruebas demuestran proxy transaccional efectivo y negativo de llamada directa; soporte Testcontainers compartido solo al reutilizarse | Rollback real y negativo sin proxy; integraciones sin skips |
+| EVOL-07 | Streams prueba ciclo de inicio/cierre acotado y readiness, con consumo acotado; documentación relaciona lag/capacidad y señala límites | Pruebas de lifecycle y Kafka real, sin nueva plataforma |
 | ORD-01 | Crear pedido descuenta stock y calcula precio servidor | Integración PostgreSQL/API |
 | ORD-02 | Dos pedidos de última unidad: uno acepta, otro conflicto, stock cero | Test concurrente BD real |
 | ORD-03 | Repetir clave/cuerpo no repite efecto; cambiar cuerpo da 409; tenant/actor/operación/clave no colisionan aunque contengan delimitadores | Integración idempotencia |
@@ -24,6 +31,7 @@
 | STR-01 | Ventana 1min agrega tenant/SKU y montos correctos | TopologyTestDriver |
 | STR-02 | Duplicados y fuera de orden dentro grace no inflan | TopologyTestDriver |
 | STR-03 | Tardío fuera grace se descarta y cuenta | Avance stream-time |
+| STR-05 | occurredAt más de 30 s adelantado respecto al reloj de proceso se envía a DLT antes de avanzar tiempo de evento; tampoco un timestamp Kafka futuro de un inválido puede cerrar ventanas válidas. La DLT recibe timestamp del reloj de cuarentena para conservar retención | Reloj fijo, límite exacto, inválido futuro y pedido normal posterior |
 | STR-04 | Reinicio recupera state/changelog; identidad repetida en particiones distintas no duplica resumen | Kafka real/reinicio |
 | AI-01 | Respuesta tiene citas existentes o abstiene sin evidencia | Dataset >=40 casos |
 | AI-02 | Filtro tenant previo a recuperación y caché aislada | Casos de acceso cruzado |
@@ -35,12 +43,16 @@
 | AI-08 | Vector filtra tenant, valida dimensión y ordena por distancia | pgvector real, vectores fixture |
 | WF-01 | Crear propuesta persiste workflow; restart permite continuar | Persistencia/reinicio |
 | WF-02 | Aprobar/reintentar no duplica efecto; no guarda JWT | Integración gateway y checkpoints |
+| WF-03 | Mutaciones del workflow tienen plazo total de 12 s incluida espera del lock y admisión máxima de 16 operaciones por proceso; exceso/timeout devuelve 503, cancelación libera cupo sin perder claves de reanudación | Dependencia bloqueada, cola, capacidad, cancelación y retry con misma clave |
 | SEC-01 | Sin token 401, role insuficiente 403, ajeno 404 | Tokens OIDC reales y negativos |
 | SEC-02 | JWT inválido/expirado/issuer/audience erróneos rechaza | Tests seguridad |
 | SEC-03 | Prompt injection no llama herramienta privilegiada | Adversarial tests |
 | SEC-04 | No secretos/PII en logs; sin token minting en APIs | Scan y revisión logs |
 | OBS-01 | HTTP-evento-consumidor correlacionados | Escenario y trazas visibles |
 | OBS-02 | Dashboard lag/outbox/errors/IA y alerta accionable; éxitos, abstenciones, errores y cancelaciones IA contabilizados una sola vez | Inspección y runbook |
+| OBS-03 | Un comando optativo verifica targets de las tres aplicaciones, incremento de métricas y traza de una operación nueva; no acepta señales históricas. Dashboard local permite consultar métricas y trazas sin cuenta externa | Escenario real sobre Compose con telemetría activada y pruebas negativas |
+| OBS-04 | Logs operativos estructurados con correlación cuando existe; sin cuerpos, JWT, preguntas ni identificadores personales como labels. Explicación breve de cuándo usar métricas, logs y trazas y enlace al código | Tests de privacidad/correlación y revisión de configuración |
+| K8S-03 | Comprobación optativa acotada observa HPA de una a dos réplicas disponibles bajo carga y verifica idempotencia concurrente entre pods; restaura su carga/configuración temporal sin afectar otros clústeres | Escenario kind real, no inferido de manifests ni de carga GET aislada |
 | OPS-01 | Compose arranca desde vacío, seed y demo terminan | make up/demo/smoke |
 | OPS-04 | Pedido recién creado observado en outbox, inbox y actualización Kafka de su tenant/SKU/ventana; no aceptar primer histórico | Escenario integrado con plazo y aserciones |
 | OPS-02 | Down conserva datos; reset explícito y acotado | Reinicio y consulta persistencia |

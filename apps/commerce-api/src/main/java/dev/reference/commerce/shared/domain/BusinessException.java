@@ -1,14 +1,21 @@
 package dev.reference.commerce.shared.domain;
 
 public class BusinessException extends RuntimeException {
-  private final int status;
-
-  public BusinessException(int status, String message) {
-    super(message);
-    this.status = status;
+  public enum Kind {
+    INVALID_INPUT,
+    NOT_FOUND,
+    CONFLICT,
+    FORBIDDEN
   }
 
-  public int status() {
-    return status;
+  private final Kind kind;
+
+  public BusinessException(Kind kind, String message) {
+    super(message);
+    this.kind = kind;
+  }
+
+  public Kind kind() {
+    return kind;
   }
 }

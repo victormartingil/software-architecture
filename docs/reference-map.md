@@ -4,15 +4,16 @@ Consultar por pregunta; ejecutar antes de ampliar el stack. El [estado comprobad
 
 | Pregunta | Código | Explicación | AC |
 |---|---|---|---|
-| ¿Qué se separa y por qué? | commerce, puertos por módulo | [Arquitectura](handbook/architecture.md) | ARCH |
-| ¿Cómo proteger la última unidad? | orders/inventory y migración SQL | [Transacciones](handbook/transactions.md) | ORD |
-| ¿Cómo publicar después de commit? | outbox e inbox | [Eventos](handbook/events.md) | EVT |
-| ¿Qué significa una ventana? | OrderSummaryTopology | [Eventos](handbook/events.md) | STR |
-| ¿Cuándo abstenerse? | retrieval, answers, evaluate | [RAG](handbook/retrieval.md) | AI |
-| ¿Qué permite una aprobación? | returns y workflows | [Workflows](handbook/workflows.md) | RET/WF |
-| ¿Qué se considera una frontera de seguridad? | OIDC, autorización y proveedor | [Seguridad](handbook/security.md) | SEC |
-| ¿Cómo detectar y reparar un fallo? | métricas y escenarios | [Operación](handbook/operations.md) | OBS/OPS |
-| ¿Cómo entregar sin atribuir garantías no medidas? | kind y Terraform | [Delivery](handbook/delivery.md) | K8S/TF |
+| ¿Qué se separa y por qué? | [Caso de uso y puertos](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [Arquitectura](handbook/architecture.md) | ARCH |
+| ¿Cómo mantener un contrato HTTP y paginar sin mezclar tenants? | [OpenAPI](../contracts/http/commerce.openapi.json) · [consulta](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/persistence/JdbcOrderRepositoryAdapter.java) | [Contratos HTTP](handbook/api-contracts.md) | EVOL-04/05 |
+| ¿Cómo proteger la última unidad? | [Inventario](../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/application/service/InventoryService.java) | [Transacciones](handbook/transactions.md) | ORD |
+| ¿Cómo publicar después de commit? | [Publicador](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxPublisher.java) · [inbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/AuditConsumer.java) | [Eventos](handbook/events.md) | EVT |
+| ¿Qué significa una ventana? | [Topología](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) | [Eventos](handbook/events.md) | STR |
+| ¿Cuándo abstenerse? | [Recuperación](../apps/ai-service/src/ai_service/infrastructure/retrieval.py) · [evaluación](../apps/ai-service/src/ai_service/evaluate.py) | [RAG](handbook/retrieval.md) | AI |
+| ¿Qué permite una aprobación? | [Devolución](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/application/service/ManageReturnService.java) · [workflow](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [Workflows](handbook/workflows.md) | RET/WF |
+| ¿Qué se considera una frontera de seguridad? | [JWT](../apps/ai-service/src/ai_service/infrastructure/security.py) · [proveedor](../apps/ai-service/src/ai_service/infrastructure/providers.py) | [Seguridad](handbook/security.md) | SEC |
+| ¿Cómo detectar y reparar un fallo? | [Dashboard](../infra/observability/dashboard.json) · [señales reales](../scenarios/observability.py) | [Operación](handbook/operations.md) | OBS/OPS |
+| ¿Cómo entregar sin atribuir garantías no medidas? | [HPA](../scripts/kind-scale-check.py) · [Terraform](../infra/cloud/main.tf) | [Delivery](handbook/delivery.md) | K8S/TF |
 
 ## Vistas visuales
 

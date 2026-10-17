@@ -35,6 +35,10 @@ spring:
           issuer-uri: ${OIDC_ISSUER:http://localhost:8088/realms/reference}
           jwk-set-uri: ${OIDC_JWKS:http://localhost:8088/realms/reference/protocol/openid-connect/certs}
 management:
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
   otlp:
     metrics:
       export:
@@ -51,3 +55,8 @@ app:
   audience: ${OIDC_AUDIENCE:reference-api}
   events:
     enabled: ${EVENTS_ENABLED:true}
+
+logging:
+  structured:
+    format:
+      console: logstash

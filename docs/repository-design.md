@@ -34,6 +34,7 @@ apps/commerce-api/       Java: pedidos, inventario y devoluciones
 apps/order-analytics/    Java: Kafka Streams, deduplicación y ventanas
 apps/ai-service/         Python: recuperación, Responses y workflow
 contracts/events/       Esquemas versionados y fixtures sintéticos
+contracts/http/         OpenAPI canónico y verificación HTTP
 scenarios/              Escenarios HTTP autenticados verificables
 infra/local/            OIDC y bases locales
 infra/observability/    Métricas, trazas, dashboard y alertas
@@ -60,7 +61,7 @@ Aquí «contenedor» significa aplicación o almacén en [C4](https://c4model.co
 
 [Abrir SVG a tamaño completo](diagrams/c4-containers.svg) · [Maestro editable draw.io](diagrams/architecture.drawio). Editar el `.drawio` con draw.io y volver a exportar el SVG. El maestro contiene trece páginas editables; cada SVG se exporta desde su página. No se mantienen fuentes independientes de la misma vista.
 
-La vista contrasta `compose.yaml`, la [composición de AI](../apps/ai-service/src/ai_service/main.py), el [publicador outbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/OutboxPublisher.java), el [consumidor de auditoría](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/AuditConsumer.java) y la configuración de [trazas](../infra/observability/collector.yaml), [métricas](../infra/observability/prometheus.yaml) y [datasources](../infra/observability/datasources.yaml).
+La vista contrasta `compose.yaml`, la [composición de AI](../apps/ai-service/src/ai_service/main.py), el [publicador outbox](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxPublisher.java), el [consumidor de auditoría](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/AuditConsumer.java) y la configuración de [trazas](../infra/observability/collector.yaml), [métricas](../infra/observability/prometheus.yaml) y [datasources](../infra/observability/datasources.yaml).
 
 - **Negocio:** la API de comercio conserva las invariantes y sus tablas. AI invoca su API con el JWT del actor; LangGraph es una biblioteca interna, no otro servicio. Analytics consume pedidos y publica agregados/DLT mediante Kafka.
 - **Identidad** ([vista de tokens y JWKS](diagrams/c4-identity.svg)): los clientes solicitan tokens a Keycloak; ambas APIs obtienen JWKS y validan JWT localmente. No hay autorización delegada al LLM ni una llamada a Keycloak por cada petición. El Compose local usa HTTP para Keycloak; la vista no representa un despliegue de producción. Se omiten los detalles internos del sistema de identidad.
@@ -73,10 +74,10 @@ Las 14 relaciones del C4 anterior se conservan: 11 en la vista principal y tres 
 
 | Responsabilidad | Punto de entrada o contrato |
 |---|---|
-| Recibir pedidos, inventario y devoluciones por HTTP | [CommerceController](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/CommerceController.java) |
+| Recibir HTTP por módulo | [OrderController](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/rest/OrderController.java), [InventoryController](../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/rest/InventoryController.java), [ReturnController](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/infrastructure/rest/ReturnController.java) |
 | Crear, consultar y actualizar el estado de pedidos | [ManageOrderService](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) |
 | Crear, aprobar y ejecutar una devolución | [ManageReturnService](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/application/service/ManageReturnService.java) |
-| Resumir pedidos creados por ventana | [OrderSummaryTopology](../apps/order-analytics/src/main/java/com/reference/analytics/OrderSummaryTopology.java) |
+| Resumir pedidos creados por ventana | [OrderSummaryTopology](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) |
 | Buscar evidencia y preparar la respuesta | [AnswerService](../apps/ai-service/src/ai_service/application/answers.py); puertos [DocumentRetriever y AnswerProvider](../apps/ai-service/src/ai_service/application/ports.py) |
 | Coordinar la aprobación y reanudar una devolución | [ReturnApprovalWorkflow](../apps/ai-service/src/ai_service/infrastructure/workflows.py) |
 | Verificar un token con claves públicas | [JwtVerifier](../apps/ai-service/src/ai_service/infrastructure/security.py) |
@@ -85,9 +86,9 @@ Los nombres técnicos expresan la responsabilidad: gestionar el ciclo de una dev
 
 ## Convención Java
 
-Cada módulo funcional usa `domain`, `application/model`, `application/port/input`, `application/port/output`, `application/service` e `infrastructure`. Los adaptadores implementan puertos de salida; controladores invocan puertos de entrada. El dominio no conoce Spring, HTTP, SQL ni Kafka. Se admite Spring transaccional en aplicación para mantener visible la frontera real de commit. La estructura se comprueba con ArchUnit, no solo con nombres de directorios.
+Las aplicaciones Java comparten raíz `dev.reference` (`commerce` y `analytics`); sus contratos de despliegue permanecen estables. Cada módulo funcional usa `domain`, `application/model`, `application/port/input`, `application/port/output`, `application/service` e `infrastructure`. Los adaptadores se agrupan por responsabilidad: `rest`, `persistence`, `messaging`, `security` y `config` cuando corresponde. Los adaptadores implementan puertos de salida; controladores invocan puertos de entrada. El dominio no conoce Spring, HTTP, SQL ni Kafka. Se admite Spring transaccional en aplicación para mantener visible la frontera real de commit. La estructura se comprueba con ArchUnit, no solo con nombres de directorios.
 
-Las interfaces representan responsabilidades reemplazables. No se crea una interfaz por clase ni un servicio independiente por entidad. `shared` solo contiene conceptos transversales como actor, idempotencia y publicación; no es un contenedor de funcionalidades sin dueño. Python expresa puertos con `Protocol`, sin replicar todas las capas de Java.
+Las interfaces representan responsabilidades reemplazables. No se crea una interfaz por clase ni un servicio independiente por entidad. `shared` conserva actor, Quantity, errores semánticos, idempotencia y publicación; los controladores de negocio pertenecen a su módulo. Domain no contiene códigos HTTP: ProblemAdvice traduce Kind a status en infraestructura. Python expresa puertos con `Protocol`, sin replicar todas las capas de Java. CommerceGateway ofrece crear, consultar, aprobar y ejecutar devolución; ReturnResult es un resultado tipado, sin Response ni rutas HTTP.
 
 ## Entregas y puertas de calidad
 

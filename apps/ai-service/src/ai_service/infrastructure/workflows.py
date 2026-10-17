@@ -3,6 +3,7 @@ import asyncio
 import hashlib
 import json
 from dataclasses import dataclass
+from contextlib import asynccontextmanager
 from typing import TypedDict
 from uuid import UUID, uuid5, NAMESPACE_URL
 from langgraph.graph import StateGraph, START, END
@@ -31,8 +32,12 @@ class RequestContext:
 
 class ReturnApprovalWorkflow:
     """Coordinates proposal, human approval and execution through the Commerce API."""
-    def __init__(self, gateway: CommerceGateway, saver):
+    def __init__(self, gateway: CommerceGateway, saver, *, operation_timeout: float = 12, max_operations: int = 16):
+        if operation_timeout <= 0 or max_operations < 1:
+            raise ValueError("Workflow limits must be positive")
         self.gateway, self.lock = gateway, asyncio.Lock()
+        self.operation_timeout, self.max_operations = operation_timeout, max_operations
+        self.in_flight = 0
         builder = StateGraph(ReturnState, context_schema=RequestContext)
         builder.add_node("propose", self.propose)
         builder.add_node("approval", self.wait_for_approval)
@@ -43,35 +48,55 @@ class ReturnApprovalWorkflow:
         builder.add_edge("execute", END)
         self.graph = builder.compile(checkpointer=saver)
 
+    @asynccontextmanager
+    async def operation(self):
+        # Admission bookkeeping has no await: atomic on this single event loop.
+        # Count both executing and queued operations, without an unbounded waiter list.
+        if self.in_flight >= self.max_operations:
+            raise ServiceError(503, "Workflow capacity exhausted")
+        self.in_flight += 1
+        try:
+            async with asyncio.timeout(self.operation_timeout):
+                async with self.lock:
+                    yield
+        except TimeoutError:
+            raise ServiceError(503, "Workflow deadline exceeded") from None
+        finally:
+            self.in_flight -= 1
+
     @staticmethod
     def config(workflow_id):
         return {"configurable": {"thread_id": workflow_id}}
 
     async def propose(self, state: ReturnState, runtime: Runtime[RequestContext]):
-        result = await self.gateway.request("POST", "/api/v1/returns", runtime.context.token,
-            {"orderId": state["orderId"], "reason": state["reason"]}, "proposal:" + state["workflowId"], runtime.context.correlation)
-        return {"returnId": result["id"], "status": "PENDING"}
+        result = await self.gateway.create_return_proposal(
+            order_id=state["orderId"], reason=state["reason"], token=runtime.context.token,
+            idempotency_key="proposal:" + state["workflowId"], correlation=runtime.context.correlation)
+        return {"returnId": result.return_id, "status": "PENDING"}
 
     async def wait_for_approval(self, state: ReturnState):
         interrupt({"approvalRequired": True, "returnId": state["returnId"]})
         return {"status": "APPROVED"}
 
     async def execute(self, state: ReturnState, runtime: Runtime[RequestContext]):
-        path = "/api/v1/returns/" + state["returnId"]
-        current = await self.gateway.request("GET", path, runtime.context.token, correlation=runtime.context.correlation)
-        if current["status"] != "EXECUTED":
+        current = await self.gateway.get_return(
+            state["returnId"], runtime.context.token, correlation=runtime.context.correlation)
+        if current.status != "EXECUTED":
             # Each invocation comes from an explicit MANAGER /approve request.
             # Renew the backend approval, including an expired approval after restart.
-            current = await self.gateway.request("POST", path + "/approve", runtime.context.token,
-                {"version": current["version"]}, correlation=runtime.context.correlation)
-            await self.gateway.request("POST", path + "/execute", runtime.context.token,
-                {"version": current["version"]}, "execute:" + state["returnId"], runtime.context.correlation)
+            current = await self.gateway.approve_return(
+                state["returnId"], current.version, runtime.context.token,
+                correlation=runtime.context.correlation)
+            if current.status != "EXECUTED":
+                await self.gateway.execute_return(
+                    state["returnId"], current.version, runtime.context.token,
+                    idempotency_key="execute:" + state["returnId"], correlation=runtime.context.correlation)
         return {"status": "EXECUTED"}
 
     async def create(self, actor: Principal, token: str, body: dict, key: str, correlation: str):
         workflow_id = str(uuid5(NAMESPACE_URL, json.dumps([actor.tenant, actor.subject, key])))
         request_hash = hashlib.sha256(json.dumps(body, sort_keys=True).encode()).hexdigest()
-        async with self.lock:
+        async with self.operation():
             snapshot = await self.graph.aget_state(self.config(workflow_id))
             if snapshot.values:
                 if snapshot.values["requestHash"] != request_hash:
@@ -100,7 +125,7 @@ class ReturnApprovalWorkflow:
         return self.public(await self.visible(workflow_id, actor))
 
     async def approve(self, workflow_id, actor, token, correlation):
-        async with self.lock:
+        async with self.operation():
             state = await self.visible(workflow_id, actor)
             if "MANAGER" not in actor.roles:
                 raise ServiceError(403, "MANAGER role required")

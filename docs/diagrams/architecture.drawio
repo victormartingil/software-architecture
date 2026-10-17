@@ -616,7 +616,7 @@
         <mxCell id="http-title" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=22;fontColor=#182D43;fontStyle=1;align=left;verticalAlign=middle;" value="Entrada HTTP" vertex="1" parent="http">
           <mxGeometry as="geometry" x="16" y="35" width="268" height="32" />
         </mxCell>
-        <mxCell id="http-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="CommerceController" vertex="1" parent="http">
+        <mxCell id="http-body" style="text;html=0;fillColor=none;strokeColor=none;fontFamily=Arial;fontSize=18;fontColor=#58697A;fontStyle=0;align=left;verticalAlign=middle;" value="OrderController" vertex="1" parent="http">
           <mxGeometry as="geometry" x="16" y="76" width="268" height="65" />
         </mxCell>
         <mxCell id="input" style="group;fillColor=none;strokeColor=none;" value="" vertex="1" parent="1">

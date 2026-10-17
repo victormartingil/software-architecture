@@ -28,7 +28,7 @@ mvn -f apps/order-analytics/pom.xml package
 KAFKA_BOOTSTRAP_SERVERS=localhost:9092 java -jar apps/order-analytics/target/order-analytics-1.0.0.jar
 ```
 
-El test Kafka real usa Testcontainers y se omite explícitamente si Docker no está disponible. En Rancher Desktop, exportar `DOCKER_HOST` con la dirección de `docker context inspect --format '{{.Endpoints.docker.Host}}'`; para Docker reciente añadir `-Dapi.version=1.44` a Maven. Un test omitido no acredita recuperación real. La prueba elimina RocksDB después de cerrar la primera instancia y verifica restauración de agregado y deduplicación desde Kafka.
+El test Kafka real usa Testcontainers; la verificación canónica exige ejecutarlo y rechaza omisiones si Docker no está disponible. En Rancher Desktop, exportar `DOCKER_HOST` con la dirección de `docker context inspect --format '{{.Endpoints.docker.Host}}'`; para Docker reciente añadir `-Dapi.version=1.44` a Maven. Un test omitido no acredita recuperación real. La prueba elimina RocksDB después de cerrar la primera instancia y verifica restauración de agregado y deduplicación desde Kafka.
 
 | Variable | Valor predeterminado | Uso |
 |---|---|---|
@@ -37,6 +37,10 @@ El test Kafka real usa Testcontainers y se omite explícitamente si Docker no es
 | `STATE_DIR` | `/tmp/order-analytics` | En Docker `/state`, montar volumen con propietario UID 10001 |
 | `READY_FILE` | `/tmp/analytics-ready` | Presente solamente en estado RUNNING |
 | `METRICS_PORT` | `9404` | Listener interno de `/metrics`, `/health` y `/live` |
+
+`StreamsLifecycle` espera RUNNING hasta 60 s al arrancar y solicita cierre con un plazo de 20 s. Un timeout o fallo elimina readiness; un cierre que devuelve false se informa como fallo, sin afirmar que terminó. El shutdown hook cierra también el listener HTTP. Compose y Kubernetes conceden 30 s de terminación, por encima del plazo de cierre solicitado a Kafka. Los callbacks de estado no ejecutan close ni se mantiene su monitor mientras Kafka espera hilos: evita un bloqueo mutuo.
+
+`max.poll.records=100` acota registros por poll; `buffered.records.per.partition=100` es un umbral de pausa por partición que puede superarse al añadir un lote. Ninguno es un rate limit ni un techo exacto de memoria. Observar lag junto a capacidad de proceso, tamaño de mensajes, particiones y readiness; aumentar pods está limitado por particiones/tareas y datos locales.
 
 Liveness `/live` tolera rebalance y solo falla ERROR/PENDING_ERROR; readiness `/health` responde 200 solo RUNNING; Docker usa el archivo para evitar añadir curl. Métricas Prometheus: `analytics_late_events_total`, `analytics_invalid_events_total` y `analytics_records_lag_max` (máximo lag observado entre consumidores; cero antes de asignar particiones, interpretar junto con readiness). Counters reinician con proceso, usar `rate()` en dashboard. No publicar puerto de métricas a Internet.
 
@@ -48,4 +52,6 @@ La DSL resuelve ventanas, materialización y changelog; dos procesadores pequeñ
 
 Límite: el barrido horario de deduplicación recorre el store. Es sencillo y verificable con volúmenes de referencia; un caudal alto requeriría expiración indexada y dimensionamiento medido. Los eventos futuros incorrectos pueden adelantar stream time; en producción se debe acordar y validar un máximo de desfase de reloj sin romper backfills autorizados.
 
-Fuentes oficiales consultadas: [Processor API 4.0](https://kafka.apache.org/40/streams/developer-guide/processor-api/), [pruebas](https://kafka.apache.org/40/streams/developer-guide/testing/), [memoria](https://kafka.apache.org/40/streams/developer-guide/memory-mgmt/). Los ejemplos se implementan para el contrato de esta referencia.
+Fuentes oficiales consultadas: [Processor API 4.0](https://kafka.apache.org/40/streams/developer-guide/processor-api/), [pruebas](https://kafka.apache.org/40/streams/developer-guide/testing/), [memoria](https://kafka.apache.org/40/streams/developer-guide/memory-mgmt/), [ciclo de vida](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/KafkaStreams.html). Los ejemplos se implementan para el contrato de esta referencia.
+
+El ingreso aplica un máximo de treinta segundos de adelanto sobre reloj UTC del proceso antes de asignar tiempo de evento. Inválidos se aíslan en DLT sin adelantar ventanas; ver [relojes y cuarentena](../../docs/handbook/events.md#relojes-incorrectos-y-cuarentena).

@@ -112,3 +112,29 @@ async def test_every_started_answer_records_exactly_one_outcome(tmp_path, path, 
     deltas = {outcome: REQUESTS.labels(outcome, 'fake-simulation')._value.get() - before[outcome]
               for outcome in outcomes}
     assert deltas == {outcome: int(outcome == expected) for outcome in outcomes}
+
+
+async def test_access_telemetry_uses_route_template_without_secrets(tmp_path, caplog):
+    import json
+    from ai_service.main import ACCESS_LOG, HTTP_REQUESTS
+    app = create_app(Settings(workflow_db=str(tmp_path / 'telemetry.db')))
+    ACCESS_LOG.addHandler(caplog.handler)
+    before = HTTP_REQUESTS.labels('GET', '/api/v1/workflows/{workflow_id}', '404')._value.get()
+    try:
+        async with app.router.lifespan_context(app):
+            app.state.verifier = Verified()
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+                for workflow_id in ('secret-path-one', 'secret-path-two'):
+                    response = await client.get('/api/v1/workflows/' + workflow_id + '?secret=query-value',
+                        headers={'Authorization': 'Bearer secret-token', 'X-Correlation-ID': '00000000-0000-4000-8000-000000000001'})
+                    assert response.status_code == 404
+        events = [json.loads(record.message) for record in caplog.records if record.name == 'ai_service.access']
+        assert len(events) == 2
+        assert all(event['route'] == '/api/v1/workflows/{workflow_id}' for event in events)
+        assert all(event['correlationId'] == '00000000-0000-4000-8000-000000000001' for event in events)
+        assert all(event['durationMs'] >= 0 and event['status'] == 404 for event in events)
+        assert HTTP_REQUESTS.labels('GET', '/api/v1/workflows/{workflow_id}', '404')._value.get() == before + 2
+        serialized = json.dumps(events)
+        assert not any(secret in serialized for secret in ('secret-token', 'secret-path-one', 'query-value'))
+    finally:
+        ACCESS_LOG.removeHandler(caplog.handler)

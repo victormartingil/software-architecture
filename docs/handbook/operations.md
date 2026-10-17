@@ -6,14 +6,19 @@ Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si h
 
 ```bash
 make observability
+make observability-smoke
 make demo
 ```
 
-Grafana está en `http://localhost:3000`, Prometheus en `http://localhost:9090`. El dashboard de referencia reúne señales sin IDs de usuario como labels. Tempo recibe trazas mediante OTel Collector. El identificador de correlación viaja en HTTP y sobre del evento; la traza HTTP se conserva en el outbox para enlazar publicación posterior. Una tarea asíncrona no mantiene mágicamente el contexto de la petición: hay que transportarlo explícitamente.
+**Cuándo y por qué:** métricas para detectar tendencias, trazas para localizar el salto lento y logs para diagnosticar una operación concreta. Grafana ofrece una experiencia local similar a las vistas de un APM como Datadog, sin sus agentes ni servicios de pago: [dashboard](http://localhost:3000/d/architecture-reference), [Prometheus](http://localhost:9090) y Tempo mediante OTel Collector. El dashboard combina tráfico, errores, latencia p95 y resultados de negocio, sin IDs como labels. El identificador de correlación viaja en HTTP y sobre del evento; la traza HTTP se conserva en el outbox para enlazar publicación posterior. Una tarea asíncrona no mantiene mágicamente el contexto de la petición: hay que transportarlo explícitamente.
 
-El dashboard es una ayuda de diagnóstico local. La infraestructura de telemetría es efímera y no HA. El colector limita memoria y exporta por lotes. Las APIs no registran tokens ni cuerpos; al añadir instrumentación revisar atributos y exclusiones para no convertir trazas en otro almacén de secretos.
+**Cómo:** [configuración y dashboard](../../infra/observability/dashboard.json), [instrumentación HTTP Python](../../apps/ai-service/src/ai_service/main.py) y [registro Java](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java). Los logs JSON contienen ruta plantilla, status, duración y correlación; usar `docker compose logs --since=5m commerce-api ai-service` y buscar el `correlationId`. No se añade Loki: consultar stdout basta para este caso. La latencia HTTP Python termina al enviar cabeceras; la métrica de operación IA incluye el trabajo de la respuesta SSE.
 
-`make observability` activa exportadores y muestreo; el arranque básico mantiene exportación desactivada para no intentar enviar a un colector ausente. Para seguir una operación, consultar su `trace_id` y abrirlo en Grafana → Explore → Tempo:
+[El escenario](../../scenarios/observability.py) verifica scrapes de los tres servicios, un incremento nuevo, una traza W3C exacta AI → Commerce y logs JSON correlacionados sin JWT ni cuerpo. Imprime `traceId`: abrir Grafana → Explore → Tempo → Trace ID. No basta encontrar una traza antigua o ver el dashboard vacío.
+
+El dashboard es diagnóstico local: retención corta, muestreo 100% para la práctica, infraestructura efímera y sin HA. En producción, ajustar muestreo, retención, autenticación y presupuesto según tráfico. El colector limita memoria y exporta por lotes. Las APIs no registran tokens ni cuerpos; al añadir instrumentación revisar atributos y exclusiones para no convertir trazas en otro almacén de secretos.
+
+`make observability` activa exportadores; el arranque básico los mantiene desactivados. También puede recuperarse el `trace_id` persistido con el evento:
 
 ```bash
 docker compose exec postgres psql -U commerce -d commerce -c 'SELECT event_id, trace_id, published_at FROM outbox LIMIT 5'
@@ -53,7 +58,7 @@ PYTHON
 
 Se espera 201 aunque Kafka esté detenido, al menos un pendiente y después verificación del pedido actual en outbox, inbox y resumen. Este ejercicio reserva una unidad; no completa una devolución ni restaura stock. No ejecuta `make demo` con Kafka parado porque ese escenario sí espera el resumen.
 
-El escenario de fallo automatizado en la integración Java pausa el broker y prueba recuperación. El entorno debe disponer de disco: una dependencia caída por tiempo indefinido puede llenar outbox aunque los pedidos sigan respondiendo.
+La integración Java automatiza el fallo y recuperación. Vigilar disco: una caída prolongada puede llenar outbox aunque los pedidos sigan respondiendo.
 
 ## Runbook: DLT y mensajes tardíos
 
@@ -67,7 +72,7 @@ No renombrar identidades para eludir deduplicación. Un evento tardío fuera de 
 
 ## SLI, SLO y capacidad
 
-Un servicio real necesita medir éxito de operaciones válidas, latencia y frescura de proyecciones; IA añade fidelidad y abstención correcta. Basar el SLO en necesidad de negocio y medición. Estas alertas son umbrales didácticos, sin disponibilidad histórica atribuida.
+Medir éxito de operaciones válidas, latencia y frescura; IA añade fidelidad y abstención correcta. El SLO depende del negocio. Las alertas son umbrales didácticos, sin disponibilidad histórica atribuida.
 
 Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del proveedor. Más réplicas pueden trasladar el cuello de botella. El coste por tarea completada incluye errores, reintentos y recursos ociosos, no solo tokens.
 
@@ -88,4 +93,4 @@ Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del prov
 
 **Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
 
-Fuentes: [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).
+Fuentes: [Spring logging estructurado](https://docs.spring.io/spring-boot/reference/features/logging.html), [Tempo API](https://grafana.com/docs/tempo/latest/api_docs/), [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).

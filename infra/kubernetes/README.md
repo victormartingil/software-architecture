@@ -27,7 +27,7 @@ Las APIs están disponibles en las mismas URLs del Compose. El issuer público c
 ```sh
 export KUBECONFIG="$PWD/reports/kind.kubeconfig"
 kubectl --context kind-architecture-reference -n architecture-reference get hpa
-python3 scripts/kind-load.py --seconds 180 --workers 16
+make kind-scale-check
 kubectl --context kind-architecture-reference -n architecture-reference get hpa,pods
 kubectl --context kind-architecture-reference -n architecture-reference rollout restart deployment/commerce-api
 kubectl --context kind-architecture-reference -n architecture-reference rollout status deployment/commerce-api
@@ -35,7 +35,7 @@ kubectl --context kind-architecture-reference -n architecture-reference rollout 
 
 La carga solo hace GET de inventario autenticado: no crea pedidos ni altera stock. El HPA usa CPU, requests de 200m y objetivo de 50%, con rango 1–2. Se ajustó la request tras observar que 50m provocaba escalado incluso con la carga de fondo del laboratorio. El generador reutiliza conexiones y limita globalmente a 300 peticiones/s por defecto; las rota para que reciban tráfico las réplicas nuevas. Estos parámetros requieren medición en cada entorno. El script dura como máximo diez minutos, usa como máximo64 workers y permite `--rps` hasta1000; clasifica los errores y falla si encuentra alguno.
 
-Para registrar el paso de una a dos réplicas, observar el HPA mientras corre la carga. No inferir éxito de la mera existencia del manifiesto: comprobar métricas disponibles, réplicas deseadas y pods listos. `metrics-server` necesita unos ciclos de muestreo tras el arranque. Tras cesar la carga existe una ventana de estabilización de sesenta segundos.
+`make kind-scale-check` automatiza la evidencia con carga acotada de cinco minutos, 16 workers y máximo 300 GET/s. Espera una réplica en reposo sin forzarla; exige métricas CPU, HPA deseando dos, dos pods listos y ambos endpoints del Service. A continuación envía el mismo pedido concurrentemente a cada pod mediante port-forwards distintos: respuesta idéntica y stock reducido una sola vez. Una devolución autorizada repone esa unidad, conservando el pedido y auditoría sintéticos. No altera manifiestos, borra datos ni elimina el clúster; cierra la carga y los port-forwards ante errores. El informe queda en `reports/kind-scale-check.json`. Una máquina sin capacidad o métricas suficientes produce fallo explícito. Para observación manual, usar `python3 scripts/kind-load.py --seconds 180 --workers 16`. No inferir éxito de la mera existencia del manifiesto: comprobar métricas disponibles, réplicas deseadas y pods listos. `metrics-server` necesita unos ciclos de muestreo tras el arranque. Tras cesar la carga existe una ventana de estabilización de sesenta segundos.
 
 El PDB exige una réplica disponible para interrupciones voluntarias. No garantiza disponibilidad frente a caída del nodo. El rollout usa `maxUnavailable:0` y `maxSurge:1`; hay capacidad para una réplica temporal adicional durante la actualización.
 

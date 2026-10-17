@@ -20,7 +20,7 @@ La evolución debe mantener forma y semántica compatibles. Aquí los schemas y 
 
 ## Ventanas y deduplicación
 
-[OrderSummaryTopology](../../apps/order-analytics/src/main/java/com/reference/analytics/OrderSummaryTopology.java) resume pedidos por tenant, SKU y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia de treinta segundos permite llegar fuera de orden respecto al avance de stream time. No significa esperar treinta segundos de reloj tras cada mensaje.
+[OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) resume pedidos por tenant, SKU y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia de treinta segundos permite llegar fuera de orden respecto al avance de stream time. No significa esperar treinta segundos de reloj tras cada mensaje.
 
 [![Validación, deduplicación y resumen de pedidos](../diagrams/order-summary-flow.svg)](../diagrams/order-summary-flow.svg)
 
@@ -30,11 +30,17 @@ El topic de salida publica actualizaciones de una tabla: la misma clave de venta
 
 El store local mejora acceso, mientras el changelog permite reconstrucción. No es una copia de seguridad universal: depende de retención, identidad de aplicación y disponibilidad de Kafka. El laboratorio verifica reinicio y restauración; la topología determinista verifica ventanas y tardíos sin dormir.
 
+El consumidor limita cada poll a 100 registros y pausa por partición al superar un umbral de 100 en su cola; un lote puede excederlo. No son límites globales de memoria o caudal. Observar lag y capacidad antes de añadir tareas. `StreamsLifecycle` prueba arranque RUNNING hasta 60 s y cierre solicitado hasta 20 s, con readiness HTTP/archivo retirado durante rebalance y parada. Compose y Kubernetes conceden 30 s de terminación. Un timeout se hace visible, sin declarar completado el cierre.
+
 Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman dentro de la transacción Kafka. Sus consumidores deben leer con `isolation.level=read_committed`. Esta atomicidad no incluye PostgreSQL ni HTTP; eventId sigue siendo necesario para reconocer publicaciones repetidas del mismo hecho de negocio.
+
+## Relojes incorrectos y cuarentena
+
+El tiempo de evento decide cuándo se cierra una ventana. Un `occurredAt` de 2099 puede adelantar el tiempo del task y convertir pedidos actuales en descartes tardíos. [OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) aplica una tolerancia máxima de treinta segundos respecto al reloj del proceso antes de asignar timestamp. Un inválido conserva el tiempo previo de partición (cero al inicio) y va a DLT: tampoco se confía en su timestamp Kafka. Solo la rama DLT asigna hora de cuarentena, para que su retención no nazca vencida. El límite exacto se admite; [la regresión](../../apps/order-analytics/src/test/java/dev/reference/analytics/OrderSummaryTopologyTest.java) comprueba que el siguiente pedido actual sigue agregándose. Sincronizar relojes y revisar DLT; el replay del pasado sigue sujeto a grace/retención, no se convierte en una reconstrucción histórica automática.
 
 ## Micropráctica: no perder el mensaje que falló
 
-**Pregunta:** ¿avanza el consumidor si tampoco funciona la DLT? Leer [KafkaConfiguration](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/KafkaConfiguration.java), [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) y [KafkaRecoveryTest](../../apps/order-analytics/src/test/java/com/reference/analytics/KafkaRecoveryTest.java). Desde la raíz, con Java 21 y Docker:
+**Pregunta:** ¿avanza el consumidor si tampoco funciona la DLT? Leer [KafkaConfiguration](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/KafkaConfiguration.java), [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) y [KafkaRecoveryTest](../../apps/order-analytics/src/test/java/dev/reference/analytics/KafkaRecoveryTest.java). Desde la raíz, con Java 21 y Docker:
 
 ```bash
 (cd apps/commerce-api && \
@@ -51,4 +57,4 @@ Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman 
 
 **Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
 
-Fuentes: [Kafka Streams conceptos](https://kafka.apache.org/40/streams/core-concepts/), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox](https://microservices.io/patterns/data/transactional-outbox.html).
+Fuentes: [Kafka y retención por timestamp](https://kafka.apache.org/40/implementation/log/), [TimestampExtractor](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/processor/TimestampExtractor.html), [Kafka Streams conceptos](https://kafka.apache.org/40/streams/core-concepts/), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox](https://microservices.io/patterns/data/transactional-outbox.html).

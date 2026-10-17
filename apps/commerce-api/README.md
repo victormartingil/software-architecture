@@ -1,6 +1,6 @@
 # Commerce API
 
-API de comercio: aplicación Java que mantiene pedidos, stock y devoluciones. Sus módulos `orders`, `inventory` y `returns` se ejecutan juntos. `CommerceController` adapta HTTP; `ManageReturnService` gestiona crear, aprobar y ejecutar propuestas.
+API de comercio: aplicación Java que mantiene pedidos, stock y devoluciones. Sus módulos `orders`, `inventory` y `returns` se ejecutan juntos. `OrderController`, `InventoryController` y `ReturnController` adaptan HTTP; `ManageReturnService` gestiona crear, aprobar y ejecutar propuestas.
 
 [Mapa de aplicaciones y sistemas de apoyo](../../docs/repository-design.md#component-map).
 
@@ -9,6 +9,8 @@ Referencia Java 21/Spring Boot 4.1.1: pedidos, inventario y devoluciones con pue
 ## Ejecución y pruebas
 
 Desde esta carpeta: `./mvnw test` y `./mvnw spring-boot:run`. Las pruebas de integración requieren Docker y levantan PostgreSQL 17.7/Kafka 4.0.2 reales. En Rancher Desktop puede ser necesario `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock ./mvnw test` para montar el socket de Ryuk dentro de su VM. No se omiten integraciones cuando falta Docker.
+
+Los números JSON de quantity/version deben ser literales enteros: strings y decimales producen 400; no se truncan. La entrada tolera campos extra por compatibilidad. La descripción OpenAPI y los tests conservan explícitos los límites de representación.
 
 La ejecución completa y el seed OIDC se gestionan desde Compose en la raíz. Puerto HTTP: **8080**. `/actuator/health/liveness`, `/actuator/health/readiness` y `/actuator/prometheus` están disponibles sin JWT para operación local; restringir métricas en una instalación pública.
 
@@ -24,6 +26,10 @@ La ejecución completa y el seed OIDC se gestionan desde Compose en la raíz. Pu
 | `OUTBOX_DELAY_MS` | `1000` |
 
 `OIDC_JWKS` puede usar hostname interno Docker mientras `OIDC_ISSUER` conserva el issuer público del token. Se verifican firma, issuer, audiencia y vencimiento; roles proceden de `realm_access.roles`, tenant de `tenant`. CUSTOMER accede a sus pedidos; MANAGER administra solo su tenant. Las credenciales de demostración se definen en el realm local, nunca en esta API.
+
+## Contrato HTTP
+
+[OpenAPI canónico](../../contracts/http/commerce.openapi.json) y [explicación de API](../../docs/handbook/api-contracts.md). El listado `GET /api/v1/orders` usa cursor UUID, límite 1..50 y filtro status; aplica tenant/propietario en SQL, sin prometer snapshot ni orden temporal.
 
 ## Decisiones verificables
 

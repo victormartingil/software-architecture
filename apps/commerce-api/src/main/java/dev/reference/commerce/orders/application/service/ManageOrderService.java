@@ -5,13 +5,16 @@ import dev.reference.commerce.orders.application.model.*;
 import dev.reference.commerce.orders.application.port.input.OrderUseCase;
 import dev.reference.commerce.orders.application.port.output.OrderRepository;
 import dev.reference.commerce.orders.domain.Order;
+import dev.reference.commerce.orders.domain.OrderStatus;
 import dev.reference.commerce.shared.application.*;
 import dev.reference.commerce.shared.domain.*;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Coordinates order creation, visibility and refund state through the cohesive order input port. */
+/**
+ * Coordinates order creation, visibility and refund state through the cohesive order input port.
+ */
 @Service
 public class ManageOrderService implements OrderUseCase {
   private final OrderRepository orders;
@@ -46,12 +49,20 @@ public class ManageOrderService implements OrderUseCase {
                   command.sku(),
                   command.quantity(),
                   Math.multiplyExact(price, command.quantity()),
-                  "PLACED",
+                  OrderStatus.PLACED,
                   0);
           orders.save(order);
-          events.placed(order.id(), order.tenant(), order.sku(), order.quantity(), order.totalCents());
+          events.placed(
+              order.id(), order.tenant(), order.sku(), order.quantity(), order.totalCents());
           return OrderResult.from(order);
         });
+  }
+
+  public OrderPage list(Actor actor, OrderQuery query) {
+    var candidates = orders.list(actor, query);
+    boolean hasMore = candidates.size() > query.limit();
+    var items = candidates.stream().limit(query.limit()).map(OrderResult::from).toList();
+    return new OrderPage(items, hasMore ? items.getLast().id() : null);
   }
 
   public OrderResult get(Actor actor, UUID id) {
@@ -65,7 +76,8 @@ public class ManageOrderService implements OrderUseCase {
             order ->
                 order.tenant().equals(actor.tenant())
                     && (actor.manager() || order.actor().equals(actor.subject())))
-        .orElseThrow(() -> new BusinessException(404, "Order not found"));
+        .orElseThrow(
+            () -> new BusinessException(BusinessException.Kind.NOT_FOUND, "Order not found"));
   }
 
   public void refund(UUID id) {

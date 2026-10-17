@@ -46,6 +46,10 @@ jobs:
         run: docker compose up -d --wait --wait-timeout 300
       - name: Exercise authenticated business and AI workflows
         run: make smoke
+      - name: Verify current-operation metrics, distributed trace and safe logs
+        run: |
+          make observability
+          make observability-smoke
       - name: Diagnostic status on failure
         if: failure()
         run: docker compose ps -a

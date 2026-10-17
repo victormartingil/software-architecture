@@ -1,6 +1,6 @@
 # Especificación de la referencia
 
-Versión 2, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
+Versión 4, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
 
 ## Objetivo y límites
 
@@ -59,7 +59,15 @@ Proveedor `fake` predeterminado y determinista; siempre identificado como simula
 
 Corpus lexical versionado con referencias y tenant, recuperación top-3. Variant vector pgvector con embedding configurado, dimensión validada y filtro tenant en consulta. No insertar documentos mediante API pública. Dataset mínimo cuarenta casos con relevancias, abstenciones y ataques. Recall@3 >=0.90 sobre casos respondibles del corpus; 100% aislamiento y referencias existentes. La fórmula de recall admite varias relevancias por pregunta; hit-rate y MRR se informan separadamente. Calidad real LLM requiere evaluación independiente, no se infiere de fake.
 
+Las mutaciones del workflow tienen un plazo total de doce segundos, incluida la espera del lock, y admiten como máximo dieciséis operaciones activas o en espera por proceso. Exceso o plazo agotado devuelve 503; cancelación libera cupo. La serialización SQLite es una capacidad deliberadamente limitada, no aislamiento de rendimiento entre tenants. El reintento conserva identidad idempotente.
+
+Analytics rechaza occurredAt adelantado más de treinta segundos respecto a un Clock de proceso antes de asignar tiempo de evento; la extracción conserva el tiempo previo de partición y el registro va a DLT con timestamp del reloj al aislarlo, para que un dato de 1970 no agote su retención. El reloj debe estar sincronizado. Esta política operativa no sustituye el esquema del evento: pasado/replay conserva las restricciones de grace/retención.
+
 ## Seguridad y entornos
+
+Observabilidad local optativa con OpenTelemetry, Prometheus, Tempo y Grafana: métricas para tendencias/alertas, trazas para seguir una operación y logs estructurados para hechos diagnósticos. No requiere Datadog ni cuenta externa. El escenario verifica targets, incremento de señales y traza de una operación actual, con plazos y sin aceptar datos históricos como evidencia. No registrar cuerpos, preguntas o tokens; etiquetas métricas de cardinalidad acotada. La consola de contenedores es suficiente para logs locales; no añadir un almacén de logs sin necesidad demostrada.
+
+El laboratorio HPA debe observar una transición real de una a dos réplicas disponibles y comprobar idempotencia concurrente entre pods. La carga y cualquier ajuste temporal son acotados, visibles y restaurados; no equivale a un benchmark o a disponibilidad cloud.
 
 Keycloak local como OIDC: realm `reference`, client público `reference-cli` con password grant solo para automatizar demostración local. Usuarios alice (CUSTOMER/demo), manager (MANAGER/demo) y bob (CUSTOMER/other). Credenciales sintéticas explícitas en import local; nunca describir password grant como opción recomendada para cliente público productivo. Producción usa Authorization Code + PKCE. Audiencia `reference-api`, issuer validado. Proveedor configurado por entorno; JWKS interno y issuer público separados para networking Docker.
 
@@ -81,3 +89,14 @@ Fichas con una ruta de dos o tres archivos y una micropráctica ejecutable, resu
 Patrones implementados: Adapter, Repository, Strategy y composición; Outbox/Inbox, Circuit Breaker e idempotencia con motivo concreto. Otros GoF solo teoría y referencias verificadas. ADR breves para límites, transacciones, entrega eventos, recuperación, permisos, estado y despliegue. No atribuir uso industrial ni métricas hipotéticas.
 
 Versiones Python e imágenes fijadas en lockfiles, Dockerfiles y manifiestos. No cambiar major sin registrar decisión. Fuentes verificadas: [Spring Boot](https://docs.spring.io/spring-boot/4.1/reference/), [FastAPI](https://fastapi.tiangolo.com/advanced/events/), [LangGraph](https://docs.langchain.com/oss/python/langgraph/persistence), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/).
+
+## Evolución acotada de organización y contratos
+
+Se conservan los tres servicios, contratos existentes, datos sintéticos y versiones. No se incorpora contenido de repositorios privados. EVOL-01..07 amplía el alcance con estos casos mínimos:
+
+- Java usa raíz `dev.reference` y nombres descriptivos. Comercio ubica controladores REST en su módulo funcional y adaptadores en subpaquetes por tecnología; `shared` conserva solo capacidades transversales. Dominio define errores por significado, estados enum y cantidad válida; infraestructura mapea a HTTP manteniendo status y JSON anteriores.
+- `GET /api/v1/orders?limit=10&after=<UUID>&status=PLACED`: límite 1..50, cursor opcional, estados PLACED/REFUNDED, orden fijo id ASC. Devuelve `{items,nextCursor}`; consulta solo tenant/propietario autorizado (MANAGER: tenant), obtiene como máximo límite+1 y no calcula total. El cursor continúa por identificador; no es una instantánea ni promete orden temporal de creación ante escrituras concurrentes.
+- Contrato OpenAPI canónico de Comercio bajo `contracts/http/`, contrastado con MockMvc y JSON Schema. Se mantiene JSON HTTP existente, incluidos enums serializados como sus nombres. Sin generador ni biblioteca nueva por defecto. Se desactiva la coerción numérica escalar de Jackson3 HTTP: quantity/version como string o literal decimal producen 400; antes podían convertirse silenciosamente. Las peticiones canónicas enteras y los status/JSON de salida se conservan. Los campos extra de entrada siguen tolerados. Los parámetros id antiguos conservan su conversión UUID legada; el nuevo cursor after exige representación completa. JSON Schema integer no distingue 2 de 2.0 por representación, por eso esa restricción wire se describe y prueba explícitamente.
+- Gateway Python expresa crear/consultar/aprobar/ejecutar devolución con resultados tipados; infraestructura contiene verbos, rutas, JSON y traducción de errores. No guardar JWT ni reintentar escrituras arbitrariamente.
+- Prueba mínima de proxy Spring acredita transacción/rollback y muestra fallo de auto-invocación o llamada directa fuera del proxy. Se extrae soporte de integración solo donde realmente se comparte.
+- Streams conserva Kafka y proceso propio: límites explícitos de consumo, arranque/cierre probado, plazo de cierre y readiness comprobables. No se incorpora Pub/Sub, autoscaler ni plataforma de caos. Documentar lag frente a capacidad y cierre sin prometer HA ni ausencia universal de duplicados.

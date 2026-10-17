@@ -21,12 +21,29 @@ make down
 ## Recorrido recomendado
 
 1. [Límites y patrones](handbook/architecture.md): responsabilidades y dependencias.
-2. [Datos y concurrencia](handbook/transactions.md): invariantes antes de distribución.
-3. [Eventos y ventanas](handbook/events.md): entrega, repetición y tiempo.
-4. [RAG y evaluación](handbook/retrieval.md): evidencia antes de generación.
-5. [Workflow aprobado](handbook/workflows.md): efectos autorizados y reanudación.
-6. [Seguridad y resiliencia](handbook/security.md): amenazas y fallos concretos.
-7. [Operación](handbook/operations.md) y [delivery](handbook/delivery.md): señales, despliegue y límites.
+2. [Contratos HTTP](handbook/api-contracts.md): errores semánticos, OpenAPI y paginación acotada.
+3. [Datos y concurrencia](handbook/transactions.md): invariantes antes de distribución.
+4. [Eventos y ventanas](handbook/events.md): entrega, repetición y tiempo.
+5. [RAG y evaluación](handbook/retrieval.md): evidencia antes de generación.
+6. [Workflow aprobado](handbook/workflows.md): efectos autorizados y reanudación.
+7. [Seguridad y resiliencia](handbook/security.md): amenazas y fallos concretos.
+8. [Operación](handbook/operations.md) y [delivery](handbook/delivery.md): señales, despliegue y límites.
+
+## Cuándo aplicar cada mecanismo
+
+| Necesidad | Por qué y cómo se resuelve |
+|---|---|
+| Cambiar transporte o persistencia | [Puertos por responsabilidad](handbook/architecture.md), sin interfaces por clase. |
+| Mantener una integración compatible | [Contrato HTTP y errores](handbook/api-contracts.md), verificados contra respuestas reales. |
+| Proteger stock o una devolución | [Transacción y constraints](handbook/transactions.md), antes de distribuir servicios. |
+| Publicar un hecho tras guardar | [Outbox/inbox](handbook/events.md), admitiendo entregas repetidas y fallos. |
+| Responder con documentos autorizados | [RAG y evaluación](handbook/retrieval.md), con abstención y límites de proveedor. |
+| Coordinar un efecto aprobado | [Workflow persistente](handbook/workflows.md), sin delegar autoridad a la IA. |
+| Defender fronteras de confianza | [Identidad y autorización](handbook/security.md), con negativos ejecutables. |
+| Explicar un fallo o una degradación | [Métricas, trazas y logs](handbook/operations.md), correlacionados sin contenido sensible. |
+| Escalar una capacidad medida | [HPA y entrega](handbook/delivery.md), comprobando estado compartido e idempotencia. |
+
+Cada ficha enlaza la implementación, una prueba, una alternativa y su límite. El [mapa por pregunta](reference-map.md) lleva directamente al código; la presencia de una herramienta no obliga a usarla en otro sistema.
 
 La [matriz de aceptación](acceptance.md) expresa lo exigido. La [evidencia](verification.md) indica qué se ejecutó realmente y las limitaciones pendientes. El modo `fake` permite verificar integración; no mide calidad de un modelo generativo real. Terraform se valida con mocks, sin crear recursos cloud.
 

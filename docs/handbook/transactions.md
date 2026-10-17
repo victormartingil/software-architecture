@@ -4,7 +4,7 @@
 
 Dos compradores pueden leer stock uno al mismo tiempo. Si ambos restan en memoria y guardan cero, se venden dos unidades aunque el contador parezca correcto. La regla relevante es que cada pedido aceptado corresponde a una reserva efectiva, sin stock negativo. Una transacción no arregla por sí sola una secuencia de lecturas y escrituras mal diseñada.
 
-El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/JdbcInventoryRepositoryAdapter.java) usa una actualización condicional: descontar solo si `stock >= quantity`, comprobando filas afectadas. PostgreSQL coordina escrituras concurrentes sobre la misma fila. La reserva, el pedido, el registro idempotente y el evento outbox se confirman en una transacción local. Precio e importe se calculan en servidor; el cliente no puede enviar un total arbitrario.
+El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/persistence/JdbcInventoryRepositoryAdapter.java) usa una actualización condicional: descontar solo si `stock >= quantity`, comprobando filas afectadas. PostgreSQL coordina escrituras concurrentes sobre la misma fila. La reserva, el pedido, el registro idempotente y el evento outbox se confirman en una transacción local. Precio e importe se calculan en servidor; el cliente no puede enviar un total arbitrario.
 
 [![Secuencia de pedido y publicación del evento](../diagrams/order-sequence.svg)](../diagrams/order-sequence.svg)
 
@@ -20,7 +20,7 @@ El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference
 
 El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor, operación y recurso. Se almacena también el hash del cuerpo: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.
 
-El puerto recibe un ámbito estructurado y el [adaptador idempotente](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/JdbcIdempotencyAdapter.java) lo codifica como array JSON. Concatenar con `:` permitiría confundir componentes legítimos. La versión V2 rechaza migrar si hay claves antiguas ambiguas: no las borra ni permite repetir efectos con otro prefijo; [ADR002](../decisions/002-consistency.md) explica el límite y el reset sintético explícito.
+El puerto recibe un ámbito estructurado y el [adaptador idempotente](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/persistence/JdbcIdempotencyAdapter.java) lo codifica como array JSON. Concatenar con `:` permitiría confundir componentes legítimos. La versión V2 rechaza migrar si hay claves antiguas ambiguas: no las borra ni permite repetir efectos con otro prefijo; [ADR002](../decisions/002-consistency.md) explica el límite y el reset sintético explícito.
 
 La implementación serializa solicitudes con la misma clave dentro de PostgreSQL y guarda el resultado en la misma transacción del efecto. Una caché en memoria no bastaría ante reinicios o varias réplicas. Tampoco basta comprobar «si existe» y luego insertar sin constraint o exclusión: dos transacciones podrían pasar la comprobación.
 

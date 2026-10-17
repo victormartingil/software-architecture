@@ -29,7 +29,7 @@ La demo obtiene tokens OIDC locales, crea un pedido, verifica stock e idempotenc
 - Commerce: `http://localhost:8080`
 - AI y contrato OpenAPI: `http://localhost:8081/docs`
 - Keycloak: `http://localhost:8088`; usuarios `alice`, `manager`, `bob`, contraseña local `local-demo-only`.
-- `make observability`: Grafana en `http://localhost:3000` y Prometheus en `http://localhost:9090`.
+- `make observability` y `make observability-smoke`: [dashboard Grafana](http://localhost:3000/d/architecture-reference), métricas Prometheus y trazas Tempo de una operación nueva; [guía breve](docs/handbook/operations.md).
 
 Si se actualiza un entorno de la primera versión con claves idempotentes antiguas, Flyway V2 bloqueará el arranque para conservar sus efectos. No vaciar solo la tabla de claves. El [ADR 002](docs/decisions/002-consistency.md) explica la incompatibilidad y el reset completo **explícito** del laboratorio sintético; nunca se ejecuta automáticamente.
 
@@ -42,6 +42,7 @@ Para volver a consultar una operación concreta: `make kafka-summary ORDER_ID=..
 | [Manual](docs/index.md) · `make docs` | Recorrido navegable, diagramas y enlaces al código |
 | [Diseño y C4](docs/repository-design.md) | Límites, estructura y secuencia de entregas |
 | [Mapa de referencia](docs/reference-map.md) | Qué consultar para cada problema |
+| [Contratos HTTP](docs/handbook/api-contracts.md) | OpenAPI, errores semánticos y paginación acotada |
 | [Especificación](docs/specification.md) y [AC](docs/acceptance.md) | Contratos y resultados exigidos |
 | [ADR](docs/decisions/index.md) | Decisiones, alternativas y costes |
 | [Verificación](docs/verification.md) | Evidencia ejecutada, revisión y límites |
@@ -53,9 +54,11 @@ make terraform-check        # Planes con mocks; no crea recursos cloud
 make down
 make kind-up                # Clúster local exclusivo, sin cambiar contexto global
 make kind-smoke
-python3 scripts/kind-load.py # Carga GET autenticada para HPA de comercio
+make kind-scale-check       # Observa HPA 1→2 y prueba idempotencia entre ambos pods
 make kind-down
 ```
+
+Cada tema explica cuándo usar el mecanismo, por qué y cómo comprobarlo con el código enlazado en el [recorrido](docs/index.md#cuando-aplicar-cada-mecanismo).
 
 Kubernetes y Terraform son laboratorios adicionales. AI conserva una réplica por su checkpoint SQLite; comercio permite HPA. El entorno local no demuestra alta disponibilidad. Las condiciones y resultados exactos están en la matriz de verificación. CI está definida para GitHub Actions; ejecutar localmente no equivale a haberla ejecutado en GitHub.
 

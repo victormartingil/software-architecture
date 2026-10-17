@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.*;
 
 public interface ReturnRepository {
-  void save(ReturnProposal p);
+  void save(ReturnProposal proposal);
 
   Optional<ReturnProposal> find(UUID id, boolean lock);
 

@@ -6,11 +6,11 @@ import dev.reference.commerce.shared.domain.Actor;
 import java.util.UUID;
 
 public interface ReturnUseCase {
-  ReturnProposal create(Actor a, String key, CreateReturnCommand c);
+  ReturnProposal create(Actor actor, String idempotencyKey, CreateReturnCommand command);
 
-  ReturnProposal get(Actor a, UUID id);
+  ReturnProposal get(Actor actor, UUID id);
 
-  ReturnProposal approve(Actor a, UUID id, long version);
+  ReturnProposal approve(Actor actor, UUID id, long version);
 
-  ReturnProposal execute(Actor a, UUID id, String key, long version);
+  ReturnProposal execute(Actor actor, UUID id, String idempotencyKey, long version);
 }

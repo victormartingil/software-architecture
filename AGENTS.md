@@ -33,6 +33,7 @@ La implementación del plan está autorizada; su estado y evidencia vigentes est
 - No presentar demos como sistemas listos para producción ni prácticas como soluciones universales.
 - Voz pública: profesional, impersonal y concreta. Usar «implementación de referencia», «criterio de diseño» y «caso reproducible». No atribuir experiencia, resultados ni métricas sin evidencia. Mantener visibles alcance, estado y limitaciones técnicas materiales: explicitar un trade-off demuestra criterio.
 - Separar dominio, aplicación y adaptadores dentro de módulos funcionales cuando el caso lo justifique. Un árbol global de capas no demuestra vertical slices; no crear interfaces, DTO o mappers sin una responsabilidad concreta.
+- Raíz Java `dev.reference`: Commerce y Analytics mantienen paquetes coherentes. Controladores de negocio dentro de su módulo `.infrastructure.rest`; adaptadores agrupados por responsabilidad. No introducir clases planas en `infrastructure`.
 - Convención Java: módulo funcional con `domain`, `application` e `infrastructure`; `application.port.input` y `application.port.output`. Nombres por intención (`CreateXService`, `CreateXCommand`, `XResult`; `ManageXService` si gestiona un ciclo completo); un puerto puede agrupar operaciones cohesivas de una capacidad. Adaptadores `JdbcXRepositoryAdapter` en la implementación actual; `Jpa`/`Entity` solo si realmente se adopta JPA. No crear interfaces por clase. La especificación vigente prevalece sobre propuestas anteriores.
 - RAG no exige una base vectorial; event-driven, CQRS y event sourcing son conceptos distintos. Un proceso multipaso no exige autonomía ni multiagente. Los prompts y filtros no son una frontera de autorización.
 - Añadir ArchUnit e import-linter para límites relevantes cuando exista código. Verificar que una infracción intencional hace fallar la comprobación; una prueba vacía no acredita arquitectura.
@@ -54,12 +55,18 @@ La implementación del plan está autorizada; su estado y evidencia vigentes est
 
 - Guardas Java: `ArchitectureRules.ALL` se comparte entre producción y fixtures negativos; importar producción sin tests. Un negativo debe identificar la dependencia real, no pasar por selección vacía. Dominio: JDK y dominio propio; puertos output privados de módulo, colaboración cruzada por input.
 - Consumidores de pedidos: UUID completos con round-trip sin distinguir capitalización, antes del efecto; conservar corpus compartido `uuid-cases.json`.
+- Errores semánticos `BusinessException.Kind`, estados enum y Quantity sin semántica HTTP en dominio. ProblemAdvice traduce status. OpenAPI canónico en `contracts/http/commerce.openapi.json`; contrastar rutas y respuestas, no duplicar modelos generados. Listado por cursor: orden UUID id ASC, tenant/owner en SQL, límite1..50 y overfetch1, sin snapshot.
+- CommerceGateway por intención y ReturnResult tipado: transporte/JSON solo adaptador; conservar cancelación, claves estables y JWT efímero.
+- Analytics valida adelanto máximo30s con Clock antes de timestamp; inválido usa tiempo previo de partición, clasificación única y DLT. No permitir que reloj futuro cierre ventanas válidas.
+- Workflow: mutaciones serializadas por SQLite, deadline12s incluye lock/graph, admisión16 por proceso; 503 ante saturación y cancelación libera cupo. No convertirlo en multiworker sin coordinación durable.
+- StreamsLifecycle: arranque60s/cierre20s, readiness compartida HTTP/archivo. Poll100 es por lote; buffer100 umbral blando de pausa por partición, sin garantía de memoria o caudal total.
 - Proveedor IA: validar sobre y resultado completo antes de registrar éxito en breaker; tipos/referencias inválidos cuentan fallo sin retry. El adaptador valida IDs suministrados, nunca decide autorización tenant.
 
 - Ámbitos idempotentes: `Idempotency.Scope` se codifica como array JSON con versión 2. Flyway V2 bloquea historial V1 ambiguo; nunca vaciar solo claves ni reinterpretarlas. ADR002 describe la parada y el reset sintético completo explícito.
-- `make up/demo/down`: núcleo sin clave IA; `make observability` activa exportadores y pila de señales.
+- `make up/demo/down`: núcleo sin clave IA; `make observability` activa exportadores y pila de señales. `make observability-smoke` verifica targets frescos, delta actual, traza exacta entre APIs y logs JSON seguros. No añadir Loki por catálogo.
 - `make demo/smoke` correlaciona el pedido actual con SQL y Kafka; `make kafka-summary ORDER_ID=...` repite esa comprobación. `make kind-smoke` selecciona explícitamente el clúster local.
 - `make verify/eval`: pruebas reales, arquitectura, contratos, higiene y documentación; JUnit Python obligatorio tanto localmente como en CI; no aceptar skips de integraciones obligatorias. El script adapta Testcontainers a Docker moderno sin modificar daemon.
+- `make kind-scale-check`: carga GET acotada observa HPA1→2 real y escritura idempotente simultánea contra dos pods; no escalar manualmente para pasar el test.
 - `make kind-up/down`: clúster exclusivo, kubeconfig ignorado; kind0.33.0/node1.36.4. HPA solo Commerce; AI/SQLite mantiene una réplica. No escalar cambiando solo un número.
 - `make terraform-check`: CLI1.10.5 en contenedor y mocks, sin apply.
 - Baseline Java actual Boot4.1.1/Spring7: mantener configuración OTLP canónica y Jackson2 codec separado de Jackson3 HTTP; ADR006 explica la migración y scanners.

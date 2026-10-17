@@ -11,9 +11,10 @@ import org.junit.jupiter.api.Test;
 class ArchitectureTest {
   @Test
   void dependencyBoundaries() {
-    var classes = new ClassFileImporter()
-        .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-        .importPackages(ArchitectureRules.ROOT);
+    var classes =
+        new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages(ArchitectureRules.ROOT);
     ArchitectureRules.ALL.forEach(rule -> rule.check(classes));
   }
 
@@ -44,18 +45,21 @@ class ArchitectureTest {
 
   @Test
   void moduleCanUseForeignInputPort() {
-    var classes = new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class);
+    var classes =
+        new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class);
     ArchitectureRules.ALL.forEach(rule -> rule.allowEmptyShould(true).check(classes));
   }
 
   private static void rejects(Class<?> fixture, String target) {
     var classes = new ClassFileImporter().importClasses(fixture);
     // Ignore unrelated empty selections, but require a real dependency violation.
-    var violations = ArchitectureRules.ALL.stream()
-        .map(rule -> rule.allowEmptyShould(true).evaluate(classes))
-        .filter(result -> result.hasViolation())
-        .flatMap(result -> result.getFailureReport().getDetails().stream()).toList();
-    assertThat(violations).anySatisfy(detail ->
-        assertThat(detail).contains(fixture.getName(), target));
+    var violations =
+        ArchitectureRules.ALL.stream()
+            .map(rule -> rule.allowEmptyShould(true).evaluate(classes))
+            .filter(result -> result.hasViolation())
+            .flatMap(result -> result.getFailureReport().getDetails().stream())
+            .toList();
+    assertThat(violations)
+        .anySatisfy(detail -> assertThat(detail).contains(fixture.getName(), target));
   }
 }

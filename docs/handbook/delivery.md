@@ -16,15 +16,17 @@ Las aplicaciones usan imágenes separadas y usuarios no-root, probes y memoria a
 make down
 make kind-up
 make kind-smoke
-python3 scripts/kind-load.py
+make kind-scale-check
 make kind-down
 ```
 
-El script crea únicamente el clúster `architecture-reference` y conserva su kubeconfig en `reports/`, sin cambiar el contexto global. Namespace, volúmenes e imágenes pertenecen al laboratorio. La carga usa consultas autenticadas de inventario: no crea miles de pedidos para forzar CPU. Verificar el HPA y el resultado real en la evidencia.
+El script crea únicamente el clúster `architecture-reference` y conserva su kubeconfig en `reports/`, sin cambiar el contexto global. Namespace, volúmenes e imágenes pertenecen al laboratorio. La carga usa consultas autenticadas de inventario: no crea miles de pedidos para forzar CPU. El [verificador](../../scripts/kind-scale-check.py) exige transición real de una réplica en reposo a dos bajo GET autenticados: cinco minutos, máximo 300/s y 16 workers. Comprueba CPU, réplicas deseadas/listas y endpoints. No fuerza el escalado; falla si faltan recursos o métricas.
 
 Requests permiten al scheduler reservar capacidad; limits acotan consumo. Un probe de vida detecta proceso bloqueado; uno de readiness indica si debe recibir tráfico. No hacer reiniciar todos los pods porque una dependencia temporal cayó: puede amplificar el incidente. PDB ayuda en interrupciones voluntarias, sin proteger frente a fallos de nodo ni sustituir varias réplicas.
 
 Commerce puede escalar de una a dos réplicas porque la idempotencia, stock y transiciones viven en PostgreSQL. El HPA usa métricas de CPU con requests explícitas. Añadir pods no añade CPU al único nodo kind: sobrecargarlo puede producir errores aunque el HPA funcione. El generador limita ritmo, reutiliza conexiones y clasifica fallos para observar el mecanismo sin confundirlo con un benchmark de capacidad. En kind se permite TLS inseguro de kubelet para metrics-server, excepción local documentada. No trasladar esa opción a producción.
+
+Después envía el mismo pedido concurrentemente a ambos pods mediante port-forwards distintos. Respuestas iguales y stock reducido una vez prueban idempotencia compartida. Una devolución autorizada restaura stock, conservando auditoría sintética. Cierra carga y port-forwards incluso ante fallo; conserva el clúster. El informe queda en `reports/kind-scale-check.json`. Sin carga, el HPA puede volver a una réplica tras sesenta segundos de estabilización; la prueba no modifica esa política.
 
 AI mantiene una réplica con estrategia Recreate. SQLite y un lock de proceso no coordinan varios pods; un volumen RWO tampoco es un protocolo de exclusión de negocio. Para escalar se requiere estado compartido y control concurrente distribuido. El sistema debe reconocer esta restricción antes de configurar un autoscaler que la viole.
 
@@ -47,6 +49,18 @@ Cuatro pruebas mock comprueban la base y rechazan CIDR abierto, IPv6 e IPv4 inv�
 CI ejecuta pruebas, reglas de dependencia, contratos, evaluación offline y documentación. Un scan de dependencias añade señales de vulnerabilidad; no acredita ausencia de vulnerabilidades ni una auditoría de seguridad completa. Actualizar lockfiles en cambios revisables, probar compatibilidad y retirar versiones obsoletas con criterio.
 
 Si se necesita un despliegue con versiones mezcladas, las migraciones deben ser compatibles: añadir antes de eliminar, medir uso y retirar después. Un rollback de imagen no revierte automáticamente una migración destructiva ni un evento ya publicado. Las versiones del contrato y las claves idempotentes necesitan convivir durante el plazo de replay. V2 de idempotencia exige parada de escritores y rechaza datos V1 ambiguos: es una excepción explícita, sin prometer actualización gradual; véase [ADR002](../decisions/002-consistency.md).
+
+## Reutilizar la referencia en un sistema real
+
+Trasladar decisiones y pruebas, no copiar el Compose como despliegue productivo. Fijar requisitos del producto antes de añadir componentes:
+
+| Decisión local | Adaptación y prueba exigida según el producto |
+|---|---|
+| PostgreSQL/Kafka/OIDC únicos | Servicio gestionado o topología redundante; probar caída y restauración con RPO/RTO acordados. |
+| Credenciales sintéticas y HTTP local | Identidad real, TLS y gestor de secretos; verificar permisos mínimos y rotación. |
+| SQLite y cupos por proceso | Mantener una réplica si basta; para escalar, estado durable compartido y concurrencia distribuida probada. |
+| HPA CPU y dashboard del laboratorio | Medir carga representativa, saturación, latencia y SLO; dimensionar datos y proveedor, no solo pods. |
+| Terraform mock y migración V2 con parada | Revisar plan/IAM reales, estado remoto y procedimiento de reversión; probar migraciones con datos representativos. |
 
 La alternativa inicial a Kubernetes es un servicio gestionado de contenedores con datos gestionados. Reduce operación cuando no se necesita el control del cluster. Kubernetes se muestra aquí por sus mecanismos y restricciones, sin declarar que toda aplicación los necesite.
 

@@ -14,7 +14,9 @@ En [ManageOrderService](../../apps/commerce-api/src/main/java/dev/reference/comm
 
 Las dependencias de código apuntan al núcleo. En ejecución el caso de uso invoca un adaptador mediante su puerto: inversión de dependencias no significa invertir todas las llamadas. Se permite `@Transactional` en aplicación para que la frontera de commit sea fácil de localizar. Es un acoplamiento deliberado a Spring, descrito en el ADR; el dominio sigue independiente.
 
-Los modelos de dominio actuales son **records pasivos**: transportan estado, sin encerrar todas las reglas en sus constructores. Las invariantes se protegen mediante casos de uso, actualizaciones SQL y constraints. La estructura de paquetes no convierte por sí sola este ejemplo en un modelo DDD rico. Si una regla crece, puede moverse a un objeto de dominio con comportamiento sin trasladarle HTTP o JDBC.
+El dominio incorpora tipos pequeños con una responsabilidad: `Quantity` valida 1..100 aun cuando se invoca el caso de uso sin HTTP; `OrderStatus` y `ReturnStatus` evitan estados escritos arbitrariamente. `ReturnProposal.requireExecutable` comprueba aprobación, versión y vencimiento usando una fecha recibida. No consulta base de datos ni reloj global. Las carreras siguen protegidas por transacciones, SQL condicional y constraints: validar un objeto no sustituye el control concurrente.
+
+`BusinessException.Kind` expresa INVALID_INPUT, NOT_FOUND, CONFLICT o FORBIDDEN. El dominio no conoce 400, 404 o 409; [ProblemAdvice](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/ProblemAdvice.java) traduce a Problem Details. Los controladores pertenecen a su módulo; persistencia, mensajería y seguridad se distinguen por subpaquetes.
 
 ## Por qué tres servicios
 
@@ -28,6 +30,7 @@ Un monolito modular sería una alternativa razonable para una tienda real peque�
 |---|---|---|
 | Adapter | HTTP/JDBC/proveedor IA | Traducción sustituible; exige mantener el contrato |
 | Repository | Puertos de datos de comercio | Oculta SQL al caso de uso; evitar repositorio genérico universal |
+| Frontera de integración | Gateway de comercio por intención | Oculta HTTP/JSON y traduce resultados; exige validar el contrato externo |
 | Strategy | Recuperación lexical/vector | Mismo objetivo, implementaciones comparables |
 | Composición | Ensamblado Spring/FastAPI | Colabora por contratos; evita herencia por reutilización incidental |
 | Outbox/Inbox | Publicación/auditoría | Resuelve ventanas de fallo; requiere retención y operación |
@@ -47,7 +50,7 @@ Command y Query nombran intenciones; no implican CQRS con almacenes separados. U
 (cd apps/ai-service && uv run pytest tests/test_architecture.py -q && uv run lint-imports)
 ```
 
-**Resultado:** siete pruebas Java, el negativo Python y los contratos de importación aprobados. No se necesitan servicios ni llamadas IA. [ArchitectureRules](../../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) contiene el conjunto usado sobre producción y sobre fixtures de prueba: Jackson 2/3 o Spring en dominio, adaptador en aplicación y repositorio de otro módulo. Los negativos exigen un detalle con origen y destino, sin aceptar un fallo por selección vacía. El positivo permite usar el puerto input de otro módulo. Las fixtures están excluidas del import productivo; no son código de negocio. Un guard que nunca falla no acredita el límite.
+**Resultado:** siete pruebas Java, el negativo Python y los contratos de importación aprobados. No se necesitan servicios ni llamadas IA. [ArchitectureRules](../../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) contiene el conjunto usado sobre producción y sobre fixtures de prueba: Jackson 2/3 o Spring en dominio, adaptador en aplicación y repositorio de otro módulo. Los negativos exigen un detalle con origen y destino, sin aceptar un fallo por selección vacía. El positivo permite usar el puerto input de otro módulo. Las fixtures están excluidas del import productivo; no son código de negocio. Un guard que nunca falla no acredita el límite. La prueba `directInvocationBypassesTransactionAndLeavesPartialEffects` complementa el guard: pasar por el proxy transaccional revierte el efecto; una llamada directa fuera del proxy deja efectos parciales. Es un negativo deliberado con datos efímeros, no una ruta de aplicación recomendada.
 
 **Alternativa:** llamar directamente a JDBC ahorra un puerto, pero acopla el caso de uso a persistencia. Justificar cada abstracción por una sustitución o responsabilidad concreta; la revisión sigue siendo necesaria para detectar interfaces vacías o conceptos filtrados.
 

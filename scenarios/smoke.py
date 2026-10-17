@@ -59,6 +59,11 @@ def main():
     order = request(COMMERCE, "/api/v1/orders", "POST", {"sku": "BOOK-1", "quantity": 1}, alice, key, 201)
     repeat = request(COMMERCE, "/api/v1/orders", "POST", {"sku": "BOOK-1", "quantity": 1}, alice, key, 201)
     assert repeat == order and order["totalCents"] == 2500
+    page = request(COMMERCE, "/api/v1/orders?limit=1&status=PLACED", token=alice)
+    assert len(page["items"]) == 1 and page["items"][0]["status"] == "PLACED"
+    assert set(page) == {"items", "nextCursor"}
+    request(COMMERCE, "/api/v1/orders?limit=0", token=alice, expected=400)
+    request(COMMERCE, "/api/v1/orders?after=1-1-1-1-1", token=alice, expected=400)
     request(COMMERCE, "/api/v1/orders", "POST", {"sku": "BOOK-1", "quantity": 2}, alice, key, 409)
     request(COMMERCE, "/api/v1/orders/" + order["id"], token=bob, expected=404)
     assert request(COMMERCE, "/api/v1/inventory/BOOK-1", token=alice)["available"] == before - 1
@@ -84,7 +89,7 @@ def main():
         stream = response.read().decode()
     assert "event: start" in stream and "event: result" in stream
     events = verify_event_flow(order["id"])
-    print(json.dumps({"result": "PASS", "events": events, "checks": ["OIDC", "stock", "idempotency", "tenant isolation", "RAG fake", "workflow approval", "retry", "SSE", "current-order outbox/inbox/Kafka summary"],
+    print(json.dumps({"result": "PASS", "events": events, "checks": ["OIDC", "stock", "idempotency", "tenant isolation", "bounded order listing", "RAG fake", "workflow approval", "retry", "SSE", "current-order outbox/inbox/Kafka summary"],
                       "orderId": order["id"], "workflowId": wid}, indent=2))
 
 

@@ -3,7 +3,7 @@ package dev.reference.commerce.returns.application.service;
 /** Negative dependencies plus one allowed collaboration through an input port. */
 public final class ApplicationBoundaryFixtures {
   public static class Adapter {
-    dev.reference.commerce.returns.infrastructure.JdbcReturnRepositoryAdapter forbidden;
+    dev.reference.commerce.returns.infrastructure.persistence.JdbcReturnRepositoryAdapter forbidden;
   }
 
   public static class ForeignRepository {

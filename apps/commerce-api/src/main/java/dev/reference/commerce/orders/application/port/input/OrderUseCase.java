@@ -6,11 +6,13 @@ import dev.reference.commerce.shared.domain.Actor;
 import java.util.UUID;
 
 public interface OrderUseCase {
-  OrderResult create(Actor a, String key, CreateOrderCommand c);
+  OrderResult create(Actor actor, String idempotencyKey, CreateOrderCommand command);
 
-  OrderResult get(Actor a, UUID id);
+  OrderResult get(Actor actor, UUID id);
 
-  Order visible(Actor a, UUID id, boolean lock);
+  OrderPage list(Actor actor, OrderQuery query);
+
+  Order visible(Actor actor, UUID id, boolean lock);
 
   void refund(UUID id);
 }
