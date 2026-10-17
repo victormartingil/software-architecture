@@ -7,7 +7,7 @@
 | SPEC-01 | Cada capacidad tiene contrato, error y test asociado antes del código | Revisión especificación/matriz |
 | ARCH-01 | Dominio no importa framework; aplicación no importa adaptadores | ArchUnit e import-linter |
 | ARCH-02 | Módulos no usan persistencia ajena; puertos input/output explícitos | Reglas y revisión independiente |
-| ARCH-03 | Una dependencia prohibida deliberada falla | Experimento reversible documentado |
+| ARCH-03 | Las mismas reglas que verifican producción rechazan dependencias prohibidas representativas (framework en dominio, persistencia ajena, aplicación → adaptador), identificando origen y destino; comunicación por input permitida | Negativos ejecutables sin reglas alternativas ni fallos por selección vacía |
 | ORD-01 | Crear pedido descuenta stock y calcula precio servidor | Integración PostgreSQL/API |
 | ORD-02 | Dos pedidos de última unidad: uno acepta, otro conflicto, stock cero | Test concurrente BD real |
 | ORD-03 | Repetir clave/cuerpo no repite efecto; cambiar cuerpo da 409; tenant/actor/operación/clave no colisionan aunque contengan delimitadores | Integración idempotencia |
@@ -20,7 +20,7 @@
 | EVT-02 | Duplicado produce un efecto inbox | Consumidor PostgreSQL/Kafka |
 | EVT-03 | Publicador confirma antes de marcar; caída admite repetición | Test integración y revisión |
 | EVT-04 | Schema evento real coincide con contrato versionado | JSON Schema contra fixture real |
-| EVT-05 | Inválido termina en DLT; si falla ese envío no avanza el offset; recuperación y reproceso conservan identidad | Kafka real y comando reproducible |
+| EVT-05 | UUID completos, admitiendo mayúsculas/minúsculas, conservan identidad; ambos consumidores rechazan abreviados y malformados antes del efecto. Inválido termina en DLT; si falla ese envío no avanza el offset; recuperación y reproceso conservan identidad | Corpus UUID compartido, negativos de consumidores y Kafka real para DLT/recuperación |
 | STR-01 | Ventana 1min agrega tenant/SKU y montos correctos | TopologyTestDriver |
 | STR-02 | Duplicados y fuera de orden dentro grace no inflan | TopologyTestDriver |
 | STR-03 | Tardío fuera grace se descarta y cuenta | Avance stream-time |
@@ -28,8 +28,8 @@
 | AI-01 | Respuesta tiene citas existentes o abstiene sin evidencia | Dataset >=40 casos |
 | AI-02 | Filtro tenant previo a recuperación y caché aislada | Casos de acceso cruzado |
 | AI-03 | Fake está identificado; CI no requiere claves | API y CI offline |
-| AI-04 | Adaptador real valida esquema/rechazo/incompleto/timeout | Mock HTTP de proveedor |
-| AI-05 | Plazo total incluye cola; límites concurrencia/tokens/intentos y breaker cuentan fallos por deadline sin penalizar cancelación cliente | Tests deterministas |
+| AI-04 | Adaptador real valida sobre, tipos y referencias de salida completa antes de declarar éxito; JSON inesperado, rechazo/incompleto/timeout devuelve error controlado | Mock HTTP con respuestas válidas y adversas |
+| AI-05 | Plazo total incluye cola; límites concurrencia/tokens/intentos y breaker cuentan fallos por deadline y contrato una sola vez, sin penalizar cancelación cliente; salida inválida no cierra half-open | Tests deterministas, apertura y recuperación del breaker |
 | AI-06 | SSE termina en resultado/error y cancela trabajo al desconectar | Test streaming/cancelación |
 | AI-07 | Lexical recall@3 >=0.90 con fórmula válida para múltiples relevantes; hit-rate/MRR separados; referencias 100% | Evaluación fija reproducible |
 | AI-08 | Vector filtra tenant, valida dimensión y ordena por distancia | pgvector real, vectores fixture |

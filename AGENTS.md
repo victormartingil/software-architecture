@@ -52,6 +52,10 @@ La implementación del plan está autorizada; su estado y evidencia vigentes est
 
 ## Continuidad operativa
 
+- Guardas Java: `ArchitectureRules.ALL` se comparte entre producción y fixtures negativos; importar producción sin tests. Un negativo debe identificar la dependencia real, no pasar por selección vacía. Dominio: JDK y dominio propio; puertos output privados de módulo, colaboración cruzada por input.
+- Consumidores de pedidos: UUID completos con round-trip sin distinguir capitalización, antes del efecto; conservar corpus compartido `uuid-cases.json`.
+- Proveedor IA: validar sobre y resultado completo antes de registrar éxito en breaker; tipos/referencias inválidos cuentan fallo sin retry. El adaptador valida IDs suministrados, nunca decide autorización tenant.
+
 - Ámbitos idempotentes: `Idempotency.Scope` se codifica como array JSON con versión 2. Flyway V2 bloquea historial V1 ambiguo; nunca vaciar solo claves ni reinterpretarlas. ADR002 describe la parada y el reset sintético completo explícito.
 - `make up/demo/down`: núcleo sin clave IA; `make observability` activa exportadores y pila de señales.
 - `make demo/smoke` correlaciona el pedido actual con SQL y Kafka; `make kafka-summary ORDER_ID=...` repite esa comprobación. `make kind-smoke` selecciona explícitamente el clúster local.

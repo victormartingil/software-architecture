@@ -55,9 +55,9 @@ public class AuditConsumer {
         || data.path("totalCents").asLong() < 0)
       throw new IllegalArgumentException("Invalid OrderPlaced envelope");
     java.time.Instant.parse(e.path("occurredAt").asText());
-    UUID id = UUID.fromString(e.path("eventId").asText());
-    UUID order = UUID.fromString(e.path("data").path("orderId").asText());
-    if (!order.equals(UUID.fromString(e.path("aggregateId").asText())))
+    UUID id = fullUuid(e.path("eventId").asText());
+    UUID order = fullUuid(data.path("orderId").asText());
+    if (!order.equals(fullUuid(e.path("aggregateId").asText())))
       throw new IllegalArgumentException("Aggregate mismatch");
     MDC.put("correlationId", e.path("correlationId").asText());
     try {
@@ -79,5 +79,12 @@ public class AuditConsumer {
     } finally {
       MDC.remove("correlationId");
     }
+  }
+
+  private static UUID fullUuid(String value) {
+    UUID id = UUID.fromString(value);
+    if (!id.toString().equalsIgnoreCase(value))
+      throw new IllegalArgumentException("Expected a complete UUID");
+    return id;
   }
 }

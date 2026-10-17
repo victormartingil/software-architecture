@@ -7,8 +7,8 @@ Ejecución local del **2026-10-17**, ARM64, Docker con 10 GiB y Java 21. Evidenc
 | AC | Evidencia y resultado | Estado |
 |---|---|---|
 | SPEC-01 | Contratos/errores/AC fijados antes de implementar; ADR006 registra cambio de baseline por seguridad | Verificado |
-| ARCH-01, ARCH-02 | Fuente actual separada y dos contratos import-linter; guard Java admite Jackson en dominio y puerto de persistencia ajeno en una reproducción (F3) | Fuente verificada; guard parcial |
-| ARCH-03 | Negativo Python aplica reglas reales; negativo Java usa otra regla y no acredita por sí solo el guard principal (F3) | Parcial: reforzar negativo Java |
+| ARCH-01, ARCH-02 | Dominio Java solo JDK/dominio propio; aplicación sin adaptadores; output privado de módulo. Reglas reales e import-linter | Verificado |
+| ARCH-03 | Cinco negativos Java identifican origen/destino con ArchitectureRules.ALL; positivo de colaboración input y fuente productiva sin fixtures. Negativo Python real conservado | Verificado |
 | ORD-01 | `priceAndIdempotency`: precio servidor y reserva persistida | Verificado |
 | ORD-02 | `concurrentLastUnit`: dos transacciones reales por la última unidad | Verificado |
 | ORD-03 | Scope tipado y array JSON; identidades con delimitadores aisladas, incluso concurrentes; replay estable y conflicto por cuerpo distinto | Verificado |
@@ -21,7 +21,7 @@ Ejecución local del **2026-10-17**, ARM64, Docker con 10 GiB y Java 21. Evidenc
 | EVT-02 | Duplicado UUID normalizado; espera incremento del contador de duplicados y un efecto inbox | Verificado |
 | EVT-03 | Confirmación broker precede marcado; revisión del publicador y prueba integración | Verificado |
 | EVT-04 | Evento realmente producido validado con JSON Schema, además de fixtures | Verificado |
-| EVT-05 | Fallo DLT y recuperación aprobados; UUID abreviado puede auditarse en comercio mientras Streams lo rechaza (F2) | Parcial: validación divergente |
+| EVT-05 | Doce casos UUID compartidos; rechazo antes de SQL, DLT Streams sin resumen y abreviado en Kafka real sin inbox. Fallo DLT/recuperación aprobados, identidad estable | Verificado |
 | STR-01 | TopologyTestDriver comprueba ventana, tenant/SKU, cantidad e importe | Verificado |
 | STR-02 | Duplicados, formas UUID y llegada desordenada dentro de grace | Verificado |
 | STR-03 | Avance explícito de stream-time descarta tardíos e incrementa contador | Verificado |
@@ -29,8 +29,8 @@ Ejecución local del **2026-10-17**, ARM64, Docker con 10 GiB y Java 21. Evidenc
 | AI-01, AI-07 | Dataset 42 casos/32 respondibles, incluye multirrelevancia: recall@3=1, hit-rate@3=1, MRR@3=0,953125, aislamiento=abstención=1 | Verificado, corpus sintético |
 | AI-02 | Filtro tenant previo, pregunta por contenido ajeno abstiene | Verificado |
 | AI-03 | `fake-simulation` visible en respuesta; tests y smoke sin claves | Verificado |
-| AI-04 | Rechazo/incompleto/timeout aprobados; sobres JSON no objeto producen AttributeError fuera de traducción de contrato (F1) | Parcial, sin modelo real |
-| AI-05 | Plazos, cola, cancelación y carreras aprobados; JSON malformado no incrementa fallos del breaker (F1) | Parcial: borde de contrato pendiente |
+| AI-04 | Sobre/tipos/referencias suministradas validados antes del éxito; 28 casos nuevos, HTTP simulado y errores 503 controlados | Verificado, sin modelo real |
+| AI-05 | Fallo de contrato cuenta una vez sin retry; tres fallos abren, probe inválido reabre y válido recupera. Deadlines/cancelación/epoch conservados | Verificado |
 | AI-06 | SSE inicio/resultado y prueba ASGI de desconexión que libera trabajo | Verificado |
 | AI-08 | pgvector real: dimensiones, filtro tenant y orden con vectores fixture | Verificado |
 | WF-01 | Cierre/reapertura SQLite permite continuar workflow | Verificado |
@@ -54,24 +54,24 @@ Ejecución local del **2026-10-17**, ARM64, Docker con 10 GiB y Java 21. Evidenc
 | DOC-05 | Ocho microprácticas con archivos/comando/resultado/fallo/alternativa; runbook autenticado con broker detenido ejecutado literalmente | Verificado |
 | DOC-04 | Mapa funcional/código, servicios de apoyo y distinción de niveles en explicaciones y trece vistas | Verificado |
 | QA-03 | JUnit Python obligatorio local/CI; tres pruebas de scripts y experimento pytest real omitido rechazado aunque pytest termina 0 | Verificado |
-| QA-01 | Revisión ciega sin hallazgos altos; F1/F2 y guard F3 de prioridad media siguen abiertos | Verificado: sin altos |
-| QA-02 | Nueva síntesis 89/100; no se reduce el umbral exigido de 90 | No satisfecho todavía |
+| QA-01 | Validadores independientes Python/IA y Java/eventos/arquitectura; F1–F4 cerrados, sin altos/medios abiertos en alcance | Verificado |
+| QA-02 | Síntesis independiente 92/100, cada dimensión >=8/10; make verify y eval aprobados | Verificado |
 | LIVE | No se ha llamado a un modelo ni servicio de embeddings real | No ejecutado, optativo |
 | CLOUD-DEPLOY | Sin apply ni recursos cloud creados | Fuera de alcance |
 
 ## Pruebas y herramientas
 
-- **Commerce: 24 pruebas** (20 de integración PostgreSQL/Kafka, 2 ArchUnit, 2 JWT/JWKS), sin omisiones. Incluye ámbitos ambiguos, precondición de migración y DLT fallida.
-- **Analytics: 10 pruebas** (5 de topología, 2 contratos, 2 métricas/probes, 1 de recuperación Kafka), sin omisiones tras Jackson/LZ4 actualizados.
-- **AI: 46 pruebas**, incluida integración pgvector real mediante `scripts/test.sh`, sin omisiones. Deadlines/cancelación, métricas, multirrelevancia y seis casos del adaptador de embeddings sin red. Dos contratos arquitectónicos aprobados. El dataset de 42 casos se evalúa por separado.
-- `make test` usa contenedores aislados para Java/pgvector y exige JUnit sin skips para **Java y Python**, local y CI con el mismo comando. **80 pruebas de aplicación** más **tres pruebas de scripts**. La espera PostgreSQL usa TCP para no aceptar el servidor temporal antes de terminar init; el mismo criterio está en readiness Compose/kind. `make verify` añade higiene/contratos/documentación.
+- **Commerce: 30 pruebas** (20 de integración PostgreSQL/Kafka, 7 arquitectura, 2 JWT/JWKS y 1 consumidor con doce casos compartidos), sin omisiones. Incluye ámbitos ambiguos, precondición de migración y DLT fallida.
+- **Analytics: 11 pruebas** (6 de topología, 2 contratos, 2 métricas/probes, 1 de recuperación Kafka), sin omisiones tras Jackson/LZ4 actualizados.
+- **AI: 74 pruebas**, incluida integración pgvector real mediante `scripts/test.sh`, sin omisiones. Deadlines/cancelación, métricas, multirrelevancia y seis casos del adaptador de embeddings sin red. Dos contratos arquitectónicos aprobados. El dataset de 42 casos se evalúa por separado.
+- `make test` usa contenedores aislados para Java/pgvector y exige JUnit sin skips para **Java y Python**, local y CI con el mismo comando. **115 pruebas de aplicación** más **tres pruebas de scripts**. La espera PostgreSQL usa TCP para no aceptar el servidor temporal antes de terminar init; el mismo criterio está en readiness Compose/kind. `make verify` añade higiene/contratos/documentación.
 - `make eval` reproduce recuperación offline; no mide un LLM real.
 - `make terraform-check`: cuatro tests mock, ninguna conexión cloud. CLI fijada sin actualizar instalación host.
 - `actionlint 1.7.7` valida el workflow. La ejecución inicial de GitHub Actions (39036928123) terminó con éxito en sus tres jobs: verify, python-security y java-security. Incluyó pruebas/evaluación, Terraform mock, build de imágenes, Compose desde vacío y smoke autenticado. Esta ejecución corresponde al commit inicial; no se atribuye CI de los cambios posteriores, verificados localmente. Un pipeline verde no demuestra cobertura de escenarios ausentes.
 
 Tests consultables: [CommerceIntegrationTest](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java), [recuperación Analytics](../apps/order-analytics/src/test/java/com/reference/analytics/KafkaRecoveryTest.java), [workflows AI](../apps/ai-service/tests/test_workflows.py).
 
-La nomenclatura funcional se corresponde con el código en el [mapa canónico](repository-design.md#component-map). `ManageOrderService` y `ManageReturnService` nombran los ciclos cohesivos de pedido y devolución; `OrderSummaryTopology`, el resumen de pedidos; `CommerceController`, el adaptador HTTP; `JwtVerifier`, la verificación local del token. Python distingue `DocumentRetriever`, `AnswerProvider` y `ReturnApprovalWorkflow`. Se conservan rutas, eventos, configuración e identificadores de despliegue. La ejecución actual confirma 24 Commerce, 10 Streams y 46 Python, incluidas PostgreSQL/Kafka/pgvector, sin omisiones; dos contratos import-linter aprobados. `scripts/test.sh` limpia el build Java para no sumar informes JUnit obsoletos después de renombrar clases.
+La nomenclatura funcional se corresponde con el código en el [mapa canónico](repository-design.md#component-map). `ManageOrderService` y `ManageReturnService` nombran los ciclos cohesivos de pedido y devolución; `OrderSummaryTopology`, el resumen de pedidos; `CommerceController`, el adaptador HTTP; `JwtVerifier`, la verificación local del token. Python distingue `DocumentRetriever`, `AnswerProvider` y `ReturnApprovalWorkflow`. Se conservan rutas, eventos, configuración e identificadores de despliegue. La ejecución actual confirma 30 Commerce, 11 Streams y 74 Python, incluidas PostgreSQL/Kafka/pgvector, sin omisiones; dos contratos import-linter aprobados. `scripts/test.sh` limpia el build Java para no sumar informes JUnit obsoletos después de renombrar clases.
 
 El [maestro draw.io](diagrams/architecture.drawio) contiene trece vistas, enumeradas en el [índice visual](reference-map.md#vistas-visuales). Se conservaron las diez vistas existentes y se añadieron despliegue Compose/kind, fundación GCP y modelo físico de las siete tablas de Comercio. Cada SVG se inserta en su explicación; el README abre con contexto. No hay fuentes Mermaid duplicadas ni generador de autoría como dependencia del repositorio.
 
@@ -79,7 +79,7 @@ Revisión documental del 17 de octubre de 2026: los trece SVG finales se midiero
 
 F4 queda corregido: más separación entre Kafka y Comercio y etiquetas nativas de relación ampliadas. Se reexportó e inspeccionó el resultado; el control geométrico anterior no había detectado la ocultación observada por el revisor. La inspección visual complementa las mediciones; ninguna prueba acredita comprensión por lectores ni ausencia universal de defectos entre renderers. Se precisaron también advisory lock/ámbito V2, abstención sin generación tras recuperación y el bloque condicional de aprobación/ejecución. Un especialista independiente contrastó los seis diagramas nuevos o modificados semánticamente con código, migraciones y configuración, sin errores materiales.
 
-El XML vigente se cargó en el editor draw.io en modo dispositivo mediante «Edit Diagram»: el editor reconoció sus trece páginas, textos y formas nativas. En la copia de prueba, desplazar el grupo Compose conservó sus textos, componentes y conector HTTP; la copia se descartó sin guardar sobre el maestro. El selector de archivo no respondió a la automatización; la carga XML permitió comprobar la edición sin publicar ni guardar en almacenamiento externo. No se promete igualdad visual entre renderers o temas del editor. Los renders y mediciones regenerables permanecen ignorados. Higiene/enlaces, diff sin errores de whitespace y build MkDocs estricto aprobados para esta entrega; no se repiten pruebas de aplicación al no cambiar runtime. No se ha publicado ni hecho push por esta revisión visual.
+El XML vigente se cargó en el editor draw.io en modo dispositivo mediante «Edit Diagram»: el editor reconoció sus trece páginas, textos y formas nativas. En la copia de prueba, desplazar el grupo Compose conservó sus textos, componentes y conector HTTP; la copia se descartó sin guardar sobre el maestro. El selector de archivo no respondió a la automatización; la carga XML permitió comprobar la edición sin publicar ni guardar en almacenamiento externo. No se promete igualdad visual entre renderers o temas del editor. Los renders y mediciones regenerables permanecen ignorados. Higiene/enlaces, diff sin errores de whitespace y build MkDocs estricto aprobados para esta entrega; en la entrega visual no se repitieron pruebas de aplicación al no cambiar runtime. No se ha publicado ni hecho push por esta revisión visual.
 
 ## Seguridad de dependencias
 
@@ -112,88 +112,51 @@ La revisión previa bajó el juicio inicial de 90 a 82/100 por defectos que las 
 | R7 · Composición | [event_flow.py](../scenarios/event_flow.py) compara el pedido actual, publicación, inbox y agregado exacto de su tenant/SKU/ventana UTC. Smoke positivo; Analytics detenido falla y recuperado pasa | Operador local, sin escritores concurrentes; lector acotado a 10.000 registros, no consulta pública de analytics |
 | R8 · Medición y manual | [evaluate.py](../apps/ai-service/src/ai_service/evaluate.py): recall multirrelevancia, hit-rate y MRR separados. Ocho fichas de 637–900 palabras con micropráctica; [runbook](handbook/operations.md) ejecutado literalmente con Kafka detenido y recuperación | Fake no mide fidelidad LLM; MRR@3=0,953125 deja visible que top-3 perfecto no garantiza el mejor primer documento |
 
-Ejecución canónica final: `make verify eval`, 80 pruebas de aplicación sin omisiones, tres pruebas de scripts, dos contratos import-linter, higiene y build estricto aprobados. `make terraform-check`: cuatro planes mock aprobados. Los transportes y plazos pequeños de tests IA no consumen APIs reales. El guard de migración se prueba con PostgreSQL/Flyway reales, incluidos rollback y preservación de registros.
+Ejecución anterior al cierre F1–F3: `make verify eval`, 80 pruebas de aplicación sin omisiones, tres pruebas de scripts, dos contratos import-linter, higiene y build estricto aprobados. `make terraform-check`: cuatro planes mock aprobados. Los transportes y plazos pequeños de tests IA no consumen APIs reales. El guard de migración se prueba con PostgreSQL/Flyway reales, incluidos rollback y preservación de registros.
 
 La demo usa imágenes ARM64 construidas de las fuentes actualizadas y un proyecto Compose de pruebas separado, sin reutilizar volúmenes V1. El último arranque desde volúmenes vacíos con las probes TCP actuales y su smoke correlacionado terminó correctamente. Se verificaron el flujo autorizado completo, la comprobación negativa de Analytics y el runbook de broker caído. No se ha ejecutado reset sobre entornos anteriores. Los entornos temporales propios se retiran al terminar.
 
 Los contratos de aplicación se mantienen; la revisión visual posterior precisa diagramas y añade vistas de despliegue/datos, como se detalla arriba. Kind/HPA y señales completas de Tempo/Prometheus conservan su evidencia anterior; no se atribuye repetición actual de esos laboratorios. La ruta `make kind-smoke` fija contexto/kubeconfig del clúster y el backend de inspección, pero su ejecución actual aún no está acreditada. Terraform no ha creado infraestructura. El modelo real sigue optativo.
 
-Higiene final: fuente pública y enlaces comprobados, diff sin errores de whitespace y Trivy 0.70.0 sobre 174 archivos públicos: cero secretos detectados. Sin nuevas dependencias ni cambios de versiones; los scans de dependencias mantienen el alcance y fecha anteriores. Se retiraron las copias temporales de experimentos; informes regenerables ignorados. No se ha añadido un segundo maestro de diagramas ni documentación privada a Git.
+Higiene de la entrega R1–R8: fuente pública y enlaces comprobados, diff sin errores de whitespace y Trivy 0.70.0 sobre 174 archivos públicos: cero secretos detectados. Sin nuevas dependencias ni cambios de versiones; los scans de dependencias mantienen el alcance y fecha anteriores. Se retiraron las copias temporales de experimentos; informes regenerables ignorados. No se ha añadido un segundo maestro de diagramas ni documentación privada a Git.
 
 Fuentes primarias contrastadas: [asyncio timeout/cancelación](https://docs.python.org/3.12/library/asyncio-task.html#timeouts), [Spring Kafka recuperación](https://docs.spring.io/spring-kafka/reference/kafka/annotation-error-handling.html), [GKE cuentas de nodos](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/service-accounts), [Terraform cidrnetmask](https://developer.hashicorp.com/terraform/language/functions/cidrnetmask), [pytest exit codes](https://docs.pytest.org/en/stable/reference/exit-codes.html), [OIDC sub](https://openid.net/specs/openid-connect-core-1_0.html#IDToken). No son avales de la implementación.
 
-## Revisión ciega del commit 3c24b52
+## Revisión independiente y cierre de F1–F4
 
-Tres agentes nuevos, creados sin historial de conversación, revisaron código, contratos, pruebas y manual. Por instrucción de esta revisión no leyeron esta verificación, notas/puntuaciones anteriores, historial Git ni contexto privado antes de emitir dictamen. Analizaron piezas pequeñas → módulos → conjunto. Las notas siguientes son sus juicios de ingeniería independientes; no una certificación externa ni probabilidades estadísticas. El coordinador contrastó hallazgos y conserva por separado la ejecución actual.
+La revisión ciega de `3c24b52` por tres agentes sin historial redujo la valoración de 91 a 89/100: encontró parsing IA no protegido, UUID divergentes entre consumidores, guardas Java insuficientes y etiquetas C4 tapadas. Las reparaciones posteriores conservan esos motivos sin mantener listas de hallazgos ya obsoletas. F4 se cerró en la revisión visual descrita arriba; F1–F3 se corrigen por prioridad, sin añadir dependencias ni modificar versiones, topología o contratos de negocio.
 
-La nueva ejecución `make verify eval` volvió a aprobar **80 pruebas de aplicación, tres pruebas de scripts, dos contratos arquitectónicos y documentación estricta**, sin omisiones; evaluación de 42 casos con los resultados anteriores. Los revisores hicieron reproducciones aisladas, checks estáticos y renders; no arrancaron infraestructura compartida, modelos ni cloud. No se repitieron Terraform/kind/Compose/telemetría en esta ronda. Código productivo sin modificaciones durante la revisión.
+| Hallazgo y reproducción | Corrección y evidencia | Estado y límite |
+|---|---|---|
+| F1 · JSON `[]`, `output:[null]` o `content:[null]` provocaba AttributeError sin contar fallo; tipos/citas se validaban después del éxito | [Proveedor](../apps/ai-service/src/ai_service/infrastructure/providers.py) valida sobre, tipos y resultado completo antes de resetear breaker. [28 regresiones nuevas](../apps/ai-service/tests/test_providers.py) cubren error controlado, tres fallos, apertura, probe inválido y recuperación válida, sin retry del contenido inválido | Cerrado. Referencias existentes no prueban fidelidad semántica; autorización tenant sigue en recuperación/aplicación |
+| F2 · `1-1-1-1-1` se normalizaba y auditaba, mientras Streams lo rechazaba | [AuditConsumer](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/AuditConsumer.java) exige UUID completo en tres campos antes de SQL. [Corpus común de doce casos](../contracts/events/fixtures/uuid-cases.json), [negativos sin SQL](../apps/commerce-api/src/test/java/dev/reference/commerce/shared/infrastructure/AuditConsumerTest.java), [DLT sin resumen](../apps/order-analytics/src/test/java/com/reference/analytics/OrderSummaryTopologyTest.java) y abreviado enviado a Kafka real sin inbox | Cerrado. Mayúsculas/minúsculas conservan identidad; no cambia retención de siete días |
+| F3 · Jackson en dominio y repositorio ajeno pasaban el guard; el negativo usaba otra regla | [ArchitectureRules.ALL](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) es la política única para producción y [negativos](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureTest.java). Cinco infracciones identifican origen/destino (Jackson 2/3, Spring, adaptador propio y repositorio ajeno), más positivo input cruzado. Fixtures excluidas de producción | Cerrado. Se permite selección vacía solo al probar fixtures aisladas; no se acepta como evidencia de infracción. No prueba corrección de negocio |
+| F4 · Comercio tapaba dos etiquetas Kafka | Separación/etiquetas ajustadas en maestro; trece SVG inspeccionados y medidos | Cerrado en entrega visual anterior; diagramas sin cambios en esta reparación |
 
-### Piezas y capacidades
+Un especialista implementó F1 y otro lo validó sin editar: 66 pruebas enfocadas, nueve contratos adversos adicionales y cancelación de half-open comprobados de forma independiente. Un revisor distinto del autor contrastó F2/F3 y su evidencia JUnit. Un tercer especialista validó proporción, claridad y rúbrica del conjunto, sin brechas materiales nuevas. Son revisiones por agentes, no auditoría humana ni certificación externa. Sin hallazgos técnicos altos/medios abiertos en el alcance reparado; se conserva el máximo de dos rondas de reparación por entrega.
 
-| Capacidad revisada | Técnica /10 | Didáctica /10 |
-|---|---:|---:|
-| Pedidos/inventario: precio, reserva y rollback | 9,0 | 9,0 |
-| Idempotencia y migración de ámbitos | 9,0 | 8,8 |
-| Devolución, aprobación y ejecución | 8,8 | 8,7 |
-| JWT y aislamiento Java | 8,8 | 8,7 |
-| Outbox/inbox/DLT | 8,5 | 8,8 |
-| Streams: ventanas, duplicados y restauración | 8,8 | 8,8 |
-| Guardas y límites modulares Java | 8,1 | 8,5 |
-| Puertos Python y composición FastAPI | 9,0 | 9,0 |
-| Recuperación lexical autorizada | 9,0 | 9,2 |
-| Variante pgvector | 8,2 | 8,6 |
-| Generación fake y proveedor real | 8,2 | 8,8 |
-| Deadline/cancelación/breaker IA | 8,7 | 9,2 |
-| Workflow persistente y gateway | 9,0 | 9,3 |
-| JWT y autorización Python | 8,7 | 9,0 |
-| Evaluación y pruebas IA | 8,7 | 9,1 |
-| Métricas IA y SSE | 9,0 | 9,0 |
-| Dockerfiles/Compose | 8,5 | 8,5 |
-| Kubernetes/kind | 8,0 | 9,0 |
-| Terraform | 8,5 | 8,5 |
-| Observabilidad | 8,0 | 9,0 |
-| CI/scripts | 8,5 | 8,0 |
-| Manual, recorrido y C4 conceptual | 8,5 | 9,0 |
+Cierre canónico: **`make verify` y `make eval` aprobados**, con **115 pruebas de aplicación** (30 Commerce, 11 Analytics, 74 AI), **tres pruebas de scripts**, **dos contratos import-linter**, higiene pública/enlaces y build MkDocs estricto. JUnit acredita cero errores, fallos u omisiones. El corpus UUID es un objeto `cases`, consumido por ambos lectores y compatible con el gate de contratos sin excepciones. Evaluación offline: 42 casos, recall@3=1, hit-rate@3=1, MRR@3=0,953125, aislamiento=abstención=1; no mide un modelo real.
 
-### Módulos
+Fuentes primarias contrastadas para estas correcciones: [Responses/salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses), [UUID Java 21](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/util/UUID.html), [ArchUnit: importación, reglas y selecciones vacías](https://www.archunit.org/userguide/html/000_Index.html). Se mantienen las versiones compatibles existentes.
 
-| Módulo/área | Técnica /10 | Didáctica /10 |
-|---|---:|---:|
-| commerce-api | 8,6 | 8,8 |
-| order-analytics | 8,8 | 8,8 |
-| ai-service | 8,7 | 9,0 |
-| Infraestructura/documentación | 8,3 | 8,7 |
+### Pendientes opcionales y límites conservados
 
-El conjunto mantiene una separación proporcionada y un recorrido lógico: invariantes antes de eventos, evidencia antes de generación y efectos autorizados antes de autonomía. Los especialistas conservarían los tres procesos, el baseline lexical, el fake inequívoco, las transacciones locales y las restricciones explícitas de SQLite/cloud. No recomendaron añadir plataformas para elevar la nota.
+**F5, evidencia de operación:** automatizar la observación HPA 1→2 y añadir un escenario optativo que consulte targets, métricas y traza de la operación actual. `kind-load.py` valida GET/errores; no acredita por sí solo escalado ni efecto concurrente entre pods. CI no activa la pila de observabilidad. La evidencia manual anterior permanece válida en su ámbito; no se repitieron Compose/kind/HPA/telemetría/Terraform en este cierre. Sin apply ni servicios IA de pago.
 
-### Hallazgos abiertos y prioridades
-
-**F1 · P2, defecto reproducido — parsing de respuestas IA.** [providers.py](../apps/ai-service/src/ai_service/infrastructure/providers.py), líneas 86–103: invoca `.get()` sobre JSON externo sin validar tipos y no captura AttributeError. Con MockTransport HTTP 200 y JSON `[]`, `output:[null]` o `content:[null]`, tres llamadas por caso producen AttributeError, cero fallos registrados en breaker y cupo consumido. El handler HTTP general sanea el error: no se ha demostrado fuga ni bypass. Reparación pequeña: validar sobre y resultado completo dentro del adaptador, traducir fallo de contrato a ServiceError y comprobar apertura tras tres fallos. Validar tipos antes de resetear el breaker, no después en AnswerService. AC AI-04/AI-05. [Contrato oficial de salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=responses).
-
-**F2 · P2, defecto reproducido — contrato de identidad desigual entre consumidores.** [AuditConsumer](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/AuditConsumer.java), líneas 57–60, admite `1-1-1-1-1` mediante UUID.fromString y lo normaliza a `00000001-0001-0001-0001-000000000001`. La reproducción con consumidor real/JDBC simulado alcanzó las dos escrituras. [EventCodec](../apps/order-analytics/src/main/java/com/reference/analytics/EventCodec.java) rechaza el mismo sobre: comercio puede auditarlo y Streams enviarlo a DLT, además de compartir identidad con la forma completa. El productor actual genera UUID completos; no se ha observado un evento propio afectado. Reparación: comprobación de representación completa en ambos consumidores y negativos compartidos. EVT-04 del productor sigue aprobado; la divergencia afecta al contrato común y EVT-05.
-
-**F3 · P2, brecha demostrada del guard, sin infracción actual de fuente.** [ArchitectureTest](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureTest.java), líneas 14–38, solo prohíbe Spring/JPA/adaptadores. Su método real aprobó dos clases temporales: Jackson ObjectMapper dentro de orders.domain y acceso de returns.application.service al puerto OrderRepository de orders. Además, el negativo de las líneas 42–53 crea otra regla, no la usada por el guard principal. Reparación: extraer reglas reales y probar esas mismas reglas con dependencias prohibidas representativas. ARCH-01/02/03; no requiere otra librería ni capas nuevas. Fuentes/clases temporales eliminadas.
-
-**F4 · P3, corregido en la revisión visual — etiquetas tapadas.** Comercio ocultaba parcialmente «Publica evento / Pedido creado» y «Lee evento / para auditoría». Se ajustaron separación y anchura/tamaño de las etiquetas nativas publish-order/audit-order en el [maestro](diagrams/architecture.drawio), se reexportó el [C4](diagrams/c4-containers.svg) y se inspeccionó a 1000/688 px. DOC-02 vuelve a estar verificado; el maestro ampliado se comprobó en el editor como se describe arriba.
-
-**F5 · Mejoras de evidencia, sin fallo runtime demostrado.** [kind-load.py](../scripts/kind-load.py) valida GET/errores, no la transición HPA 1→2 ni un efecto concurrente entre réplicas. La documentación pide observación manual; conviene automatizarla, no inferir fallo del HPA. La ruta CI tampoco activa observabilidad: un escenario opcional repetible que consulte targets, métricas y traza de la operación actual cerraría regresiones OBS-01/02. No se invalida por ello la evidencia manual anterior ni se afirma que CI acredite esas capacidades.
-
-Otras mejoras opcionales y pequeñas: creación concurrente de propuestas con claves distintas (RET-01; código tiene lock y UNIQUE), respuesta perdida al crear propuesta seguida de reinicio, ataques mezclados con preguntas legítimas, rotación JWKS, scan de imágenes finales/SO y diagnóstico CI con JUnit/logs acotados. No atribuir estos pendientes a defectos probados ni convertirlos en requisitos de plataformas adicionales.
-
-Prioridad aconsejada: F1/F2 → F3; después F5 según riesgo de regresión. La revisión ciega no reparó código; la entrega visual posterior cierra F4 sin modificar runtime. Los informes/renders regenerables permanecen ignorados, sin duplicar documentos canónicos.
+Otros negativos opcionales: propuestas concurrentes con claves distintas, pérdida de respuesta al crear propuesta seguida de reinicio y rotación JWKS. No son defectos demostrados ni motivo para añadir plataformas. Scans de dependencias/imágenes conservan su fecha y alcance anteriores; esta entrega no introduce dependencias. Higiene pública/enlaces y documentación se verifican con el gate actual; no se confunden con un nuevo pentest ni scan completo de imágenes.
 
 ## Valoración vigente
 
-**89/100**, síntesis del coordinador según la rúbrica existente a partir de las tres revisiones ciegas y de la ejecución actual. Sustituye el 91/100 anterior: aparecieron dos bordes de validación y una debilidad de pruebas que no estaban contemplados, junto a un defecto visual concreto. No hubo regresión por cambios de código en esta ronda. Una diferencia de dos puntos es un juicio de revisión, no una precisión estadística.
+**92/100**, confirmado tras el gate completo y revisión independiente del conjunto, conforme a la rúbrica existente. El cierre de validación externa, identidad uniforme y reglas efectivas justifica subir desde 89; F4 ya estaba reparado. Es juicio interno de ingeniería sobre una referencia didáctica local, sin precisión estadística ni certificación productiva.
 
-| Dimensión | Puntos | Motivo y límite |
+| Dimensión | Puntos | Evidencia y límite |
 |---|---:|---|
-| Corrección | 23/25 | Transacciones y recuperación sólidas; divergencia UUID y parsing externo por cerrar |
-| Arquitectura | 18/20 | Diseño proporcionado; guardas más estrechas que sus promesas |
-| Seguridad/IA | 13/15 | Autorización y límites adecuados; breaker no cuenta ciertos sobres malformados; sin pentest/modelo real |
-| Didáctica | 14/15 | Recorrido, microprácticas y ADR claros; F4 visual corregido posteriormente, sin repetir la puntuación global |
-| Pruebas | 9/10 | 80 pruebas actuales sin omisiones; negativos no cubren aún F1/F2/F3 |
-| Operación | 8/10 | Laboratorios honestos y pequeños; HPA/señales dependen de verificación manual y no se repitieron aquí |
-| DevEx | 4/5 | Comandos y gates claros; entorno completo exige recursos y descargas |
+| Corrección | 24/25 | Contratos adversos y UUID corregidos; invariantes/recuperación reales, dominio pequeño |
+| Arquitectura | 19/20 | Política única, negativos identificables y colaboración permitida; no toda propiedad se expresa en ArchUnit |
+| Seguridad/IA | 14/15 | Validación previa al breaker, permisos, plazos y cancelación; sin modelo real ni pentest |
+| Didáctica | 14/15 | Ejemplos pequeños, tres fichas precisadas, ADR y trece vistas; sin estudio con lectores |
+| Pruebas | 9/10 | 115 pruebas más tres de scripts y negativos reales; escenarios distribuidos no exhaustivos |
+| Operación | 8/10 | Evidencia histórica de laboratorio conservada; F5 requiere observación manual, cloud sin desplegar |
+| DevEx | 4/5 | Gates equivalentes y comandos guiados; entorno completo exige recursos y descargas |
 
-No se encontraron hallazgos altos. La referencia sigue siendo útil y técnicamente sólida, pero QA-02 queda pendiente por debajo de 90 y permanecen F1–F3 abiertos; F4 se cerró en la revisión visual posterior. Las siguientes correcciones son acotadas: no justifican otro rediseño ni añadir frameworks.
+La suma alcanza el umbral de QA-02 y cada dimensión al menos 8/10 con evidencia ejecutada. No se amplía el repositorio por elevar la nota: mantener estos casos sencillos y garantías explícitas.

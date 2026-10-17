@@ -154,4 +154,37 @@ class OrderSummaryTopologyTest {
     ((com.fasterxml.jackson.databind.node.ObjectNode) json.get("data")).put("orderId", id(9));
     assertNull(EventCodec.parse(json.toString()));
   }
+  @Test
+  void sharedUuidCasesRejectInvalidEventsWithoutSummary() throws Exception {
+    var fixtures = java.nio.file.Path.of("../../contracts/events/fixtures");
+    for (var testCase : EventCodec.JSON.readTree(fixtures.resolve("uuid-cases.json").toFile()).get("cases")) {
+      var event = (com.fasterxml.jackson.databind.node.ObjectNode)
+          EventCodec.JSON.readTree(fixtures.resolve("orders.placed.v1.json").toFile());
+      event.set("eventId", testCase.get("eventId"));
+      event.set("aggregateId", testCase.get("aggregateId"));
+      ((com.fasterxml.jackson.databind.node.ObjectNode) event.get("data"))
+          .set("orderId", testCase.get("orderId"));
+      var topology = new OrderSummaryTopology();
+      try (var driver = new TopologyTestDriver(topology.build(),
+          AnalyticsApplication.configuration("unused:9092", "uuid-contract", dir.toString()))) {
+        var in = driver.createInputTopic(OrderSummaryTopology.INPUT,
+            new StringSerializer(), new StringSerializer());
+        var out = driver.createOutputTopic(OrderSummaryTopology.OUTPUT,
+            new StringDeserializer(), new StringDeserializer());
+        var dlt = driver.createOutputTopic(OrderSummaryTopology.DLT,
+            new StringDeserializer(), new StringDeserializer());
+        String payload = event.toString();
+        in.pipeInput(testCase.get("orderId").asText(), payload);
+        if (testCase.get("accepted").asBoolean()) {
+          assertFalse(out.isEmpty(), testCase.get("name").asText());
+          assertTrue(dlt.isEmpty(), testCase.get("name").asText());
+        } else {
+          assertTrue(out.isEmpty(), testCase.get("name").asText());
+          assertEquals(payload, dlt.readValue(), testCase.get("name").asText());
+          assertTrue(dlt.isEmpty());
+        }
+      }
+    }
+  }
+
 }

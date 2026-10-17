@@ -391,8 +391,12 @@ class CommerceIntegrationTest {
   @Test
   void invalidEventReachesDlt() throws Exception {
     String marker = "invalid-" + UUID.randomUUID();
+    var invalid = (com.fasterxml.jackson.databind.node.ObjectNode) json.readTree(
+        java.nio.file.Path.of("../../contracts/events/fixtures/orders.placed.v1.json").toFile());
+    invalid.put("eventId", "1-1-1-1-1");
+    invalid.put("correlationId", marker);
     producer
-        .send("orders.placed.v1", marker, "{\"invalid\":\"" + marker + "\"}")
+        .send("orders.placed.v1", marker, invalid.toString())
         .get(15, TimeUnit.SECONDS);
     var config = new HashMap<String, Object>();
     config.put(
@@ -415,6 +419,8 @@ class CommerceIntegrationTest {
         for (var r : c.poll(Duration.ofMillis(200))) if (r.value().contains(marker)) seen = true;
       }
       assertThat(seen).isTrue();
+      assertThat(db.queryForObject("SELECT count(*) FROM inbox WHERE event_id=?", Integer.class,
+          UUID.fromString("00000001-0001-0001-0001-000000000001"))).isZero();
     }
   }
 

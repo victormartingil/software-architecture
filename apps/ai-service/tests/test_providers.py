@@ -38,6 +38,96 @@ async def test_invalid_refusal_incomplete(data):
             await OpenAIProvider(client,'key','model',1).generate('q',DOCS)
 
 
+@pytest.mark.parametrize('data', [
+    pytest.param([], id='response-array'),
+    pytest.param(None, id='response-null'),
+    pytest.param({'status':'completed'}, id='missing-output'),
+    pytest.param({'status':'completed','output':None}, id='output-null'),
+    pytest.param({'status':'completed','output':{}}, id='output-object'),
+    pytest.param({'status':'completed','output':[None]}, id='output-item-null'),
+    pytest.param({'status':'completed','output':[[]]}, id='output-item-array'),
+    pytest.param({'status':'completed','output':[{}]}, id='missing-content'),
+    pytest.param({'status':'completed','output':[{'content':None}]}, id='content-null'),
+    pytest.param({'status':'completed','output':[{'content':{}}]}, id='content-object'),
+    pytest.param({'status':'completed','output':[{'content':[None]}]}, id='content-item-null'),
+    pytest.param({'status':'completed','output':[{'content':[[]]}]}, id='content-item-array'),
+    pytest.param({'status':'completed','output':[{'content':[{}]}]}, id='missing-content-type'),
+    pytest.param({'status':'completed','output':[{'content':[{'type':'output_text','text':None}]}]}, id='text-null'),
+    pytest.param(completed([]), id='answer-array'),
+    pytest.param(completed(None), id='answer-null'),
+    pytest.param(completed({'answer':7,'citations':['d1'],'abstained':False}), id='answer-number'),
+    pytest.param(completed({'answer':'Policy','citations':['d1'],'abstained':'false'}), id='abstained-string'),
+    pytest.param(completed({'answer':'Policy','citations':['d1'],'abstained':0}), id='abstained-number'),
+    pytest.param(completed({'answer':'Policy','citations':'d1','abstained':False}), id='citations-string'),
+    pytest.param(completed({'answer':'Policy','citations':[{}],'abstained':False}), id='citation-object'),
+    pytest.param(completed({'answer':'Policy','citations':[None],'abstained':False}), id='citation-null'),
+    pytest.param(completed({'answer':'Policy','citations':['not-supplied'],'abstained':False}), id='unknown-citation'),
+    pytest.param(completed({'answer':'Policy','citations':[],'abstained':False}), id='unsupported-answer'),
+    pytest.param(completed({'answer':'Policy','citations':['d1'],'abstained':False,'extra':'private-payload'}), id='extra-field'),
+])
+async def test_invalid_contract_counts_once_opens_breaker_and_recovers(data):
+    now = [1.]
+    calls = 0
+    healthy = False
+    valid = {'answer':'Policy','citations':['d1'],'abstained':False}
+    def handler(request):
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, json=completed(valid) if healthy else data)
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        provider = OpenAIProvider(client, 'private-key', 'model', 10, clock=lambda:now[0])
+        for expected_failures in range(1, 4):
+            with pytest.raises(ServiceError) as error:
+                await provider.generate('private-question', DOCS)
+            assert error.value.status == 503
+            assert error.value.detail == 'AnswerProvider output is invalid'
+            assert provider.failures == expected_failures
+            assert calls == expected_failures  # Invalid contracts are never retried.
+        assert provider.remaining == 7
+        with pytest.raises(ServiceError, match='circuit'):
+            await provider.generate('q', DOCS)
+        assert calls == 3 and provider.remaining == 7
+        now[0] = 31.
+        # A malformed half-open probe must reopen, rather than reset failures first.
+        with pytest.raises(ServiceError, match='output is invalid'):
+            await provider.generate('q', DOCS)
+        assert provider.failures == 4 and provider.open_until == 61.
+        assert not provider.probing
+        healthy = True
+        with pytest.raises(ServiceError, match='circuit'):
+            await provider.generate('q', DOCS)
+        now[0] = 61.
+        assert await provider.generate('q', DOCS) == valid
+        assert provider.failures == 0 and provider.open_until == 0 and not provider.probing
+        assert calls == 5 and provider.remaining == 5
+
+
+@pytest.mark.parametrize('result', [
+    {'answer':'Policy','citations':['supplied-id'],'abstained':False},
+    {'answer':'No evidence.','citations':[],'abstained':True},
+])
+async def test_valid_output_allows_reasoning_and_uses_only_supplied_document_ids(result):
+    data = completed(result)
+    data['output'].insert(0, {'type':'reasoning','summary':[]})
+    # Retrieval/application own tenant authorization; the adapter validates only supplied IDs.
+    documents = [Document('supplied-id', 'any-tenant', 'Policy')]
+    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(200,json=data))) as client:
+        provider = OpenAIProvider(client, 'key', 'model', 1)
+        assert await provider.generate('q', documents) == result
+        assert provider.failures == 0
+
+
+async def test_valid_text_does_not_hide_malformed_trailing_content():
+    data = completed({'answer':'Policy','citations':['d1'],'abstained':False})
+    data['output'][0]['content'].append({'text':'private-payload'})
+    async with httpx.AsyncClient(transport=httpx.MockTransport(lambda r: httpx.Response(200,json=data))) as client:
+        provider = OpenAIProvider(client, 'key', 'model', 1)
+        provider.failures = 2
+        with pytest.raises(ServiceError, match='output is invalid'):
+            await provider.generate('q', DOCS)
+        assert provider.failures == 3 and provider.open_until > 0
+
+
 async def test_bounded_retries_breaker_and_half_open():
     count = 0
     healthy = False

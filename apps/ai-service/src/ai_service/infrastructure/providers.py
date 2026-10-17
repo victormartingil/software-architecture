@@ -83,17 +83,7 @@ class OpenAIProvider:
                     raise httpx.ConnectError("Transient provider failure")
                 if response.status_code != 200:
                     raise ServiceError(503, "AnswerProvider rejected request")
-                data = response.json()
-                if data.get("status") != "completed":
-                    raise ServiceError(503, "AnswerProvider response incomplete")
-                content = [c for item in data.get("output", []) for c in item.get("content", [])]
-                if any(c.get("type") == "refusal" for c in content):
-                    raise ServiceError(503, "AnswerProvider refused request")
-                texts = [c["text"] for c in content if c.get("type") == "output_text"]
-                parsed = json.loads(''.join(texts))
-                if set(parsed) != {"answer", "citations", "abstained"}:
-                    raise ValueError("Unexpected output shape")
-                return parsed
+                return self.parse_response(response.json(), documents)
             except (httpx.TransportError, httpx.TimeoutException):
                 if attempt == 0:
                     await self.sleep(0.1)
@@ -101,6 +91,48 @@ class OpenAIProvider:
                 raise ServiceError(503, "AnswerProvider temporarily unavailable") from None
             except (ValueError, KeyError, TypeError):
                 raise ServiceError(503, "AnswerProvider output is invalid") from None
+
+    @staticmethod
+    def parse_response(data, documents: list[Document]) -> dict:
+        # Validate external JSON before using mapping methods or closing the breaker.
+        if not isinstance(data, dict):
+            raise ValueError("Expected a response object")
+        if data.get("status") != "completed":
+            raise ServiceError(503, "AnswerProvider response incomplete")
+        output = data.get("output")
+        if not isinstance(output, list):
+            raise ValueError("Expected response output array")
+        texts = []
+        for item in output:
+            if not isinstance(item, dict):
+                raise ValueError("Expected output object")
+            # Responses can include reasoning items without message content.
+            if "content" not in item and item.get("type") != "reasoning":
+                raise ValueError("Missing message content")
+            content = item.get("content", [])
+            if not isinstance(content, list):
+                raise ValueError("Expected message content array")
+            for part in content:
+                if not isinstance(part, dict):
+                    raise ValueError("Expected content object")
+                if part.get("type") == "refusal":
+                    raise ServiceError(503, "AnswerProvider refused request")
+                if part.get("type") != "output_text" or not isinstance(part.get("text"), str):
+                    raise ValueError("Expected output text")
+                texts.append(part["text"])
+        parsed = json.loads(''.join(texts))
+        if not isinstance(parsed, dict) or set(parsed) != {"answer", "citations", "abstained"}:
+            raise ValueError("Unexpected output shape")
+        if not isinstance(parsed["answer"], str) or not isinstance(parsed["abstained"], bool):
+            raise ValueError("Unexpected answer types")
+        citations = parsed["citations"]
+        allowed = {document.id for document in documents}
+        if not isinstance(citations, list) or any(
+                not isinstance(citation, str) or citation not in allowed for citation in citations):
+            raise ValueError("Unexpected citations")
+        if not parsed["abstained"] and not citations:
+            raise ValueError("Unsupported answer")
+        return parsed
 
     def payload(self, question: str, docs: list[Document]) -> dict:
         schema = {"type": "object", "properties": {"answer": {"type": "string"}, "citations": {"type": "array", "items": {"type": "string"}}, "abstained": {"type": "boolean"}}, "required": ["answer", "citations", "abstained"], "additionalProperties": False}

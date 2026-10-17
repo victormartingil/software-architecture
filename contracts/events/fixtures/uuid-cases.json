@@ -1,0 +1,88 @@
+{
+  "cases": [
+    {
+      "name": "lowercase",
+      "accepted": true,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "uppercase",
+      "accepted": true,
+      "eventId": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE",
+      "aggregateId": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE",
+      "orderId": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE"
+    },
+    {
+      "name": "mixed-case-order",
+      "accepted": true,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "abbreviated-event",
+      "accepted": false,
+      "eventId": "1-1-1-1-1",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "abbreviated-aggregate",
+      "accepted": false,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "1-1-1-1-1",
+      "orderId": "00000001-0001-0001-0001-000000000001"
+    },
+    {
+      "name": "abbreviated-order",
+      "accepted": false,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "00000001-0001-0001-0001-000000000001",
+      "orderId": "1-1-1-1-1"
+    },
+    {
+      "name": "abbreviated-pair",
+      "accepted": false,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "1-1-1-1-1",
+      "orderId": "1-1-1-1-1"
+    },
+    {
+      "name": "malformed-event",
+      "accepted": false,
+      "eventId": "not-a-uuid",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "malformed-aggregate",
+      "accepted": false,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "not-a-uuid",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "malformed-order",
+      "accepted": false,
+      "eventId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "not-a-uuid"
+    },
+    {
+      "name": "unhyphenated",
+      "accepted": false,
+      "eventId": "aaaaaaaabbbb4ccc8dddeeeeeeeeeeee",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    },
+    {
+      "name": "whitespace",
+      "accepted": false,
+      "eventId": " aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "aggregateId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+      "orderId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"
+    }
+  ]
+}

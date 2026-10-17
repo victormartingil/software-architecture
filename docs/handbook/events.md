@@ -10,6 +10,8 @@ El consumidor de auditoría usa una tabla inbox con `UNIQUE(eventId)`. Registrar
 
 El contrato vive en [orders.placed.v1](../../contracts/events/orders.placed.v1.schema.json). Tenant, correlación, versión y tiempo pertenecen al sobre; el contenido contiene solo datos sintéticos necesarios. La clave Kafka es orderId para conservar orden por pedido dentro de su partición. No existe un orden total entre las tres particiones.
 
+Ambos consumidores exigen UUID completos en eventId, aggregateId y data.orderId. `UUID.fromString` puede aceptar abreviaturas; por eso se contrasta también su representación completa, ignorando capitalización. El [corpus compartido](../../contracts/events/fixtures/uuid-cases.json) comprueba doce casos: Comercio rechaza antes de SQL y Streams envía a DLT sin resumen. La forma normalizada mantiene identidad al repetir mayúsculas/minúsculas. La ruta Kafka real verifica además que un abreviado termina en DLT sin inbox.
+
 ## Mensajes inválidos
 
 Un error transitorio admite reintentos limitados. Un mensaje estructuralmente inválido no se arregla esperando: termina en DLT, separada para auditoría y analytics. Si publicar la DLT falla, no se debe confirmar el original como procesado. El runbook debe explicar causa, reparación y replay explícito; una DLT sin dueño es almacenamiento de fallos olvidados.

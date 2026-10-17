@@ -47,7 +47,7 @@ Command y Query nombran intenciones; no implican CQRS con almacenes separados. U
 (cd apps/ai-service && uv run pytest tests/test_architecture.py -q && uv run lint-imports)
 ```
 
-**Resultado:** dos pruebas Java, el negativo Python y los contratos de importación aprobados. No se necesitan servicios ni llamadas IA. Las pruebas negativas introducen una dependencia prohibida en clases o copias temporales y comprueban que el guard la rechaza; no modifican el código productivo. Un guard que nunca falla no acredita el límite.
+**Resultado:** siete pruebas Java, el negativo Python y los contratos de importación aprobados. No se necesitan servicios ni llamadas IA. [ArchitectureRules](../../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) contiene el conjunto usado sobre producción y sobre fixtures de prueba: Jackson 2/3 o Spring en dominio, adaptador en aplicación y repositorio de otro módulo. Los negativos exigen un detalle con origen y destino, sin aceptar un fallo por selección vacía. El positivo permite usar el puerto input de otro módulo. Las fixtures están excluidas del import productivo; no son código de negocio. Un guard que nunca falla no acredita el límite.
 
 **Alternativa:** llamar directamente a JDBC ahorra un puerto, pero acopla el caso de uso a persistencia. Justificar cada abstracción por una sustitución o responsabilidad concreta; la revisión sigue siendo necesaria para detectar interfaces vacías o conceptos filtrados.
 

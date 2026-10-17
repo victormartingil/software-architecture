@@ -6,6 +6,6 @@
 
 **Alternativas:** monolito completo simplifica operación pero oculta fallos entre procesos; servicios de pedido/inventario añaden reserva distribuida y compensaciones sin necesidad del caso. Un núcleo sin ninguna anotación Spring exigiría wrappers transaccionales adicionales.
 
-**Consecuencias:** una transacción protege stock y pedido; hay acoplamiento local deliberado a Spring. ArchUnit/import-linter verifican límites. No compartir entidades entre Java/Python. Revisar si aparece necesidad real de escalado o propiedad de equipos independientes.
+**Consecuencias:** una transacción protege stock y pedido; hay acoplamiento local deliberado a Spring. ArchUnit/import-linter verifican límites. El dominio Java permite dependencias del JDK y del dominio propio; los puertos output solo se usan en su módulo y la colaboración cruzada usa input. Las reglas reales se reutilizan en negativos identificables, excluyendo fixtures del import productivo. No compartir entidades entre Java/Python. Revisar si aparece necesidad real de escalado o propiedad de equipos independientes.
 
 **Comprobación:** ARCH-01..03; [arquitectura](../handbook/architecture.md).
