@@ -67,6 +67,7 @@ Estado local del **2026-10-17**, ARM64, Java 21 y Docker con 2 CPU/10 GiB. Una �
 | DOC-04 | Mapa funcional/código, servicios de apoyo y distinción de niveles en explicaciones y trece vistas | Verificado |
 | QA-03 | JUnit obligatorio local/CI; siete pruebas de scripts y omisión deliberada rechazada aunque pytest termine 0 | Verificado |
 | QA-01 | Revisor independiente detectó dos P2: cola de workflow y timestamp futuro; reparados y validados con negativos | Verificado en alcance revisado |
+| QA-04 | Preparación CI migrada de acciones obsoletas a Node24, SHA e inputs contrastados con origen oficial; runtime de apps sin cambios | Revisado independientemente; resultado por commit en Actions |
 | QA-02 | Dos revisores coinciden en 92/100 didáctico, cada dimensión ≥8/10; gate completo y escenarios reales aprobados | Verificado |
 | LIVE | No se ha llamado a un modelo ni servicio de embeddings real | No ejecutado, optativo |
 | CLOUD-DEPLOY | Sin apply ni recursos cloud creados | Fuera de alcance |
@@ -111,9 +112,9 @@ Un [maestro draw.io](diagrams/architecture.drawio) contiene trece vistas con SVG
 
 Fuente pública actual: Trivy 0.70.0 sobre 202 archivos, cero secretos detectados; snapshot temporal eliminado. Higiene revisa rutas personales, emails no sintéticos, material de clave y enlaces privados; `.local`, informes, caches, binarios y estado Terraform no se versionan. Contraseñas incluidas son exclusivamente sintéticas de laboratorio. Revisión adicional de 329 blobs de texto del historial: cero rutas de usuario de máquina o marcadores de clave privada; no equivale a un detector exhaustivo de información personal. Estos controles reducen riesgo, sin garantizar ausencia absoluta de datos sensibles.
 
-Scans de dependencias anteriores del mismo baseline/lockfiles (2026-10-17): pip-audit 2.9.0 sin vulnerabilidades conocidas en runtime/docs; Trivy fuente/manifiestos y 135 paquetes de JAR/runtime sin HIGH/CRITICAL. No hay nuevas dependencias o versiones. [ADR006](decisions/006-maintenance.md) conserva avisos reparados y compatibilidad Boot 4/Spring 7/Jackson. No se atribuye scan de SO de las imágenes ni pentest actual.
+Scans de dependencias anteriores del mismo baseline/lockfiles (2026-10-17): pip-audit 2.9.0 sin vulnerabilidades conocidas en runtime/docs; Trivy fuente/manifiestos y 135 paquetes de JAR/runtime sin HIGH/CRITICAL. No hay nuevas dependencias o versiones de aplicaciones; solo se actualizan las acciones de preparación CI a Node24 mantenido, con commits fijados y motivo en ADR006. [ADR006](decisions/006-maintenance.md) conserva avisos reparados y compatibilidad Boot 4/Spring 7/Jackson. No se atribuye scan de SO de las imágenes ni pentest actual.
 
-GitHub Actions inicial 39036928123 terminó sus tres jobs. El workflow actual incorpora pruebas/eval, Terraform mock, build/demo y nueva comprobación de señales; no se atribuye éxito remoto hasta observar su ejecución tras push. La configuración de seguridad mantiene jobs independientes. Un pipeline verde no demuestra escenarios ausentes.
+GitHub Actions 39058138352 sobre c406e31 terminó sus tres jobs: pruebas/eval, Terraform mock, build/demo, nueva comprobación de señales y scans Python/Java. La actualización posterior de acciones a Node24 conserva tareas y runtimes de aplicación; cada ejecución remota queda vinculada a su commit en GitHub Actions, sin atribuir éxito a un commit distinto. La configuración de seguridad mantiene jobs independientes. Un pipeline verde no demuestra escenarios ausentes.
 
 ## Valoración y uso productivo
 

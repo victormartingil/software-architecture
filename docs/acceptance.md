@@ -67,6 +67,7 @@
 | DOC-04 | Nombre funcional y nombre técnico se corresponden; se distinguen aplicaciones, módulos, bibliotecas, servidores y protocolos | Mapa canónico, diagramas y referencias a código |
 | QA-01 | Tests significativos y revisiones sin hallazgos altos abiertos | Informes especialistas |
 | QA-03 | Verificación canónica local y CI rechazan skips Java/Python; una omisión deliberada demuestra el gate | JUnit y experimento negativo reversible |
+| QA-04 | Acciones CI mantenidas con Node24, fijadas a SHA verificado; checkout sin persistir credenciales y permisos read mínimos | action.yml oficial y ejecución remota de los tres jobs |
 | QA-02 | >=90/100 y cada dimensión >=8/10 con evidencia | Rúbrica final, máximo dos reparaciones |
 | LIVE | Opcional: modelo real con presupuesto y dataset medidos | Solo con configuración explícita |
 | CLOUD-DEPLOY | Fuera de entrega: despliegue real GCP | No ejecutar ni afirmar validado |

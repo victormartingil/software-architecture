@@ -11,3 +11,5 @@
 **Comprobación:** suite Java, smoke de contratos reales, trazas Tempo y scans exactos en [verificación](../verification.md).
 
 Fuentes: [Spring CVE-2026-47884](https://spring.io/security/cve-2026-47884/), [Spring CVE-2026-47890](https://spring.io/security/cve-2026-47890/), [migración Boot 4](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide), [releases kind](https://github.com/kubernetes-sigs/kind/releases/tag/v0.33.0).
+
+La preparación CI usa acciones mantenidas con runtime Node24 y commits inmutables: [checkout7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1), [setup-java6.1.0](https://github.com/actions/setup-java/releases/tag/v6.1.0), [setup-python7.0.0](https://github.com/actions/setup-python/releases/tag/v7.0.0) y [setup-uv10.3.0](https://github.com/astral-sh/setup-uv/releases/tag/v10.3.0). Los action.yml oficiales conservan los inputs usados; runners GitHub alojados cumplen sus requisitos. Se mantienen JDK21, Python3.12 y uv0.8.22, permisos contents:read y checkout sin persistir credenciales. Node de Actions no es una dependencia de las aplicaciones.
