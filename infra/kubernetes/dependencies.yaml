@@ -24,8 +24,8 @@ spec:
           resources:
             requests: {cpu: 100m, memory: 128Mi}
             limits: {cpu: '1', memory: 512Mi}
-          readinessProbe: {exec: {command: [pg_isready, -U, localadmin]}, periodSeconds: 5}
-          livenessProbe: {exec: {command: [pg_isready, -U, localadmin]}, initialDelaySeconds: 30, periodSeconds: 10}
+          readinessProbe: {exec: {command: [pg_isready, -h, 127.0.0.1, -U, localadmin, -d, postgres]}, periodSeconds: 5}
+          livenessProbe: {exec: {command: [pg_isready, -h, 127.0.0.1, -U, localadmin, -d, postgres]}, initialDelaySeconds: 30, periodSeconds: 10}
           volumeMounts:
             - {name: database, mountPath: /var/lib/postgresql/data}
             - {name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true}

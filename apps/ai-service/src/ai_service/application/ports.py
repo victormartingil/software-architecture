@@ -1,3 +1,4 @@
+import asyncio
 from typing import Protocol
 from ai_service.domain import Document
 
@@ -5,7 +6,8 @@ from ai_service.domain import Document
 class AnswerProvider(Protocol):
     """Produces a structured answer from documents already authorized for the actor."""
     mode: str
-    async def generate(self, question: str, documents: list[Document]) -> dict: ...
+    async def generate(self, question: str, documents: list[Document], *,
+                       deadline: asyncio.Timeout | None = None) -> dict: ...
 
 
 class DocumentRetriever(Protocol):

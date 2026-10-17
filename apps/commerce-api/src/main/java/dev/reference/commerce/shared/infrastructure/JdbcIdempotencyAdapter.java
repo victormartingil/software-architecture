@@ -19,19 +19,24 @@ public class JdbcIdempotencyAdapter implements Idempotency {
     this.json = json;
   }
 
-  public <T> T execute(String scope, Object request, Class<T> type, Supplier<T> action) {
+  public <T> T execute(Scope scope, Object request, Class<T> type, Supplier<T> action) {
     try {
+      // A JSON array preserves component boundaries, including quotes, colons and Unicode.
+      String storageScope =
+          json.writeValueAsString(
+              java.util.List.of(
+                  scope.tenant(), scope.subject(), scope.operation(), scope.resource(), scope.key()));
       String hash =
           HexFormat.of()
               .formatHex(
                   MessageDigest.getInstance("SHA-256").digest(json.writeValueAsBytes(request)));
       // A transaction-scoped lock serializes retries before testing the persistent key.
-      db.query("SELECT pg_advisory_xact_lock(hashtextextended(?,0))", r -> {}, scope);
+      db.query("SELECT pg_advisory_xact_lock(hashtextextended(?,0))", r -> {}, storageScope);
       var rows =
           db.query(
-              "SELECT request_hash,result::text FROM idempotency WHERE scope=?",
+              "SELECT request_hash,result::text FROM idempotency WHERE scope=? AND scope_version=2",
               (r, n) -> new String[] {r.getString(1), r.getString(2)},
-              scope);
+              storageScope);
       if (!rows.isEmpty()) {
         if (!rows.getFirst()[0].equals(hash))
           throw new BusinessException(409, "Idempotency key reused with different request");
@@ -39,8 +44,8 @@ public class JdbcIdempotencyAdapter implements Idempotency {
       }
       T result = action.get();
       db.update(
-          "INSERT INTO idempotency VALUES (?,?,?::jsonb)",
-          scope,
+          "INSERT INTO idempotency(scope,request_hash,result,scope_version) VALUES (?,?,?::jsonb,2)",
+          storageScope,
           hash,
           json.writeValueAsString(result));
       return result;

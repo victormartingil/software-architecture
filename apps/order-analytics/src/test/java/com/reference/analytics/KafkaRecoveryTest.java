@@ -55,8 +55,10 @@ class KafkaRecoveryTest {
       consumer.subscribe(List.of(OrderSummaryTopology.OUTPUT));
       KafkaStreams first = start(bootstrap, app);
       try {
-        send(producer, 1, 2);
+        send(producer, 0, 1, 2);
+        send(producer, 1, 1, 2);
         assertEquals(2, awaitCount(consumer, 1).get("totalQuantity").asInt());
+        assertNoInflatedUpdates(consumer, 1);
       } finally {
         assertTrue(
             first.close(
@@ -70,20 +72,28 @@ class KafkaRecoveryTest {
       }
       KafkaStreams replacement = start(bootstrap, app);
       try {
-        send(producer, 1, 2); // same identity must not count twice after restoration
-        send(producer, 2, 3);
+        send(producer, 0, 1, 2); // same identity on both original partitions after restoration
+        send(producer, 1, 1, 2);
+        send(producer, 0, 2, 3);
+        send(producer, 1, 2, 3);
         var summary = awaitCount(consumer, 2);
         assertEquals(5, summary.get("totalQuantity").asInt());
         assertEquals(12500, summary.get("totalCents").asInt());
-        long until = System.nanoTime() + Duration.ofSeconds(2).toNanos();
-        while (System.nanoTime() < until)
-          for (var r : consumer.poll(Duration.ofMillis(100)))
-            assertTrue(EventCodec.JSON.readTree(r.value()).get("orderCount").asInt() <= 2);
+        assertNoInflatedUpdates(consumer, 2);
       } finally {
         replacement.close(
             new KafkaStreams.CloseOptions().timeout(Duration.ofSeconds(30)).leaveGroup(true));
       }
     }
+  }
+
+  private void assertNoInflatedUpdates(KafkaConsumer<String, String> consumer, int count)
+      throws Exception {
+    long until = System.nanoTime() + Duration.ofSeconds(2).toNanos();
+    while (System.nanoTime() < until)
+      for (var record : consumer.poll(Duration.ofMillis(100)))
+        assertTrue(EventCodec.JSON.readTree(record.value()).get("orderCount").asInt() <= count,
+            "duplicate from a different partition inflated count");
   }
 
   private KafkaStreams start(String bootstrap, String app) throws Exception {
@@ -99,10 +109,11 @@ class KafkaRecoveryTest {
     return streams;
   }
 
-  private void send(KafkaProducer<String, String> p, int id, int qty) throws Exception {
+  private void send(KafkaProducer<String, String> p, int partition, int id, int qty) throws Exception {
     p.send(
             new ProducerRecord<>(
                 OrderSummaryTopology.INPUT,
+                partition,
                 "order",
                 OrderSummaryTopologyTest.event(
                     OrderSummaryTopologyTest.id(id), "demo", EVENT_SECONDS, qty)))
@@ -112,12 +123,16 @@ class KafkaRecoveryTest {
   private com.fasterxml.jackson.databind.JsonNode awaitCount(
       KafkaConsumer<String, String> c, int count) throws Exception {
     long until = System.nanoTime() + Duration.ofSeconds(60).toNanos();
-    while (System.nanoTime() < until)
+    while (System.nanoTime() < until) {
+      com.fasterxml.jackson.databind.JsonNode matching = null;
       for (var r : c.poll(Duration.ofMillis(200))) {
         var n = EventCodec.JSON.readTree(r.value());
         assertTrue(n.get("orderCount").asInt() <= count, "duplicate inflated count");
-        if (n.get("orderCount").asInt() == count) return n;
+        if (n.get("orderCount").asInt() == count) matching = n;
       }
+      // Inspect the entire poll batch: a later update must not be discarded on early return.
+      if (matching != null) return matching;
+    }
     throw new AssertionError("No summary with count " + count);
   }
 }

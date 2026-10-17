@@ -2,7 +2,7 @@
 
 ## Señales con una pregunta
 
-Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI distingue respuestas, abstenciones y duración. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta.
+Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta.
 
 ```bash
 make observability
@@ -26,11 +26,32 @@ docker compose exec postgres psql -U commerce -d commerce -c 'SELECT event_id, t
 3. Comprobar conectividad del broker y errores de publicación; no borrar outbox para limpiar el dashboard.
 4. Recuperar broker y observar que los pendientes disminuyen y la auditoría recibe efectos. Una publicación repetida es admisible; un efecto duplicado es un defecto.
 
+Con el núcleo arrancado (`make up`) y al menos una unidad disponible, ejecutar desde la raíz. El ejemplo reutiliza el cliente stdlib de la demostración, obtiene un JWT sin imprimirlo y restaura el broker incluso si falla el pedido:
+
 ```bash
-docker compose stop kafka
-# Crear pedido autenticado: el commit no depende del broker.
-docker compose start kafka
+python3 - <<'PYTHON'
+import subprocess
+import sys
+from uuid import uuid4
+sys.path.insert(0, "scenarios")
+from smoke import token, request, COMMERCE
+from event_flow import verify_event_flow
+actor = token("alice")
+subprocess.run(["docker", "compose", "stop", "kafka"], check=True)
+try:
+    order = request(COMMERCE, "/api/v1/orders", "POST",
+                    {"sku": "BOOK-1", "quantity": 1}, actor,
+                    "outage-" + str(uuid4()), expected=201)
+    subprocess.run(["docker", "compose", "exec", "-T", "postgres", "psql",
+                    "-U", "commerce", "-d", "commerce", "-c",
+                    "SELECT count(*) FROM outbox WHERE published_at IS NULL"], check=True)
+finally:
+    subprocess.run(["docker", "compose", "start", "kafka"], check=True)
+print(verify_event_flow(order["id"]))
+PYTHON
 ```
+
+Se espera 201 aunque Kafka esté detenido, al menos un pendiente y después verificación del pedido actual en outbox, inbox y resumen. Este ejercicio reserva una unidad; no completa una devolución ni restaura stock. No ejecuta `make demo` con Kafka parado porque ese escenario sí espera el resumen.
 
 El escenario de fallo automatizado en la integración Java pausa el broker y prueba recuperación. El entorno debe disponer de disco: una dependencia caída por tiempo indefinido puede llenar outbox aunque los pedidos sigan respondiendo.
 
@@ -46,12 +67,25 @@ No renombrar identidades para eludir deduplicación. Un evento tardío fuera de 
 
 ## SLI, SLO y capacidad
 
-Para un servicio real medir fracción de operaciones válidas exitosas, latencia por operación y frescura de la proyección, no solo CPU. Un SLO inicial debe basarse en necesidad de negocio y medición. Aquí las alertas son umbrales didácticos; no se atribuye disponibilidad histórica ni rendimiento industrial. La calidad IA necesita además fidelidad y abstención correcta, evaluadas fuera de los probes.
+Un servicio real necesita medir éxito de operaciones válidas, latencia y frescura de proyecciones; IA añade fidelidad y abstención correcta. Basar el SLO en necesidad de negocio y medición. Estas alertas son umbrales didácticos, sin disponibilidad histórica atribuida.
 
-Antes de optimizar, localizar saturación: cola de conexiones SQL, tiempo de bloqueo, lag Kafka, concurrencia y duración del proveedor. Aumentar réplicas puede trasladar el cuello de botella a la base o al cupo del modelo. El costo por tarea completada necesita incluir errores/reintentos y recursos ociosos, no solo precio por token.
+Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del proveedor. Más réplicas pueden trasladar el cuello de botella. El coste por tarea completada incluye errores, reintentos y recursos ociosos, no solo tokens.
 
 ## Ciclo de vida local
 
 `make down` apaga sin borrar volúmenes. `make up` recupera datos. `make reset CONFIRM=delete-local-data` elimina únicamente volúmenes del proyecto Compose y exige intención explícita. Un reset no sustituye una migración ni una prueba de restauración. Ejecutar kind después de apagar Compose para evitar puertos y memoria competidos.
+
+## Micropráctica: un error visible una sola vez
+
+**Pregunta:** ¿un circuito abierto desaparece del dashboard o cuenta dos veces en SSE? Leer [main.py](../../apps/ai-service/src/ai_service/main.py), [test_api.py](../../apps/ai-service/tests/test_api.py) y [dashboard.json](../../infra/observability/dashboard.json). Desde la raíz:
+
+```bash
+(cd apps/ai-service && uv run pytest tests/test_api.py \
+  -k 'every_started_answer_records_exactly_one_outcome or sse_disconnect_cancels_provider_task' -q)
+```
+
+**Resultado:** casos JSON/SSE aprobados, con errores, timeout, respuesta, abstención y cancelación controlados; cada operación iniciada incrementa exactamente un resultado. No necesita Docker ni proveedor real. `make verify` conserva además JUnit local igual que CI y rechaza pruebas omitidas.
+
+**Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
 
 Fuentes: [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).

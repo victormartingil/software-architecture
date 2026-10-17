@@ -4,7 +4,7 @@
 
 Dos compradores pueden leer stock uno al mismo tiempo. Si ambos restan en memoria y guardan cero, se venden dos unidades aunque el contador parezca correcto. La regla relevante es que cada pedido aceptado corresponde a una reserva efectiva, sin stock negativo. Una transacción no arregla por sí sola una secuencia de lecturas y escrituras mal diseñada.
 
-El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/JdbcInventoryRepositoryAdapter.java) usa una actualización condicional: descontar solo si `available >= quantity`, comprobando filas afectadas. PostgreSQL coordina escrituras concurrentes sobre la misma fila. La reserva, el pedido, el registro idempotente y el evento outbox se confirman en una transacción local. Precio e importe se calculan en servidor; el cliente no puede enviar un total arbitrario.
+El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/JdbcInventoryRepositoryAdapter.java) usa una actualización condicional: descontar solo si `stock >= quantity`, comprobando filas afectadas. PostgreSQL coordina escrituras concurrentes sobre la misma fila. La reserva, el pedido, el registro idempotente y el evento outbox se confirman en una transacción local. Precio e importe se calculan en servidor; el cliente no puede enviar un total arbitrario.
 
 [![Secuencia de pedido y publicación del evento](../diagrams/order-sequence.svg)](../diagrams/order-sequence.svg)
 
@@ -12,7 +12,9 @@ El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference
 
 ## Repetir una petición es normal
 
-El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor y operación. Se almacena también el hash del cuerpo: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.
+El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor, operación y recurso. Se almacena también el hash del cuerpo: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.
+
+El puerto recibe un ámbito estructurado y el [adaptador idempotente](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/JdbcIdempotencyAdapter.java) lo codifica como array JSON. Concatenar con `:` permitiría confundir componentes legítimos. La versión V2 rechaza migrar si hay claves antiguas ambiguas: no las borra ni permite repetir efectos con otro prefijo; [ADR002](../decisions/002-consistency.md) explica el límite y el reset sintético explícito.
 
 La implementación serializa solicitudes con la misma clave dentro de PostgreSQL y guarda el resultado en la misma transacción del efecto. Una caché en memoria no bastaría ante reinicios o varias réplicas. Tampoco basta comprobar «si existe» y luego insertar sin constraint o exclusión: dos transacciones podrían pasar la comprobación.
 
@@ -24,14 +26,20 @@ Bloquear la fila antes de decidir puede simplificar reglas más complejas; aumen
 
 Mantener inventario y pedidos en la misma base evita una transacción distribuida. Si fueran servicios independientes, la reserva necesitaría protocolo, estado intermedio, caducidad y compensación. Una saga coordina esas etapas, pero no ofrece el rollback instantáneo de una transacción SQL.
 
-## Prueba que importa
+## Micropráctica: una reserva y un resultado durables
+
+**Pregunta:** ¿qué ocurre si falla el outbox después de reservar? Seguir el adaptador de inventario y el idempotente enlazados, después [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java). Desde la raíz, con Java 21 y Docker:
 
 ```bash
-cd apps/commerce-api
-./mvnw verify
+(cd apps/commerce-api && \
+  DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  ./mvnw -B -ntp -Dapi.version=1.44 '-Dtest=CommerceIntegrationTest#priceAndIdempotency+concurrentLastUnit+rollbackIncludesStockAndOrder+subjectsWithDelimitersCannotShareCachedResultsEvenConcurrently' test)
 ```
 
-Los tests de integración usan PostgreSQL real: dos solicitudes compiten por la última unidad, se repite una misma clave concurrentemente y se fuerza un fallo que debe revertir stock/pedido/outbox. Un test con repositorios simulados puede verificar coordinación; no demuestra bloqueo ni aislamiento reales. Las migraciones Flyway y sus índices forman parte de la implementación, no de una preparación manual fuera del repositorio.
+**Resultado:** cuatro pruebas aprobadas, usando PostgreSQL y Kafka efímeros. Una clave repetida conserva el resultado; dos compradores no venden dos veces la última unidad. El fallo controlado añade temporalmente un constraint que rechaza outbox: deben quedar cero pedidos y stock intacto. La carrera con `:` conserva dos identidades distintas. No modifica volúmenes Compose.
+
+**Alternativa:** mocks verifican coordinación, pero no prueban bloqueos ni aislamiento SQL. ¿Seguiría siendo una transacción local si inventario estuviera en otro servicio? Serían necesarios estados intermedios y compensación, no otra anotación.
 
 En operación se debe definir retención de claves, volumen de outbox, tiempo de bloqueo y estrategia de migración compatible. No borrar registros idempotentes durante un plazo en el que clientes todavía puedan repetir solicitudes.
 

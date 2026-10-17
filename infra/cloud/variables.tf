@@ -18,7 +18,7 @@ variable "operator_cidr" {
   type        = string
   description = "Trusted operator public /32; never expose the control plane to all IPs."
   validation {
-    condition     = can(cidrhost(var.operator_cidr, 0)) && endswith(var.operator_cidr, "/32")
+    condition     = can(cidrnetmask(var.operator_cidr)) && endswith(var.operator_cidr, "/32")
     error_message = "Provide a valid IPv4 /32 operator CIDR."
   }
 }

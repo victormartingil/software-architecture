@@ -30,14 +30,23 @@ El store local mejora acceso, mientras el changelog permite reconstrucción. No 
 
 Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman dentro de la transacción Kafka. Sus consumidores deben leer con `isolation.level=read_committed`. Esta atomicidad no incluye PostgreSQL ni HTTP; eventId sigue siendo necesario para reconocer publicaciones repetidas del mismo hecho de negocio.
 
-## Reproducción
+## Micropráctica: no perder el mensaje que falló
+
+**Pregunta:** ¿avanza el consumidor si tampoco funciona la DLT? Leer [KafkaConfiguration](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/KafkaConfiguration.java), [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) y [KafkaRecoveryTest](../../apps/order-analytics/src/test/java/com/reference/analytics/KafkaRecoveryTest.java). Desde la raíz, con Java 21 y Docker:
 
 ```bash
-make demo
-make kafka-summary
-cd apps/order-analytics && ./mvnw verify
+(cd apps/commerce-api && \
+  DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  ./mvnw -B -ntp -Dapi.version=1.44 '-Dtest=CommerceIntegrationTest#failedDltPublicationDoesNotCommitOriginalOffsetAndRecovers' test)
+(cd apps/order-analytics && \
+  DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  ./mvnw -B -ntp -Dapi.version=1.44 -Dtest=KafkaRecoveryTest test)
 ```
 
-El test real pausa el broker para comprobar conservación del outbox y prueba deduplicación de consumidor. TopologyTestDriver controla timestamps explícitos y el test con Kafka comprueba reconstrucción. Sus garantías y resultados exactos están en [verificación](../verification.md).
+**Resultado:** dos integraciones aprobadas. La primera inyecta el fallo únicamente en el envío DLT: el offset original no avanza ni se procesa el mensaje posterior; recuperar permite ambos. La segunda envía duplicados explícitos por particiones distintas antes y después de perder RocksDB; el resumen no se infla.
+
+**Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
 
 Fuentes: [Kafka Streams conceptos](https://kafka.apache.org/40/streams/core-concepts/), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox](https://microservices.io/patterns/data/transactional-outbox.html).

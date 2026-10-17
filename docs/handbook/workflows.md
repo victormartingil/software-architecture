@@ -30,14 +30,18 @@ Para varias réplicas se necesita un checkpointer compartido, registro idempoten
 
 Un flujo determinista es suficiente aquí. Un agente autónomo tendría sentido si existieran decisiones abiertas justificadas y evaluables. Añadir herramientas aumenta superficie de autorización y riesgo; MCP estandariza intercambio, sin reemplazar permisos ni aislamiento.
 
-## Comprobación
+## Micropráctica: recuperar progreso sin repetir el efecto
+
+**Pregunta:** ¿quién decide cuando una aprobación caduca entre dos llamadas? Leer el workflow enlazado, [ManageReturnService](../../apps/commerce-api/src/main/java/dev/reference/commerce/returns/application/service/ManageReturnService.java) y [test_workflows.py](../../apps/ai-service/tests/test_workflows.py). Desde la raíz:
 
 ```bash
-make demo
-cd apps/ai-service && uv run pytest
-cd ../commerce-api && ./mvnw verify
+(cd apps/ai-service && uv run pytest tests/test_workflows.py -q)
 ```
 
-Los tests reconstruyen el workflow desde el mismo checkpoint tras cerrar el proceso, simulan pérdida de respuesta y comprueban que no aparece un JWT en el almacén. Comercio prueba versión, vencimiento y ejecución concurrente. El escenario integrado verifica permisos reales con Keycloak y que el stock vuelve una sola vez al valor anterior.
+**Resultado:** tres pruebas rápidas aprobadas, con gateway simulado y SQLite temporal; no requieren Docker ni claves. Reconstruyen el grafo desde el checkpoint, simulan respuesta perdida y caducidad entre aprobación y ejecución. La propuesta no se ejecuta sin autorización vigente y el JWT no aparece en el almacén. Este nivel prueba coordinación, sin acreditar por sí solo transacciones SQL del backend.
+
+Con Docker, `make up` y `make demo` prueban JWT reales de Keycloak, aprobación, reintento y reposición de stock una vez; `make verify` añade vencimiento y concurrencia de comercio. Ambos comandos se ejecutan desde la raíz.
+
+**Alternativa:** una máquina de estados propia puede ser suficiente para este flujo pequeño. ¿Qué aporta LangGraph aquí? Persistencia y reanudación inspeccionables; no autoridad de negocio ni exclusión entre réplicas.
 
 Fuentes: [LangGraph persistencia](https://docs.langchain.com/oss/python/langgraph/persistence), [interrupciones](https://docs.langchain.com/oss/python/langgraph/interrupts), [OWASP autorización](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html).

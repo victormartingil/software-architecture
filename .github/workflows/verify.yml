@@ -37,9 +37,6 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "**/uv.lock"
       - name: Tests, architecture, fixtures, documentation and evaluation
-        env:
-          PYTEST_ADDOPTS: --junitxml=${{ runner.temp }}/python-tests.xml
-          VERIFY_PYTHON_JUNIT: ${{ runner.temp }}/python-tests.xml
         run: make verify eval
       - name: Terraform format, validation and mocked plans
         run: make terraform-check

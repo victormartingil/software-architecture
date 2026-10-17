@@ -38,7 +38,7 @@ public class ManageReturnService implements ReturnUseCase {
   @Transactional
   public ReturnProposal create(Actor actor, String idempotencyKey, CreateReturnCommand command) {
     return idempotency.execute(
-        actor.tenant() + ":" + actor.subject() + ":proposal:" + idempotencyKey,
+        new Idempotency.Scope(actor.tenant(), actor.subject(), "proposal", "", idempotencyKey),
         command,
         ReturnProposal.class,
         () -> {
@@ -90,7 +90,7 @@ public class ManageReturnService implements ReturnUseCase {
   public ReturnProposal execute(Actor actor, UUID id, String idempotencyKey, long version) {
     manager(actor);
     return idempotency.execute(
-        actor.tenant() + ":" + actor.subject() + ":execute:" + id + ":" + idempotencyKey,
+        new Idempotency.Scope(actor.tenant(), actor.subject(), "execute", id.toString(), idempotencyKey),
         version,
         ReturnProposal.class,
         () -> {

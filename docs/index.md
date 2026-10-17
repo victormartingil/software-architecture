@@ -11,7 +11,6 @@ Desde la raíz del repositorio, con Docker Compose, Java 21, Python 3.12 y uv:
 ```bash
 make up
 make demo
-make kafka-summary
 make down
 ```
 

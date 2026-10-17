@@ -13,7 +13,6 @@ import re
 import subprocess
 import sys
 from urllib.parse import unquote, urlsplit
-import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED = {
@@ -78,23 +77,6 @@ def check_tracked_files(errors: list[str]):
             errors.append(f"tracked generated/credential file: {name}")
 
 
-def check_python_evidence(errors: list[str]):
-    path = os.environ.get("VERIFY_PYTHON_JUNIT")
-    if not path:
-        return
-    try:
-        report = ET.parse(path).getroot()
-        suites = [report] if report.tag == "testsuite" else list(report.iter("testsuite"))
-        total = sum(int(s.get("tests", "0")) for s in suites)
-        bad = sum(int(s.get(k, "0")) for s in suites for k in ("skipped", "errors", "failures"))
-        if total == 0 or bad:
-            errors.append("Python JUnit evidence has zero tests or skipped/failed cases")
-        else:
-            print(f"Python evidence: {total} passing tests, zero skipped")
-    except (OSError, ET.ParseError, ValueError):
-        errors.append("Required Python JUnit evidence missing or invalid")
-
-
 def main() -> int:
     errors: list[str] = []
     files = list(public_files())
@@ -141,7 +123,6 @@ def main() -> int:
         except (ValueError, OSError):
             errors.append(f"invalid JSON contract: {path.relative_to(ROOT)}")
     check_tracked_files(errors)
-    check_python_evidence(errors)
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1

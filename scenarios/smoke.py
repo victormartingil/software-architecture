@@ -7,6 +7,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from uuid import uuid4
+from event_flow import verify_event_flow
 
 COMMERCE = os.getenv("COMMERCE_URL", "http://localhost:8080")
 AI = os.getenv("AI_URL", "http://localhost:8081")
@@ -82,7 +83,8 @@ def main():
     with urllib.request.urlopen(req, timeout=20) as response:
         stream = response.read().decode()
     assert "event: start" in stream and "event: result" in stream
-    print(json.dumps({"result": "PASS", "checks": ["OIDC", "stock", "idempotency", "tenant isolation", "RAG fake", "workflow approval", "retry", "SSE"],
+    events = verify_event_flow(order["id"])
+    print(json.dumps({"result": "PASS", "events": events, "checks": ["OIDC", "stock", "idempotency", "tenant isolation", "RAG fake", "workflow approval", "retry", "SSE", "current-order outbox/inbox/Kafka summary"],
                       "orderId": order["id"], "workflowId": wid}, indent=2))
 
 

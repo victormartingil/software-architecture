@@ -8,7 +8,8 @@ from ai_service.domain import Document, ServiceError
 class FakeProvider:
     mode = "fake-simulation"
 
-    async def generate(self, question: str, documents: list[Document]) -> dict:
+    async def generate(self, question: str, documents: list[Document], *,
+                       deadline: asyncio.Timeout | None = None) -> dict:
         return {"answer": "[SIMULACIÓN] " + documents[0].text,
                 "citations": [documents[0].id], "abstained": False}
 
@@ -17,15 +18,17 @@ class OpenAIProvider:
     mode = "openai"
 
     def __init__(self, client: httpx.AsyncClient, key: str, model: str, max_calls: int,
-                 clock=time.monotonic, sleep=asyncio.sleep):
+                 clock=time.monotonic, sleep=asyncio.sleep, generation_timeout: float = 11):
         if not key or not model or max_calls < 1:
             raise ValueError("Live AI needs key, explicit model and positive request budget")
         self.client, self.key, self.model = client, key, model
         self.remaining, self.clock, self.sleep = max_calls, clock, sleep
         self.failures, self.open_until, self.probing = 0, 0., False
         self.lock = asyncio.Lock()
+        self.generation_timeout, self.epoch = generation_timeout, 0
 
-    async def generate(self, question: str, documents: list[Document]) -> dict:
+    async def generate(self, question: str, documents: list[Document], *,
+                       deadline: asyncio.Timeout | None = None) -> dict:
         owns_probe = False
         async with self.lock:
             if self.open_until and (self.clock() < self.open_until or self.probing):
@@ -33,47 +36,71 @@ class OpenAIProvider:
             if self.open_until:
                 self.probing = True
                 owns_probe = True
+            epoch = self.epoch
         try:
-            for attempt in range(2):
-                async with self.lock:
-                    if self.remaining <= 0:
-                        raise ServiceError(503, "AI request budget exhausted")
-                    self.remaining -= 1
-                try:
-                    response = await self.client.post("https://api.openai.com/v1/responses", headers={"Authorization": "Bearer " + self.key},
-                        json=self.payload(question, documents), timeout=10)
-                    if response.status_code == 429 or response.status_code >= 500:
-                        raise httpx.ConnectError("Transient provider failure")
-                    if response.status_code != 200:
-                        raise ServiceError(503, "AnswerProvider rejected request")
-                    data = response.json()
-                    if data.get("status") != "completed":
-                        raise ServiceError(503, "AnswerProvider response incomplete")
-                    content = [c for item in data.get("output", []) for c in item.get("content", [])]
-                    if any(c.get("type") == "refusal" for c in content):
-                        raise ServiceError(503, "AnswerProvider refused request")
-                    texts = [c["text"] for c in content if c.get("type") == "output_text"]
-                    parsed = json.loads(''.join(texts))
-                    if set(parsed) != {"answer", "citations", "abstained"}:
-                        raise ValueError("Unexpected output shape")
+            # HTTPX limits each network phase; this bounds both attempts and backoff together.
+            async with asyncio.timeout(self.generation_timeout):
+                result = await self._generate(question, documents)
+            async with self.lock:
+                if epoch == self.epoch:
                     self.failures, self.open_until = 0, 0.
-                    return parsed
-                except (httpx.TransportError, httpx.TimeoutException):
-                    if attempt == 0:
-                        await self.sleep(0.1)
-                        continue
-                    raise ServiceError(503, "AnswerProvider temporarily unavailable") from None
-                except (ValueError, KeyError, TypeError):
-                    raise ServiceError(503, "AnswerProvider output is invalid") from None
+            return result
+        except TimeoutError:
+            await self._record_failure(epoch)
+            raise ServiceError(503, "AnswerProvider generation deadline exceeded") from None
+        except asyncio.CancelledError:
+            # The caller's timeout cancels this same task. A client disconnect does not expire it.
+            if deadline is not None and deadline.expired():
+                await self._record_failure(epoch)
+            raise
         except ServiceError:
-            self.failures += 1
-            if self.failures >= 3:
-                self.open_until = self.clock() + 30
+            await self._record_failure(epoch)
             raise
         finally:
             if owns_probe:
                 async with self.lock:
                     self.probing = False
+
+    async def _record_failure(self, epoch):
+        async with self.lock:
+            if epoch != self.epoch:
+                return  # An older in-flight request cannot modify a newer circuit period.
+            self.failures += 1
+            if self.failures >= 3:
+                self.open_until = self.clock() + 30
+                self.epoch += 1
+
+    async def _generate(self, question, documents):
+        for attempt in range(2):
+            async with self.lock:
+                if self.remaining <= 0:
+                    raise ServiceError(503, "AI request budget exhausted")
+                self.remaining -= 1
+            try:
+                response = await self.client.post("https://api.openai.com/v1/responses", headers={"Authorization": "Bearer " + self.key},
+                    json=self.payload(question, documents), timeout=10)
+                if response.status_code == 429 or response.status_code >= 500:
+                    raise httpx.ConnectError("Transient provider failure")
+                if response.status_code != 200:
+                    raise ServiceError(503, "AnswerProvider rejected request")
+                data = response.json()
+                if data.get("status") != "completed":
+                    raise ServiceError(503, "AnswerProvider response incomplete")
+                content = [c for item in data.get("output", []) for c in item.get("content", [])]
+                if any(c.get("type") == "refusal" for c in content):
+                    raise ServiceError(503, "AnswerProvider refused request")
+                texts = [c["text"] for c in content if c.get("type") == "output_text"]
+                parsed = json.loads(''.join(texts))
+                if set(parsed) != {"answer", "citations", "abstained"}:
+                    raise ValueError("Unexpected output shape")
+                return parsed
+            except (httpx.TransportError, httpx.TimeoutException):
+                if attempt == 0:
+                    await self.sleep(0.1)
+                    continue
+                raise ServiceError(503, "AnswerProvider temporarily unavailable") from None
+            except (ValueError, KeyError, TypeError):
+                raise ServiceError(503, "AnswerProvider output is invalid") from None
 
     def payload(self, question: str, docs: list[Document]) -> dict:
         schema = {"type": "object", "properties": {"answer": {"type": "string"}, "citations": {"type": "array", "items": {"type": "string"}}, "abstained": {"type": "boolean"}}, "required": ["answer", "citations", "abstained"], "additionalProperties": False}
@@ -92,8 +119,14 @@ class OpenAIEmbedder:
         if not self.key or not self.model or self.remaining <= 0:
             raise ServiceError(503, "Embedding budget/configuration unavailable")
         self.remaining -= 1
-        response = await self.client.post("https://api.openai.com/v1/embeddings", headers={"Authorization": "Bearer " + self.key},
-            json={"model": self.model, "dimensions": self.dimensions, "input": question}, timeout=10)
-        if response.status_code != 200:
-            raise ServiceError(503, "Embedding provider unavailable")
-        return response.json()["data"][0]["embedding"]
+        try:
+            response = await self.client.post("https://api.openai.com/v1/embeddings", headers={"Authorization": "Bearer " + self.key},
+                json={"model": self.model, "dimensions": self.dimensions, "input": question}, timeout=10)
+            if response.status_code != 200:
+                raise ServiceError(503, "Embedding provider unavailable")
+            vector = response.json()["data"][0]["embedding"]
+            if not isinstance(vector, list):
+                raise ValueError("Expected an embedding vector")
+            return vector
+        except (httpx.TransportError, ValueError, KeyError, IndexError, TypeError):
+            raise ServiceError(503, "Embedding provider output unavailable or invalid") from None

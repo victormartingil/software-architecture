@@ -1,6 +1,6 @@
 # Especificación de la referencia
 
-Versión 1, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
+Versión 2, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
 
 ## Objetivo y límites
 
@@ -14,7 +14,7 @@ El código fuente externo no se modifica ni se copia en bloque. No publicar, fac
 - JWT OIDC firmado, validación de issuer/audience/expiración. Claims `sub`, `tenant`, `realm_access.roles`; roles CUSTOMER y MANAGER. Tenant y usuario se derivan del token, nunca de un campo controlado por el cliente.
 - Un usuario CUSTOMER solo ve sus pedidos; MANAGER administra pedidos del mismo tenant. Otro tenant no recibe datos. No existe endpoint de emisión arbitraria de JWT en las aplicaciones.
 - Respuestas de error Problem Details: status, title, detail y correlationId; sin stacktrace ni secretos. 400 datos inválidos, 401 credenciales ausentes/inválidas, 403 permiso insuficiente, 404 recurso no visible, 409 conflicto, 503 dependencia no disponible.
-- `Idempotency-Key` obligatorio en creación de pedido y propuesta/ejecución de devolución. La clave se vincula a tenant/actor/operación/hash del cuerpo. Repetición idéntica devuelve resultado anterior; cuerpo diferente produce 409. Registros persistidos junto al efecto de negocio.
+- `Idempotency-Key` obligatorio en creación de pedido y propuesta/ejecución de devolución. La clave se vincula a tenant/actor/operación/hash del cuerpo. Repetición idéntica devuelve resultado anterior; cuerpo diferente produce 409. Registros persistidos junto al efecto de negocio. El ámbito se codifica sin ambigüedad entre componentes; no restringir arbitrariamente sub a UUID. Los ámbitos antiguos ambiguos requieren una decisión explícita de migración: no borrar ni reinterpretar claves automáticamente.
 - Los probes de salud no requieren JWT. Todas las APIs de negocio sí. Correlación propagada por HTTP y eventos sin registrar cuerpos o tokens.
 
 ## commerce-api · API de comercio
@@ -55,9 +55,9 @@ Python 3.12, FastAPI, Pydantic, httpx, LangGraph, SQLite checkpoint persistente 
 - `GET /api/v1/workflows/{id}`: solo propietario del mismo tenant o MANAGER de ese tenant.
 - `POST /api/v1/workflows/{id}/approve`: MANAGER del tenant; aprobar y reanudar workflow. El backend revalida aprobación/versión al ejecutar. Clave estable de ejecución basada en returnId. Reintentar tras fallo no repite devolución.
 
-Proveedor `fake` predeterminado y determinista; siempre identificado como simulación. Adaptador real OpenAI vía Responses API con esquema estructurado, modelo obligatorio por configuración, sin selección implícita. No ejecutar con clave sin presupuesto/configuración explícitos. Timeout diez segundos, máximo dos intentos solo transitorios, circuit breaker abre tras tres fallos y prueba recuperación a treinta segundos. Máximo cuatro llamadas concurrentes y 512 tokens de salida. Falta de evidencia devuelve abstención sin llamar proveedor.
+Proveedor `fake` predeterminado y determinista; siempre identificado como simulación. Adaptador real OpenAI vía Responses API con esquema estructurado, modelo obligatorio por configuración, sin selección implícita. No ejecutar con clave sin presupuesto/configuración explícitos. Timeout diez segundos, máximo dos intentos solo transitorios, circuit breaker abre tras tres fallos y prueba recuperación a treinta segundos. Máximo cuatro llamadas concurrentes y 512 tokens de salida. El plazo total de doce segundos incluye la espera de capacidad y la ejecución. El presupuesto de generación y sus intentos debe terminar dentro de ese plazo y registrar fallos por timeout en el breaker, distinguiéndolos de la cancelación del cliente. Los resultados IA, incluidos errores y cancelaciones, se contabilizan una sola vez con etiquetas acotadas. Falta de evidencia devuelve abstención sin llamar proveedor.
 
-Corpus lexical versionado con referencias y tenant, recuperación top-3. Variant vector pgvector con embedding configurado, dimensión validada y filtro tenant en consulta. No insertar documentos mediante API pública. Dataset mínimo cuarenta casos con relevancias, abstenciones y ataques. Recall@3 >=0.90 sobre casos respondibles del corpus; 100% aislamiento y referencias existentes. Calidad real LLM requiere evaluación independiente, no se infiere de fake.
+Corpus lexical versionado con referencias y tenant, recuperación top-3. Variant vector pgvector con embedding configurado, dimensión validada y filtro tenant en consulta. No insertar documentos mediante API pública. Dataset mínimo cuarenta casos con relevancias, abstenciones y ataques. Recall@3 >=0.90 sobre casos respondibles del corpus; 100% aislamiento y referencias existentes. La fórmula de recall admite varias relevancias por pregunta; hit-rate y MRR se informan separadamente. Calidad real LLM requiere evaluación independiente, no se infiere de fake.
 
 ## Seguridad y entornos
 
@@ -67,14 +67,16 @@ Docker Compose: núcleo Postgres/pgvector, Kafka KRaft, Keycloak y tres servicio
 
 Kubernetes kind dedicado: mismos servicios/imágenes, namespace propio, probes, requests/limits, PDB y HPA 1..2 para commerce-api; metrics-server explícito para demostración. AI conserva una réplica: SQLite y locks por proceso no permiten escalado horizontal seguro del workflow. Cambiar el checkpointer a PostgreSQL también requeriría exclusión/CAS distribuidos; véase ADR de despliegue. Kafka/Postgres/Keycloak locales no HA. No modificar otro contexto ni despliegue existente. Esta precisión corrige la incompatibilidad entre el requisito inicial «HPA para APIs» y la persistencia elegida, antes de desplegar.
 
-Terraform: base VPC, Artifact Registry y GKE Autopilot/IAM. Backends DB/Kafka cloud son entradas externas documentadas. Solo fmt/validate y tests plan con mocks; no apply. CLI fijada en contenedor, no actualizar host. Tests de mocks no acreditan despliegue cloud.
+Terraform: base VPC, Artifact Registry y GKE Autopilot/IAM. Backends DB/Kafka cloud son entradas externas documentadas. Solo fmt/validate y tests plan con mocks; no apply. CLI fijada en contenedor, no actualizar host. Tests de mocks no acreditan despliegue cloud. Aserciones de IAM comprueban el rol mínimo oficial de nodos y lectura acotada del repositorio, no el número de roles. operator_cidr admite únicamente IPv4 /32.
 
 ## Calidad editorial y referencias
 
 El [mapa de componentes](repository-design.md#component-map) fija nombres funcionales y correspondencia con el código. Las explicaciones y diagramas distinguen aplicación ejecutable, módulo interno, biblioteca, servidor y protocolo; OIDC/JWT/JWKS no se representan como servicios propios. Cada vista tiene una página canónica del maestro `diagrams/architecture.drawio` y una exportación SVG.
 
 
-Fichas de 500-900 palabras orientativas, orden lógico, ejemplo/alternativa/límite/comando/fallo/fuente. C4 contexto/contenedores, secuencias pedido-outbox y devolución, estados workflow. Markdown navegable con MkDocs Material; imágenes/diagramas comprobados visualmente. Fuente de verdad de código es el archivo ejecutable, no copia divergente en documento.
+La verificación integrada enlaza el pedido de esta ejecución con outbox, inbox y la actualización Kafka esperada; leer el primer mensaje histórico no acredita esa colaboración. La verificación canónica genera y valida JUnit Python tanto localmente como en CI y rechaza omisiones.
+
+Fichas con una ruta de dos o tres archivos y una micropráctica ejecutable, resultado esperado, fallo y alternativa. Extensión de 500-900 palabras orientativas, orden lógico, ejemplo/alternativa/límite/comando/fallo/fuente. C4 contexto/contenedores, secuencias pedido-outbox y devolución, estados workflow. Markdown navegable con MkDocs Material; imágenes/diagramas comprobados visualmente. Fuente de verdad de código es el archivo ejecutable, no copia divergente en documento.
 
 Patrones implementados: Adapter, Repository, Strategy y composición; Outbox/Inbox, Circuit Breaker e idempotencia con motivo concreto. Otros GoF solo teoría y referencias verificadas. ADR breves para límites, transacciones, entrega eventos, recuperación, permisos, estado y despliegue. No atribuir uso industrial ni métricas hipotéticas.
 

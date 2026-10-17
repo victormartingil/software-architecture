@@ -33,7 +33,7 @@ public class ManageOrderService implements OrderUseCase {
   @Transactional
   public OrderResult create(Actor actor, String idempotencyKey, CreateOrderCommand command) {
     return idempotency.execute(
-        actor.tenant() + ":" + actor.subject() + ":order:" + idempotencyKey,
+        new Idempotency.Scope(actor.tenant(), actor.subject(), "order", "", idempotencyKey),
         command,
         OrderResult.class,
         () -> {

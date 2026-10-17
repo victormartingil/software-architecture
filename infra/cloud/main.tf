@@ -60,10 +60,18 @@ resource "google_service_account" "nodes" {
 }
 
 resource "google_project_iam_member" "node_roles" {
-  for_each = toset(["roles/logging.logWriter", "roles/monitoring.metricWriter", "roles/monitoring.viewer", "roles/artifactregistry.reader"])
+  for_each = toset(["roles/container.defaultNodeServiceAccount"])
   project  = var.project_id
   role     = each.key
   member   = "serviceAccount:${google_service_account.nodes.email}"
+}
+
+resource "google_artifact_registry_repository_iam_member" "node_image_reader" {
+  project    = var.project_id
+  location   = var.region
+  repository = google_artifact_registry_repository.images.repository_id
+  role       = "roles/artifactregistry.reader"
+  member     = "serviceAccount:${google_service_account.nodes.email}"
 }
 
 resource "google_container_cluster" "reference" {
@@ -96,5 +104,5 @@ resource "google_container_cluster" "reference" {
     }
   }
   workload_identity_config { workload_pool = "${var.project_id}.svc.id.goog" }
-  depends_on = [google_project_iam_member.node_roles, google_compute_router_nat.reference]
+  depends_on = [google_project_iam_member.node_roles, google_artifact_registry_repository_iam_member.node_image_reader, google_compute_router_nat.reference]
 }

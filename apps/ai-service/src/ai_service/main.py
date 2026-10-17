@@ -121,14 +121,21 @@ def create_app(settings: Settings | None = None):
         return key
 
     async def answer(actor, body):
+        outcome = "error"
+        mode = "openai" if settings.ai_provider == "openai" else "fake-simulation"
         try:
             with LATENCY.time():
                 result = await app.state.answers.answer(actor, body.question, body.retrievalMode)
-            REQUESTS.labels("abstained" if result["abstained"] else "answered", result["mode"]).inc()
+            outcome = "abstained" if result["abstained"] else "answered"
             return result
         except TimeoutError:
-            REQUESTS.labels("error", settings.ai_provider).inc()
             raise ServiceError(503, "Answer deadline exceeded") from None
+        except asyncio.CancelledError:
+            outcome = "cancelled"
+            raise
+        finally:
+            # Shared by JSON and SSE: exactly one outcome for each started answer operation.
+            REQUESTS.labels(outcome, mode).inc()
 
     @app.get("/health")
     async def health():

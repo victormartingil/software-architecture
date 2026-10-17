@@ -275,5 +275,13 @@
     "relevant": [
       "other-private"
     ]
+  },
+  {
+    "tenant": "demo",
+    "question": "¿Cuál es el plazo de devolución y quién aprueba el reembolso?",
+    "relevant": [
+      "demo-returns",
+      "demo-refund"
+    ]
   }
 ]

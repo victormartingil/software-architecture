@@ -17,16 +17,19 @@ Requisitos: Docker Engine 25+ con Compose v2 y 10 GiB de memoria disponibles; Py
 ```bash
 make up
 make demo
-make kafka-summary
 make down
 ```
 
-La demo obtiene tokens OIDC locales, crea un pedido, verifica stock e idempotencia, comprueba aislamiento, consulta políticas y ejecuta una devolución con aprobación. Usa IA **simulada y explícita**: no necesita claves ni genera costes de API. Los datos y credenciales locales son sintéticos. `down` conserva volúmenes; el borrado requiere `make reset CONFIRM=delete-local-data`.
+La demo obtiene tokens OIDC locales, crea un pedido, verifica stock e idempotencia, comprueba aislamiento, consulta políticas y ejecuta una devolución con aprobación. Usa IA **simulada y explícita**: no necesita claves ni genera costes de API. La salida incluye el eventId y el resumen Kafka de la ventana del pedido actual, contrastado con outbox/inbox; no acepta el primer mensaje histórico. El escenario usa acceso de operador local y se ejecuta sin otros escritores concurrentes. Los datos y credenciales locales son sintéticos. `down` conserva volúmenes; el borrado requiere `make reset CONFIRM=delete-local-data`.
 
 - Commerce: `http://localhost:8080`
 - AI y contrato OpenAPI: `http://localhost:8081/docs`
 - Keycloak: `http://localhost:8088`; usuarios `alice`, `manager`, `bob`, contraseña local `local-demo-only`.
 - `make observability`: Grafana en `http://localhost:3000` y Prometheus en `http://localhost:9090`.
+
+Si se actualiza un entorno de la primera versión con claves idempotentes antiguas, Flyway V2 bloqueará el arranque para conservar sus efectos. No vaciar solo la tabla de claves. El [ADR 002](docs/decisions/002-consistency.md) explica la incompatibilidad y el reset completo **explícito** del laboratorio sintético; nunca se ejecuta automáticamente.
+
+Para volver a consultar una operación concreta: `make kafka-summary ORDER_ID=...`, sustituyendo `...` por el UUID mostrado por la demo.
 
 ## Consultar y verificar
 
@@ -45,7 +48,7 @@ make eval                   # Dataset fijo de recuperación, sin LLM real
 make terraform-check        # Planes con mocks; no crea recursos cloud
 make down
 make kind-up                # Clúster local exclusivo, sin cambiar contexto global
-make smoke
+make kind-smoke
 python3 scripts/kind-load.py # Carga GET autenticada para HPA de comercio
 make kind-down
 ```

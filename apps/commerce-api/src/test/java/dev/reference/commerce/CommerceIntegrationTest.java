@@ -10,7 +10,9 @@ import dev.reference.commerce.orders.application.model.*;
 import dev.reference.commerce.orders.application.port.input.OrderUseCase;
 import dev.reference.commerce.returns.application.model.*;
 import dev.reference.commerce.returns.application.port.input.ReturnUseCase;
+import dev.reference.commerce.shared.application.Idempotency;
 import dev.reference.commerce.shared.domain.*;
+import dev.reference.commerce.shared.infrastructure.JdbcIdempotencyAdapter;
 import dev.reference.commerce.shared.infrastructure.OutboxPublisher;
 import java.time.*;
 import java.util.*;
@@ -65,6 +67,8 @@ class CommerceIntegrationTest {
   @Autowired MockMvc http;
   @Autowired OutboxPublisher publisher;
   @Autowired KafkaTemplate<String, String> producer;
+  @org.springframework.test.context.bean.override.mockito.MockitoSpyBean(name = "kafkaTemplate")
+  KafkaTemplate<?, ?> observedProducer;
   @Autowired ObjectMapper json;
   @Autowired MutableClock clock;
   @Autowired io.micrometer.tracing.Tracer tracer;
@@ -123,6 +127,115 @@ class CommerceIntegrationTest {
     assertThatThrownBy(() -> orders.create(ALICE, "same", new CreateOrderCommand("BOOK-1", 1)))
         .isInstanceOf(BusinessException.class)
         .hasMessageContaining("different");
+  }
+
+  @Test
+  void subjectsWithDelimitersCannotShareCachedResultsEvenConcurrently() throws Exception {
+    var firstActor = new Actor("demo", "alice", false);
+    var secondActor = new Actor("demo", "alice:order:bob", false);
+    var command = new CreateOrderCommand("BOOK-1", 1);
+    try (var pool = Executors.newFixedThreadPool(2)) {
+      var gate = new CountDownLatch(1);
+      var first = pool.submit(() -> {
+        gate.await();
+        return orders.create(firstActor, "bob:order:retry", command);
+      });
+      var second = pool.submit(() -> {
+        gate.await();
+        return orders.create(secondActor, "retry", command);
+      });
+      gate.countDown();
+      var firstOrder = first.get(15, TimeUnit.SECONDS);
+      var secondOrder = second.get(15, TimeUnit.SECONDS);
+      assertThat(firstOrder.id()).isNotEqualTo(secondOrder.id());
+      assertThat(orders.create(firstActor, "bob:order:retry", command)).isEqualTo(firstOrder);
+      assertThat(orders.create(secondActor, "retry", command)).isEqualTo(secondOrder);
+      assertThatThrownBy(() -> orders.get(secondActor, firstOrder.id()))
+          .hasMessageContaining("not found");
+      assertThatThrownBy(() -> orders.get(firstActor, secondOrder.id()))
+          .hasMessageContaining("not found");
+    }
+    assertThat(db.queryForObject("SELECT count(*) FROM orders", Integer.class)).isEqualTo(2);
+    assertThat(db.queryForObject("SELECT stock FROM inventory WHERE tenant='demo'", Integer.class))
+        .isEqualTo(8);
+    assertThat(db.queryForObject("SELECT count(*) FROM idempotency WHERE scope_version=2", Integer.class))
+        .isEqualTo(2);
+  }
+
+  @Test
+  void returnProposalCacheCannotBypassOwnershipThroughAmbiguousSubjects() {
+    var order = orders.create(ALICE, "order", new CreateOrderCommand("BOOK-1", 1));
+    var command = new CreateReturnCommand(order.id(), "Unopened");
+    var proposal = returns.create(ALICE, "bob:proposal:retry", command);
+    assertThat(returns.create(ALICE, "bob:proposal:retry", command)).isEqualTo(proposal);
+    var other = new Actor("demo", "alice:proposal:bob", false);
+    assertThatThrownBy(() -> returns.create(other, "retry", command))
+        .isInstanceOf(BusinessException.class).hasMessageContaining("not found");
+    assertThat(db.queryForObject("SELECT count(*) FROM return_proposals", Integer.class)).isEqualTo(1);
+  }
+
+  @Test
+  void tenantsWithDelimitersCannotShareCachedResults() {
+    db.update("INSERT INTO inventory(tenant,sku,stock,price) VALUES ('demo:alice','BOOK-1',10,2500)");
+    try {
+      var command = new CreateOrderCommand("BOOK-1", 1);
+      var firstActor = new Actor("demo", "alice", false);
+      var secondActor = new Actor("demo:alice", "bob", false);
+      var first = orders.create(firstActor, "bob:order:retry", command);
+      var second = orders.create(secondActor, "retry", command);
+      assertThat(second.id()).isNotEqualTo(first.id());
+      assertThat(orders.create(secondActor, "retry", command)).isEqualTo(second);
+      assertThatThrownBy(() -> orders.get(secondActor, first.id())).hasMessageContaining("not found");
+      assertThatThrownBy(() -> orders.get(firstActor, second.id())).hasMessageContaining("not found");
+    } finally {
+      db.update("DELETE FROM inventory WHERE tenant='demo:alice'");
+    }
+  }
+
+  @Test
+  void structuredScopeSeparatesOperationAndResourceWithoutLosingSpecialCharacters() {
+    var adapter = new JdbcIdempotencyAdapter(db, json);
+    var tx = new org.springframework.transaction.support.TransactionTemplate(
+        new org.springframework.jdbc.datasource.DataSourceTransactionManager(db.getDataSource()));
+    var scopes = List.of(
+        new Idempotency.Scope("t:\"", "u:雪", "a:b", "c", "k:retry"),
+        new Idempotency.Scope("t:\"", "u:雪", "a", "b:c", "k:retry"),
+        new Idempotency.Scope("t:\"", "u:雪", "a", "b", "c:k:retry"));
+    var effects = new java.util.concurrent.atomic.AtomicInteger();
+    for (var scope : scopes) {
+      Integer result = tx.execute(status -> adapter.execute(scope, 1, Integer.class, effects::incrementAndGet));
+      Integer replay = tx.execute(status -> adapter.execute(scope, 1, Integer.class, effects::incrementAndGet));
+      assertThat(replay).isEqualTo(result);
+    }
+    assertThat(effects.get()).isEqualTo(3);
+  }
+
+  @Test
+  void legacyMigrationStopsWithoutDeletingOrReinterpretingRecords() {
+    String schema = "legacy_migration_test";
+    try {
+      org.flywaydb.core.Flyway.configure()
+          .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+          .schemas(schema).target("1").load().migrate();
+      db.update("INSERT INTO " + schema + ".idempotency VALUES ('demo:alice:order:retry','hash','{}'::jsonb)");
+      var migration = org.flywaydb.core.Flyway.configure()
+          .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+          .schemas(schema).load();
+      assertThatThrownBy(migration::migrate).hasStackTraceContaining("Legacy idempotency records exist");
+      assertThat(db.queryForObject("SELECT scope FROM " + schema + ".idempotency", String.class))
+          .isEqualTo("demo:alice:order:retry");
+      assertThat(db.queryForObject("SELECT max(version)::integer FROM " + schema
+          + ".flyway_schema_history WHERE success", Integer.class)).isEqualTo(1);
+      assertThat(db.queryForObject("SELECT count(*) FROM information_schema.columns WHERE table_schema=?"
+          + " AND table_name='idempotency' AND column_name='scope_version'", Integer.class, schema))
+          .isZero();
+    } finally {
+      db.execute("DROP SCHEMA IF EXISTS " + schema + " CASCADE");
+    }
+    // Even a legacy binary using explicit columns cannot silently create an unversioned key.
+    assertThatThrownBy(() -> db.update("INSERT INTO idempotency(scope,request_hash,result)"
+        + " VALUES ('legacy','hash','{}'::jsonb)"))
+        .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
   }
 
   @Test
@@ -302,6 +415,69 @@ class CommerceIntegrationTest {
         for (var r : c.poll(Duration.ofMillis(200))) if (r.value().contains(marker)) seen = true;
       }
       assertThat(seen).isTrue();
+    }
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void failedDltPublicationDoesNotCommitOriginalOffsetAndRecovers() throws Exception {
+    String marker = "dlt-unavailable-" + UUID.randomUUID();
+    var failing = new java.util.concurrent.atomic.AtomicBoolean(true);
+    var failedAttempts = new CountDownLatch(2);
+    org.mockito.Mockito.doAnswer(invocation -> {
+      org.apache.kafka.clients.producer.ProducerRecord<String, String> record = invocation.getArgument(0);
+      if (record.topic().equals("orders.placed.v1.dlt") && marker.equals(record.key()) && failing.get()) {
+        failedAttempts.countDown();
+        return CompletableFuture.failedFuture(new org.apache.kafka.common.KafkaException("Injected DLT send failure"));
+      }
+      return invocation.callRealMethod();
+    }).when(observedProducer).send(org.mockito.ArgumentMatchers.any(org.apache.kafka.clients.producer.ProducerRecord.class));
+
+    var order = orders.create(ALICE, "after-poison", new CreateOrderCommand("BOOK-1", 1));
+    String payload = db.queryForObject("SELECT payload FROM outbox", String.class);
+    var partition = new org.apache.kafka.common.TopicPartition("orders.placed.v1", 0);
+    try (var admin = org.apache.kafka.clients.admin.Admin.create(Map.of("bootstrap.servers", kafka.getBootstrapServers()))) {
+      var poison = producer.send(new org.apache.kafka.clients.producer.ProducerRecord<>(
+          partition.topic(), partition.partition(), marker, "{\"invalid\":true}")).get(15, TimeUnit.SECONDS);
+      var following = producer.send(new org.apache.kafka.clients.producer.ProducerRecord<>(
+          partition.topic(), partition.partition(), order.id().toString(), payload)).get(15, TimeUnit.SECONDS);
+      try {
+        assertThat(failedAttempts.await(20, TimeUnit.SECONDS)).isTrue();
+        var committed = admin.listConsumerGroupOffsets("commerce-audit-v1")
+            .partitionsToOffsetAndMetadata().get(10, TimeUnit.SECONDS).get(partition);
+        assertThat(committed == null ? 0 : committed.offset()).isLessThanOrEqualTo(poison.getRecordMetadata().offset());
+        assertThat(db.queryForObject("SELECT count(*) FROM audit_orders WHERE order_id=?", Integer.class, order.id()))
+            .isZero();
+      } finally {
+        failing.set(false);
+      }
+      // A real broker acknowledgement now permits recovery and the following business effect.
+      awaitCount("SELECT count(*) FROM audit_orders WHERE order_id='" + order.id() + "'", 1);
+      long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+      long offset = -1;
+      while (offset <= following.getRecordMetadata().offset() && System.nanoTime() < deadline) {
+        var committed = admin.listConsumerGroupOffsets("commerce-audit-v1")
+            .partitionsToOffsetAndMetadata().get(10, TimeUnit.SECONDS).get(partition);
+        offset = committed == null ? -1 : committed.offset();
+        if (offset <= following.getRecordMetadata().offset()) Thread.sleep(100);
+      }
+      assertThat(offset).isGreaterThan(following.getRecordMetadata().offset());
+      var config = Map.<String, Object>of("bootstrap.servers", kafka.getBootstrapServers(),
+          "group.id", "dlt-assert-" + UUID.randomUUID(), "auto.offset.reset", "earliest");
+      try (var consumer = new org.apache.kafka.clients.consumer.KafkaConsumer<String, String>(config,
+          new org.apache.kafka.common.serialization.StringDeserializer(),
+          new org.apache.kafka.common.serialization.StringDeserializer())) {
+        consumer.assign(List.of(new org.apache.kafka.common.TopicPartition("orders.placed.v1.dlt", 0)));
+        consumer.seekToBeginning(consumer.assignment());
+        boolean seen = false;
+        long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+        while (!seen && System.nanoTime() < until)
+          for (var record : consumer.poll(Duration.ofMillis(100)))
+            if (marker.equals(record.key())) seen = true;
+        assertThat(seen).isTrue();
+      }
+    } finally {
+      failing.set(false);
     }
   }
 

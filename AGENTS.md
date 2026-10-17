@@ -52,8 +52,10 @@ La implementación del plan está autorizada; su estado y evidencia vigentes est
 
 ## Continuidad operativa
 
+- Ámbitos idempotentes: `Idempotency.Scope` se codifica como array JSON con versión 2. Flyway V2 bloquea historial V1 ambiguo; nunca vaciar solo claves ni reinterpretarlas. ADR002 describe la parada y el reset sintético completo explícito.
 - `make up/demo/down`: núcleo sin clave IA; `make observability` activa exportadores y pila de señales.
-- `make verify/eval`: pruebas reales, arquitectura, contratos, higiene y documentación; no aceptar skips de integraciones obligatorias. El script adapta Testcontainers a Docker moderno sin modificar daemon.
+- `make demo/smoke` correlaciona el pedido actual con SQL y Kafka; `make kafka-summary ORDER_ID=...` repite esa comprobación. `make kind-smoke` selecciona explícitamente el clúster local.
+- `make verify/eval`: pruebas reales, arquitectura, contratos, higiene y documentación; JUnit Python obligatorio tanto localmente como en CI; no aceptar skips de integraciones obligatorias. El script adapta Testcontainers a Docker moderno sin modificar daemon.
 - `make kind-up/down`: clúster exclusivo, kubeconfig ignorado; kind0.33.0/node1.36.4. HPA solo Commerce; AI/SQLite mantiene una réplica. No escalar cambiando solo un número.
 - `make terraform-check`: CLI1.10.5 en contenedor y mocks, sin apply.
 - Baseline Java actual Boot4.1.1/Spring7: mantener configuración OTLP canónica y Jackson2 codec separado de Jackson3 HTTP; ADR006 explica la migración y scanners.
