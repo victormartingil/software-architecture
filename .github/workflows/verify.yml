@@ -1,0 +1,136 @@
+name: Verify reference implementation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      UV_FROZEN: "true"
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: apps/**/pom.xml
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.22"
+          enable-cache: true
+          cache-dependency-glob: "**/uv.lock"
+      - name: Tests, architecture, fixtures, documentation and evaluation
+        env:
+          PYTEST_ADDOPTS: --junitxml=${{ runner.temp }}/python-tests.xml
+          VERIFY_PYTHON_JUNIT: ${{ runner.temp }}/python-tests.xml
+        run: make verify eval
+      - name: Terraform format, validation and mocked plans
+        run: make terraform-check
+      - name: Build local images
+        run: docker compose build
+      - name: Start core environment
+        run: docker compose up -d --wait --wait-timeout 300
+      - name: Exercise authenticated business and AI workflows
+        run: make smoke
+      - name: Diagnostic status on failure
+        if: failure()
+        run: docker compose ps -a
+      - name: Stop isolated CI environment
+        if: always()
+        run: docker compose --profile observability down --remove-orphans
+
+  python-security:
+    # Findings in Python must not prevent the independent Java scan from running.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6
+        with:
+          version: "0.8.22"
+      - name: Audit the exact locked runtime and development dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          audit_failed=0
+          for project in apps/ai-service tools/docs; do
+            uv export --project "$project" --frozen --all-groups --no-emit-project --format requirements-txt --output-file "$RUNNER_TEMP/audit-requirements.txt"
+            uvx --from pip-audit==2.9.0 pip-audit --strict --disable-pip --no-deps --requirement "$RUNNER_TEMP/audit-requirements.txt" || audit_failed=1
+          done
+          exit "$audit_failed"
+
+  java-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: apps/**/pom.xml
+      - name: Resolve and package Java dependencies for artifact scanning
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd apps/commerce-api && ./mvnw -B -ntp -DskipTests package)
+          (cd apps/order-analytics && ./mvnw -B -ntp -DskipTests package)
+          mkdir -p "$RUNNER_TEMP/architecture-jars"
+          cp apps/commerce-api/target/commerce-api-1.0.0.jar "$RUNNER_TEMP/architecture-jars/commerce-api.jar"
+          cp apps/order-analytics/target/order-analytics-1.0.0.jar "$RUNNER_TEMP/architecture-jars/order-analytics.jar"
+          (cd apps/order-analytics && ./mvnw -B -ntp org.apache.maven.plugins:maven-dependency-plugin:3.8.1:copy-dependencies -DincludeScope=runtime -DoutputDirectory="$RUNNER_TEMP/architecture-jars/analytics-runtime")
+      - name: Scan source manifests and potential secrets
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.70.0
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret
+          timeout: 10m
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false
+          # The following rootfs step separately checks packaged Java archives.
+          skip-dirs: .local,.git,.venv,apps/ai-service/.venv,tools/docs/.venv,infra/cloud/.terraform,site,reports
+      - name: Scan packaged Java archives independently of manifest findings
+        if: success() || failure()
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        env:
+          TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
+        with:
+          version: v0.70.0
+          # fs checks manifests; rootfs additionally enables the Java archive analyzer.
+          scan-type: rootfs
+          scan-ref: ${{ runner.temp }}/architecture-jars
+          scanners: vuln
+          timeout: 10m
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+          ignore-unfixed: false

@@ -1,0 +1,9 @@
+{
+  "tenantId": "demo",
+  "sku": "BOOK-1",
+  "windowStart": "2026-10-17T12:00:00Z",
+  "windowEnd": "2026-10-17T12:01:00Z",
+  "orderCount": 1,
+  "totalQuantity": 2,
+  "totalCents": 5000
+}

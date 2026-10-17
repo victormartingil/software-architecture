@@ -1,0 +1,81 @@
+# Especificación de la referencia
+
+Versión 1, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
+
+## Objetivo y límites
+
+Tres servicios pequeños, funcionales en Docker, explican decisiones de sistemas profesionales: Java transaccional, procesamiento de eventos y Python/IA. Material público impersonal; datos y dominio sintéticos. Código de referencia, sin afirmar certificación productiva ni alta disponibilidad de dependencias locales.
+
+El código fuente externo no se modifica ni se copia en bloque. No publicar, facturar APIs automáticamente ni ejecutar Terraform apply. No frontend, pagos reales, event sourcing, service mesh ni entrenamiento de modelos.
+
+## Contratos comunes
+
+- JSON camelCase; UUID en identidades; UTC ISO-8601 en fechas; importes enteros en céntimos EUR.
+- JWT OIDC firmado, validación de issuer/audience/expiración. Claims `sub`, `tenant`, `realm_access.roles`; roles CUSTOMER y MANAGER. Tenant y usuario se derivan del token, nunca de un campo controlado por el cliente.
+- Un usuario CUSTOMER solo ve sus pedidos; MANAGER administra pedidos del mismo tenant. Otro tenant no recibe datos. No existe endpoint de emisión arbitraria de JWT en las aplicaciones.
+- Respuestas de error Problem Details: status, title, detail y correlationId; sin stacktrace ni secretos. 400 datos inválidos, 401 credenciales ausentes/inválidas, 403 permiso insuficiente, 404 recurso no visible, 409 conflicto, 503 dependencia no disponible.
+- `Idempotency-Key` obligatorio en creación de pedido y propuesta/ejecución de devolución. La clave se vincula a tenant/actor/operación/hash del cuerpo. Repetición idéntica devuelve resultado anterior; cuerpo diferente produce 409. Registros persistidos junto al efecto de negocio.
+- Los probes de salud no requieren JWT. Todas las APIs de negocio sí. Correlación propagada por HTTP y eventos sin registrar cuerpos o tokens.
+
+## commerce-api · API de comercio
+
+Java 21, Spring Boot 4.1.1, Maven Wrapper. Baseline actualizado durante el análisis de dependencias: [ADR 006](decisions/006-maintenance.md). Capas por módulo `orders`, `inventory`, `returns`: domain, application/model, application/port/input, application/port/output, application/service, infrastructure. Domain no importa frameworks. Puertos independientes de infraestructura. Spring transaccional en aplicación es una decisión explícita. PostgreSQL y Flyway; locking pesimista o update condicional protege inventario en una transacción.
+
+- `GET /api/v1/inventory/{sku}`: stock disponible y versión. Seed SKU `BOOK-1`, precio 2500, stock inicial 10 por tenant `demo` y `other`.
+- `POST /api/v1/orders`: `{sku,quantity}` (1..100), devuelve 201 `{id,sku,quantity,totalCents,status,version}`. Precio del catálogo; decremento stock, pedido, idempotencia y outbox atómicos. Sin HTTP externo dentro de la transacción.
+- `GET /api/v1/orders/{id}`: recurso visible o 404. Estados PLACED y REFUNDED.
+- `POST /api/v1/returns`: `{orderId,reason}` no vacía de hasta 500 caracteres. Crea PENDING para pedido PLACED del actor/tenant; único proceso activo por pedido.
+- `GET /api/v1/returns/{id}`: propuesta, versión, estado y vencimiento si existe aprobación.
+- `POST /api/v1/returns/{id}/approve`: MANAGER del mismo tenant, `{version}`. Registra aprobación de esa versión y contenido con vencimiento a diez minutos.
+- `POST /api/v1/returns/{id}/execute`: MANAGER del tenant, `{version}` y clave idempotente. Comprueba aprobación/versión/vencimiento dentro de la transacción. Marca EXECUTED, pedido REFUNDED y repone stock exactamente una vez. No dinero ni proveedor externo real.
+
+Versionar propuestas impide aprobar contenido distinto al ejecutado. No modificar una propuesta aprobada: una nueva requiere nueva aprobación. Los bloqueos y constraints resuelven carreras de concurrencia; preconsultas no sustituyen constraints.
+
+## Eventos y consumidor
+
+Topic `orders.placed.v1`, tres particiones, key orderId, sobre `{eventId,eventType,schemaVersion,occurredAt,aggregateId,tenantId,correlationId,data}`; tipo OrderPlaced, versión 1, data `{orderId,sku,quantity,totalCents}`.
+
+Outbox PostgreSQL en misma transacción de pedido; publicador por lotes con `FOR UPDATE SKIP LOCKED`, espera confirmación Kafka antes de marcar publicado. Fallo conserva registro pendiente y contador de intento; caída después del envío permite duplicado. Sin prometer transacción distribuida.
+
+Consumidor de auditoría dentro de commerce-api con grupo independiente y tabla inbox UNIQUE(eventId), registra efecto y deduplicación atómicos antes de confirmar offset. Mensaje inválido usa retries limitados y topic `orders.placed.v1.dlt`; fallo de envío a DLT no se confirma como procesado. Procedimiento explícito de reproceso conserva identidad. Eventos no contienen datos personales.
+
+## order-analytics
+
+Java 21, Kafka Streams 4.0.2, Maven. Consumidor del mismo contrato, deduplica eventId con store persistente, agrupa por tenant y sku, ventanas tumbling de un minuto sobre occurredAt, grace treinta segundos. Topic de resultados `orders.summary.v1` con `{tenantId,sku,windowStart,windowEnd,orderCount,totalQuantity,totalCents}`. No proyección del estado de devoluciones: resume hechos de creación de pedido.
+
+Retención de entrada y deduplicación de siete días; después no hay promesa de deduplicación de eventos históricos reintroducidos. Eventos tardíos se cuentan y descartan; inválidos van a DLT. Estado local reconstruible mediante changelog. Prueba determinista usa avance explícito de stream time. REST no necesario; resultados verificables consumiendo topic de salida.
+
+## ai-service · API del asistente
+
+Python 3.12, FastAPI, Pydantic, httpx, LangGraph, SQLite checkpoint persistente local para workflow (un proceso); PostgreSQL para variante vectorial. `Protocol` para proveedor y gateway de comercio. Dominio sin FastAPI/SDK. Import-linter controla dependencias.
+
+- `POST /api/v1/answers`: `{question,retrievalMode}` con question de 1..2000; modos lexical (predeterminado) y vector. Devuelve `{answer,citations,abstained,mode}`. Solo corpus sintético autorizado del tenant, seleccionado en servidor.
+- `POST /api/v1/answers/stream`: mismo input y SSE `start`, `result` o `error`; no ejecutar decisiones sobre contenido parcial. Generación completa validada antes de emitir resultado. Liberar recursos al cancelar cliente.
+- `POST /api/v1/workflows/returns`: `{orderId,reason}`, crea propuesta llamando API commerce con JWT del actor; devuelve `{workflowId,returnId,status}`. No guardar JWT en checkpoints.
+- `GET /api/v1/workflows/{id}`: solo propietario del mismo tenant o MANAGER de ese tenant.
+- `POST /api/v1/workflows/{id}/approve`: MANAGER del tenant; aprobar y reanudar workflow. El backend revalida aprobación/versión al ejecutar. Clave estable de ejecución basada en returnId. Reintentar tras fallo no repite devolución.
+
+Proveedor `fake` predeterminado y determinista; siempre identificado como simulación. Adaptador real OpenAI vía Responses API con esquema estructurado, modelo obligatorio por configuración, sin selección implícita. No ejecutar con clave sin presupuesto/configuración explícitos. Timeout diez segundos, máximo dos intentos solo transitorios, circuit breaker abre tras tres fallos y prueba recuperación a treinta segundos. Máximo cuatro llamadas concurrentes y 512 tokens de salida. Falta de evidencia devuelve abstención sin llamar proveedor.
+
+Corpus lexical versionado con referencias y tenant, recuperación top-3. Variant vector pgvector con embedding configurado, dimensión validada y filtro tenant en consulta. No insertar documentos mediante API pública. Dataset mínimo cuarenta casos con relevancias, abstenciones y ataques. Recall@3 >=0.90 sobre casos respondibles del corpus; 100% aislamiento y referencias existentes. Calidad real LLM requiere evaluación independiente, no se infiere de fake.
+
+## Seguridad y entornos
+
+Keycloak local como OIDC: realm `reference`, client público `reference-cli` con password grant solo para automatizar demostración local. Usuarios alice (CUSTOMER/demo), manager (MANAGER/demo) y bob (CUSTOMER/other). Credenciales sintéticas explícitas en import local; nunca describir password grant como opción recomendada para cliente público productivo. Producción usa Authorization Code + PKCE. Audiencia `reference-api`, issuer validado. Proveedor configurado por entorno; JWKS interno y issuer público separados para networking Docker.
+
+Docker Compose: núcleo Postgres/pgvector, Kafka KRaft, Keycloak y tres servicios. Volúmenes con nombre de proyecto, puertos publicados solo loopback. Perfiles observabilidad (OTel Collector, Prometheus, Grafana, Tempo) y live-ai (config optativa). Java heap acotado; conjunto dentro de 10 GiB Docker. Contenedores no-root para aplicaciones, probes y apagado limpio. No destruir volúmenes en `down` normal.
+
+Kubernetes kind dedicado: mismos servicios/imágenes, namespace propio, probes, requests/limits, PDB y HPA 1..2 para commerce-api; metrics-server explícito para demostración. AI conserva una réplica: SQLite y locks por proceso no permiten escalado horizontal seguro del workflow. Cambiar el checkpointer a PostgreSQL también requeriría exclusión/CAS distribuidos; véase ADR de despliegue. Kafka/Postgres/Keycloak locales no HA. No modificar otro contexto ni despliegue existente. Esta precisión corrige la incompatibilidad entre el requisito inicial «HPA para APIs» y la persistencia elegida, antes de desplegar.
+
+Terraform: base VPC, Artifact Registry y GKE Autopilot/IAM. Backends DB/Kafka cloud son entradas externas documentadas. Solo fmt/validate y tests plan con mocks; no apply. CLI fijada en contenedor, no actualizar host. Tests de mocks no acreditan despliegue cloud.
+
+## Calidad editorial y referencias
+
+El [mapa de componentes](repository-design.md#component-map) fija nombres funcionales y correspondencia con el código. Las explicaciones y diagramas distinguen aplicación ejecutable, módulo interno, biblioteca, servidor y protocolo; OIDC/JWT/JWKS no se representan como servicios propios. Cada vista tiene una página canónica del maestro `diagrams/architecture.drawio` y una exportación SVG.
+
+
+Fichas de 500-900 palabras orientativas, orden lógico, ejemplo/alternativa/límite/comando/fallo/fuente. C4 contexto/contenedores, secuencias pedido-outbox y devolución, estados workflow. Markdown navegable con MkDocs Material; imágenes/diagramas comprobados visualmente. Fuente de verdad de código es el archivo ejecutable, no copia divergente en documento.
+
+Patrones implementados: Adapter, Repository, Strategy y composición; Outbox/Inbox, Circuit Breaker e idempotencia con motivo concreto. Otros GoF solo teoría y referencias verificadas. ADR breves para límites, transacciones, entrega eventos, recuperación, permisos, estado y despliegue. No atribuir uso industrial ni métricas hipotéticas.
+
+Versiones Python e imágenes fijadas en lockfiles, Dockerfiles y manifiestos. No cambiar major sin registrar decisión. Fuentes verificadas: [Spring Boot](https://docs.spring.io/spring-boot/4.1/reference/), [FastAPI](https://fastapi.tiangolo.com/advanced/events/), [LangGraph](https://docs.langchain.com/oss/python/langgraph/persistence), [Streams testing](https://kafka.apache.org/40/streams/developer-guide/testing/).

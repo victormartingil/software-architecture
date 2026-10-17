@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: architecture-reference
+  labels:
+    app.kubernetes.io/part-of: architecture-reference
+---
+# Synthetic local credentials, never reuse in a cloud environment.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: local-credentials
+  namespace: architecture-reference
+type: Opaque
+stringData:
+  POSTGRES_USER: localadmin
+  POSTGRES_PASSWORD: local-admin-only
+  DB_USER: commerce
+  DB_PASSWORD: commerce-local
+  KC_DB_USERNAME: keycloak
+  KC_DB_PASSWORD: keycloak-local
+  VECTOR_DSN: postgresql://ai:ai-local@postgres:5432/ai

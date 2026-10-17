@@ -1,0 +1,15 @@
+{
+  "eventId": "00000000-0000-4000-8000-000000000001",
+  "eventType": "OrderPlaced",
+  "schemaVersion": 1,
+  "occurredAt": "2026-10-17T12:00:10Z",
+  "aggregateId": "11111111-1111-4111-8111-111111111111",
+  "tenantId": "demo",
+  "correlationId": "example-correlation",
+  "data": {
+    "orderId": "11111111-1111-4111-8111-111111111111",
+    "sku": "BOOK-1",
+    "quantity": 2,
+    "totalCents": 5000
+  }
+}

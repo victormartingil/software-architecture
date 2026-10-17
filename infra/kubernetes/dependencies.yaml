@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Service
+metadata: {name: postgres, namespace: architecture-reference}
+spec:
+  selector: {app: postgres}
+  ports: [{port: 5432, targetPort: 5432}]
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: postgres, namespace: architecture-reference}
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector: {matchLabels: {app: postgres}}
+  template:
+    metadata: {labels: {app: postgres}}
+    spec:
+      containers:
+        - name: postgres
+          image: pgvector/pgvector:0.8.1-pg16
+          envFrom: [{secretRef: {name: local-credentials}}]
+          env: [{name: PGDATA, value: /var/lib/postgresql/data/pgdata}]
+          ports: [{containerPort: 5432}]
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: '1', memory: 512Mi}
+          readinessProbe: {exec: {command: [pg_isready, -U, localadmin]}, periodSeconds: 5}
+          livenessProbe: {exec: {command: [pg_isready, -U, localadmin]}, initialDelaySeconds: 30, periodSeconds: 10}
+          volumeMounts:
+            - {name: database, mountPath: /var/lib/postgresql/data}
+            - {name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true}
+      volumes:
+        - name: init
+          configMap: {name: postgres-init}
+  volumeClaimTemplates:
+    - metadata: {name: database}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 1Gi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: kafka, namespace: architecture-reference}
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector: {app: kafka}
+  ports:
+    - {name: broker, port: 9092, targetPort: 9092}
+    - {name: controller, port: 9093, targetPort: 9093}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: {name: kafka, namespace: architecture-reference}
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector: {matchLabels: {app: kafka}}
+  template:
+    metadata: {labels: {app: kafka}}
+    spec:
+      securityContext: {fsGroup: 1000}
+      containers:
+        - name: kafka
+          image: apache/kafka:4.0.2
+          env:
+            - {name: KAFKA_NODE_ID, value: '1'}
+            - {name: KAFKA_PROCESS_ROLES, value: 'broker,controller'}
+            - {name: KAFKA_LISTENERS, value: 'INTERNAL://:9092,CONTROLLER://:9093'}
+            - {name: KAFKA_ADVERTISED_LISTENERS, value: 'INTERNAL://kafka:9092'}
+            - {name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP, value: 'INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT'}
+            - {name: KAFKA_CONTROLLER_LISTENER_NAMES, value: CONTROLLER}
+            - {name: KAFKA_INTER_BROKER_LISTENER_NAME, value: INTERNAL}
+            - {name: KAFKA_CONTROLLER_QUORUM_VOTERS, value: '1@kafka-0.kafka:9093'}
+            - {name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR, value: '1'}
+            - {name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR, value: '1'}
+            - {name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR, value: '1'}
+            - {name: KAFKA_NUM_PARTITIONS, value: '3'}
+            - {name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS, value: '0'}
+            - {name: KAFKA_LOG_RETENTION_HOURS, value: '168'}
+            - {name: KAFKA_LOG_DIRS, value: /var/lib/kafka/data}
+            - {name: KAFKA_HEAP_OPTS, value: '-Xms128m -Xmx384m'}
+            - {name: CLUSTER_ID, value: MkU3OEVBNTcwNTJENDM2Qk}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: '1', memory: 768Mi}
+          ports: [{containerPort: 9092}]
+          startupProbe:
+            tcpSocket: {port: 9092}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe: {tcpSocket: {port: 9092}, periodSeconds: 5}
+          livenessProbe: {tcpSocket: {port: 9092}, periodSeconds: 10}
+          volumeMounts: [{name: broker, mountPath: /var/lib/kafka/data}]
+  volumeClaimTemplates:
+    - metadata: {name: broker}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources: {requests: {storage: 2Gi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: keycloak, namespace: architecture-reference}
+spec:
+  type: NodePort
+  selector: {app: keycloak}
+  ports: [{port: 8080, targetPort: 8080, nodePort: 30088}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: keycloak, namespace: architecture-reference}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: keycloak}}
+  template:
+    metadata: {labels: {app: keycloak}}
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:26.4.7
+          args: [start-dev, --import-realm]
+          env:
+            - {name: KC_DB, value: postgres}
+            - {name: KC_DB_URL, value: 'jdbc:postgresql://postgres:5432/keycloak'}
+            - name: KC_DB_USERNAME
+              valueFrom: {secretKeyRef: {name: local-credentials, key: KC_DB_USERNAME}}
+            - name: KC_DB_PASSWORD
+              valueFrom: {secretKeyRef: {name: local-credentials, key: KC_DB_PASSWORD}}
+            - {name: KC_HOSTNAME, value: 'http://localhost:8088'}
+            - {name: KC_HEALTH_ENABLED, value: 'true'}
+            - {name: JAVA_OPTS_KC_HEAP, value: '-Xms128m -Xmx384m'}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: '1', memory: 768Mi}
+          ports: [{containerPort: 8080}, {containerPort: 9000}]
+          startupProbe:
+            httpGet: {path: /health/ready, port: 9000}
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe: {httpGet: {path: /health/ready, port: 9000}, periodSeconds: 5}
+          livenessProbe: {httpGet: {path: /health/live, port: 9000}, periodSeconds: 10}
+          volumeMounts: [{name: realm, mountPath: /opt/keycloak/data/import, readOnly: true}]
+      volumes:
+        - name: realm
+          configMap: {name: keycloak-realm}
+---
+apiVersion: batch/v1
+kind: Job
+metadata: {name: create-topics, namespace: architecture-reference}
+spec:
+  backoffLimit: 6
+  template:
+    metadata: {labels: {app: create-topics}}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: topics
+          image: apache/kafka:4.0.2
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              for topic in orders.placed.v1 orders.summary.v1 orders.placed.v1.dlt orders.analytics.v1.dlt; do
+                /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$topic" --partitions 3 --replication-factor 1 --config retention.ms=604800000
+              done
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: '1', memory: 384Mi}

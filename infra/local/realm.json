@@ -1,0 +1,122 @@
+{
+  "realm": "reference",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "CUSTOMER"
+      },
+      {
+        "name": "MANAGER"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "reference-cli",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost/*"
+      ],
+      "protocol": "openid-connect",
+      "protocolMappers": [
+        {
+          "name": "tenant",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "config": {
+            "user.attribute": "tenant",
+            "claim.name": "tenant",
+            "jsonType.label": "String",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "reference-api",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "alice",
+      "lastName": "Example",
+      "email": "alice@example.invalid",
+      "attributes": {
+        "tenant": [
+          "demo"
+        ]
+      },
+      "realmRoles": [
+        "CUSTOMER"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "local-demo-only",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "manager",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "manager",
+      "lastName": "Example",
+      "email": "manager@example.invalid",
+      "attributes": {
+        "tenant": [
+          "demo"
+        ]
+      },
+      "realmRoles": [
+        "MANAGER"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "local-demo-only",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "bob",
+      "lastName": "Example",
+      "email": "bob@example.invalid",
+      "attributes": {
+        "tenant": [
+          "other"
+        ]
+      },
+      "realmRoles": [
+        "CUSTOMER"
+      ],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "local-demo-only",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

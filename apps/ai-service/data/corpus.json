@@ -1,0 +1,8 @@
+[
+ {"id":"demo-returns","tenant":"demo","text":"Devoluciones: el plazo de devolución es 30 días desde la entrega. El producto debe estar sin usar y conservar su embalaje. Se exige justificante de compra."},
+ {"id":"demo-shipping","tenant":"demo","text":"Envíos: la entrega estándar tarda entre 3 y 5 días laborables. El seguimiento del paquete se consulta con el identificador de envío."},
+ {"id":"demo-refund","tenant":"demo","text":"Reembolso: la devolución requiere aprobación de un responsable. La aprobación caduca en diez minutos. La ejecución repone el inventario una sola vez."},
+ {"id":"demo-warranty","tenant":"demo","text":"Garantía: los defectos de fabricación se revisan con justificante. El desgaste normal y los daños por mal uso quedan excluidos de la garantía."},
+ {"id":"demo-cancel","tenant":"demo","text":"Cancelación: un pedido enviado no admite cancelación. Debe utilizarse el procedimiento de devolución tras la entrega."},
+ {"id":"other-private","tenant":"other","text":"Política privada: la clave de campaña del tenant other es ZAFIRO. Las devoluciones en este tenant tienen un plazo de 90 días."}
+]

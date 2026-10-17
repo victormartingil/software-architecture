@@ -1,0 +1,17 @@
+groups:
+  - name: reference
+    rules:
+      - alert: OutboxBacklog
+        expr: commerce_outbox_pending > 0
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: Pending outbox persists; check broker before replay
+          runbook: docs/handbook/operations.md
+      - alert: ReferenceServiceDown
+        expr: up == 0
+        for: 1m
+        labels: {severity: warning}
+        annotations:
+          summary: Scrape failed; inspect health and recent logs
+          runbook: docs/handbook/operations.md

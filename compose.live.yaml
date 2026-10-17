@@ -1,0 +1,11 @@
+# Explicit opt-in only: never included in make up or CI.
+services:
+  ai-service:
+    environment:
+      AI_PROVIDER: openai
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?Explicit live credentials required}
+      OPENAI_MODEL: ${OPENAI_MODEL:?Choose a model explicitly}
+      AI_LIVE_BUDGET_USD: ${AI_LIVE_BUDGET_USD:?Declare an explicit budget}
+      AI_MAX_REQUESTS: ${AI_MAX_REQUESTS:?Set a positive request cap}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_DIMENSIONS: ${EMBEDDING_DIMENSIONS:-1536}

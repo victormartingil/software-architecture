@@ -1,0 +1,20 @@
+# Local context must never be published or force-added.
+/.local/
+.DS_Store
+.env
+.env.*
+!.env.example
+**/__pycache__/
+**/.venv/
+**/node_modules/
+**/target/
+/site/
+/reports/
+**/.pytest_cache/
+**/.ruff_cache/
+**/.import_linter_cache/
+**/*.egg-info/
+**/.terraform/
+**/*.tfstate*
+**/.coverage
+**/build/

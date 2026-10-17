@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reference.example/contracts/orders.summary.v1.schema.json",
+  "title": "orders.summary.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "tenantId",
+    "sku",
+    "windowStart",
+    "windowEnd",
+    "orderCount",
+    "totalQuantity",
+    "totalCents"
+  ],
+  "properties": {
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "sku": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "windowStart": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time"
+    },
+    "windowEnd": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time"
+    },
+    "orderCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "totalQuantity": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "totalCents": {
+      "type": "integer",
+      "minimum": 0
+    }
+  }
+}

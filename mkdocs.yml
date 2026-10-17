@@ -1,0 +1,38 @@
+site_name: Software Architecture & Applied AI
+site_description: Decisiones, código y pruebas de arquitectura aplicada
+docs_dir: docs
+site_dir: site
+theme:
+  name: material
+  language: es
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: cyan
+  features: [navigation.sections, content.code.copy, navigation.top]
+plugins: [search]
+hooks: [tools/docs/source_links.py]
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+nav:
+  - Inicio: index.md
+  - Arquitectura:
+      - Diseño: repository-design.md
+      - Mapa de referencia: reference-map.md
+      - Límites y patrones: handbook/architecture.md
+      - Datos y concurrencia: handbook/transactions.md
+      - Eventos y streaming: handbook/events.md
+  - IA y seguridad:
+      - RAG y evaluación: handbook/retrieval.md
+      - Workflows y permisos: handbook/workflows.md
+      - Resiliencia y amenazas: handbook/security.md
+  - Operación:
+      - Observabilidad y fallos: handbook/operations.md
+      - Kubernetes y Terraform: handbook/delivery.md
+  - Contratos y decisiones:
+      - Especificación: specification.md
+      - ADR: decisions/index.md
+      - Aceptación: acceptance.md
+      - Evidencia: verification.md

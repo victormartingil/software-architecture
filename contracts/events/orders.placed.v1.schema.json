@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reference.example/contracts/orders.placed.v1.schema.json",
+  "title": "orders.placed.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "occurredAt",
+    "aggregateId",
+    "tenantId",
+    "correlationId",
+    "data"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "minLength": 1,
+      "format": "uuid"
+    },
+    "eventType": {
+      "const": "OrderPlaced"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "minLength": 1,
+      "format": "date-time"
+    },
+    "aggregateId": {
+      "type": "string",
+      "minLength": 1,
+      "format": "uuid"
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "correlationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "orderId",
+        "sku",
+        "quantity",
+        "totalCents"
+      ],
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "minLength": 1,
+          "format": "uuid"
+        },
+        "sku": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "totalCents": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9223372036854775807
+        }
+      }
+    }
+  }
+}

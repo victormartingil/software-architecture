@@ -1,0 +1,7 @@
+.local
+.git
+**/target
+**/.venv
+**/__pycache__
+site
+reports
