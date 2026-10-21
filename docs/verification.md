@@ -78,7 +78,7 @@ Estado documental del **2026-10-21**; última verificación local completa del 2
 | DOC-12 | Portada y entrada priorizan criterios, decisiones, implementación y evidencia; comprobaciones reproducibles, casos de aplicación y preguntas de diseño conservan el recorrido completo. Nueve cuerpos técnicos y 23 bloques de código comparados con el commit anterior sin pérdida de explicaciones ni soluciones | Verificado documentalmente, 2026-10-21 |
 | QA-01 | Revisor independiente detectó dos P2: cola de workflow y timestamp futuro; reparados y validados con negativos | Verificado en alcance revisado |
 | QA-04 | Preparación CI migrada de acciones obsoletas a Node24, SHA e inputs contrastados con origen oficial; runtime de apps sin cambios | Revisado independientemente; resultado por commit en Actions |
-| QA-02 | Dos revisores coinciden en 92/100 didáctico, cada dimensión ≥8/10; gate completo y escenarios reales aprobados | Verificado |
+| QA-02 | Revisiones independientes con hallazgos reparados y sin defectos materiales pendientes; gate completo y escenarios aprobados con el alcance detallado por capacidad | Verificado en alcance revisado |
 | LIVE | No se ha llamado a un modelo ni servicio de embeddings real | No ejecutado, optativo |
 | CLOUD-DEPLOY | Sin apply ni recursos cloud creados | Fuera de alcance |
 
@@ -114,7 +114,7 @@ La parada SIGTERM de Analytics se verificó en la entrega de organización:0,605
 | Timestamp de 2099 hacía descartar pedidos actuales | Política de adelanto máximo de 30 s con Clock antes de extraer tiempo; inválido conserva tiempo previo y va a DLT. Clasificación única evita doble ruta; solo DLT recibe hora de cuarentena para conservar su retención. Requiere reloj sincronizado. |
 | F5: observabilidad/HPA solo manuales | Escenarios acotados y aserciones de operación actual; telemetría incorporada al workflow CI. No se añade Loki, Datadog ni otra plataforma. HPA y efectos cruzados comprobados en el laboratorio actual. |
 
-Los AC de organización y contratos precedieron su implementación. La ampliación operativa y dos reparaciones P2 se registran en especificación/AC. Especialistas distintos de autores revisaron código por piezas, módulos y conjunto. El revisor independiente reprodujo la cola global y el envenenamiento temporal; validó reparación y pruebas, incluidos límites de reloj y trazas parciales. Máximo dos rondas de reparación por entrega; no se rebajan AC para elevar la puntuación.
+Los AC de organización y contratos precedieron su implementación. La ampliación operativa y dos reparaciones P2 se registran en especificación/AC. Especialistas distintos de autores revisaron código por piezas, módulos y conjunto. El revisor independiente reprodujo la cola global y el envenenamiento temporal; validó reparación y pruebas, incluidos límites de reloj y trazas parciales. Máximo dos rondas de reparación por entrega; no se rebajan AC para declarar éxito.
 
 ## Documentación y diagramas
 
@@ -148,18 +148,8 @@ Los scans Java/Trivy del 17-10-2026 conservan su alcance histórico; no se prese
 
 ## Valoración y uso productivo
 
-Valoraciones históricas de la revisión técnica integrada previa (no miden aprendizaje observado con alumnos ni acreditan por sí solas la transferencia a nuevos requisitos): **92/100 como referencia didáctica** en ambos revisores; **88 y 91/100 como referencia arquitectónica para producción**. Sustituyen las notas previas; son juicios con incertidumbre aproximada de ±3 puntos, no mediciones estadísticas.
+Las revisiones independientes contrastaron corrección, arquitectura, seguridad/IA, claridad didáctica, pruebas, operación y facilidad de uso. Sus hallazgos y reparaciones se describen por capacidad en esta página. Son revisiones técnicas de agentes, no una certificación externa ni una medición del aprendizaje con lectores reales.
 
-| Rúbrica didáctica | Puntos |
-|---|---:|
-| Corrección |23/25|
-| Arquitectura |19/20|
-| Seguridad/IA |14/15|
-| Didáctica |14/15|
-| Pruebas |9/10|
-| Operación |9/10|
-| DevEx |4/5|
+Se conserva una diferencia de criterio relevante: una revisión dio más peso a la ausencia de capacidad, alta disponibilidad y restauración demostradas; otra valoró la transferencia de decisiones y pruebas dentro de las restricciones locales explícitas. Ambas perspectivas requieren mantener visibles los límites operativos, sin convertir la utilidad de la referencia en una garantía de producción.
 
-Rúbrica arquitectónica del primer revisor (88): cohesión/cambio 19/20, corrección 18/20, aislamiento/seguridad 18/20, resiliencia 16/20 y operabilidad 17/20. El segundo (91) puntúa 19/19/18/17/18 sobre veinte por dimensión. El desacuerdo es de alcance: el primero pesa más la ausencia de capacidad/HA/restauración demostradas; el segundo evalúa la transferibilidad de decisiones, pruebas y guía de adaptación, sin penalizar automáticamente una restricción local explícita. Se conservan ambos juicios, sin promediarlos ni presentarlos como garantía operativa. El umbral QA-02 (90 y cada dimensión ≥8/10) aplica a la referencia didáctica.
-
-Es una referencia transferible de límites, transacciones, entrega, autorización y señales; no un despliegue empresarial certificado. Las dependencias locales no son HA, SQLite serializa y requiere una réplica, no hay SLO/capacidad representativa ni restauración de backups demostrados, y no se evalúa modelo real. [Delivery](handbook/delivery.md#topic-reutilizar-la-referencia-en-un-sistema-real) identifica qué adaptar y probar según requisitos del producto. Añadir plataformas para subir una nota contrariaría la proporcionalidad del ejemplo. No se contrataron servicios, publicaron recursos ni ejecutó IA de pago.
+Es una referencia transferible de límites, transacciones, entrega, autorización y señales; no un despliegue empresarial certificado. Las dependencias locales no son HA, SQLite serializa y requiere una réplica, no hay SLO/capacidad representativa ni restauración de backups demostrados, y no se evalúa modelo real. [Delivery](handbook/delivery.md#topic-reutilizar-la-referencia-en-un-sistema-real) identifica qué adaptar y probar según requisitos del producto. Añadir plataformas sin una necesidad demostrada contrariaría la proporcionalidad del ejemplo. No se contrataron servicios, publicaron recursos ni ejecutó IA de pago.

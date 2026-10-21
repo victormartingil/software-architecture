@@ -75,7 +75,7 @@
 | QA-01 | Tests significativos y revisiones sin hallazgos altos abiertos | Informes especialistas |
 | QA-03 | Verificación canónica local y CI rechazan skips Java/Python; una omisión deliberada demuestra el gate | JUnit y experimento negativo reversible |
 | QA-04 | Acciones CI mantenidas con Node24, fijadas a SHA verificado; checkout sin persistir credenciales y permisos read mínimos | action.yml oficial y ejecución remota de los tres jobs |
-| QA-02 | >=90/100 y cada dimensión >=8/10 con evidencia | Rúbrica final, máximo dos reparaciones |
+| QA-02 | Revisiones de corrección, arquitectura, seguridad/IA, claridad, pruebas, operación y facilidad de uso sin hallazgos materiales pendientes; resultados y límites trazables | Revisión cualitativa y evidencia por capacidad, máximo dos reparaciones |
 | LIVE | Opcional: modelo real con presupuesto y dataset medidos | Solo con configuración explícita |
 | CLOUD-DEPLOY | Fuera de entrega: despliegue real GCP | No ejecutar ni afirmar validado |
 
@@ -101,4 +101,4 @@
 
 Por fase: verificar contratos y AC, implementar el mínimo, ejecutar tests/fallos, escribir explicación y ADR, revisar con especialista independiente, reparar como máximo dos rondas, actualizar evidencia. Un bloqueo material mantiene la entrega incompleta; no rebajar criterio. Los cambios a alcance exigen motivo explícito.
 
-Rúbrica: corrección25, arquitectura20, seguridad/IA15, didáctica15, tests10, operación10, DevEx5. No confundir cobertura o popularidad con calidad. No puntuar como excelente antes de ejecutar escenarios obligatorios. Verificación local de Kubernetes no acredita HA y Terraform mocks no acredita cloud.
+La revisión cubre corrección, arquitectura, seguridad/IA, claridad didáctica, pruebas, operación y facilidad de uso. No confundir cobertura o popularidad con calidad. El cierre requiere evidencia de los escenarios obligatorios y resolución de los hallazgos materiales. Verificación local de Kubernetes no acredita HA y Terraform mocks no acredita cloud.

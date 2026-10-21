@@ -105,7 +105,7 @@ Las interfaces representan responsabilidades reemplazables. No se crea una inter
 | 6 | Compose y observabilidad | Smoke completo, persistencia y señales |
 | 7 | kind y Terraform | Rollout/HPA local y mocks sin cloud |
 | 8 | Manual, ADR y CI | Build estricto, diagramas y comandos |
-| 9 | Revisión independiente | Corregir hallazgos, puntuar con evidencia |
+| 9 | Revisión independiente | Corregir hallazgos y conservar evidencia y límites |
 
 Cada entrega sigue contrato → implementación → pruebas y fallos → explicación → revisión → reparación. Máximo dos rondas por revisión: un hallazgo material abierto mantiene el estado incompleto. La implementación puede hacerse en paralelo cuando los contratos sean estables; la aceptación se verifica sobre el sistema integrado.
 
