@@ -38,7 +38,7 @@ cd software-architecture
 | Herramienta | Cuándo se necesita |
 |---|---|
 | Docker Engine 25+ y Compose v2 | Ejecutar los servicios y las bases de datos. Reservar 10 GiB de memoria para el entorno completo con observabilidad. |
-| Python 3.12, uv y Make | Ejecutar los scripts, las prácticas Python y los comandos comunes. |
+| Python 3.12, uv 0.13.4 o posterior y Make | Ejecutar los scripts, las prácticas Python y los comandos comunes. |
 | JDK 21 | Ejecutar las pruebas Java de los capítulos 1–4. La demostración usa el Java de los contenedores. Maven Wrapper descarga Maven. |
 | kind y kubectl | Solo para la práctica opcional de Kubernetes del capítulo 9. |
 

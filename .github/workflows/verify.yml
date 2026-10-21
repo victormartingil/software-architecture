@@ -33,7 +33,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.8.22"
+          version: "0.13.4"
           enable-cache: true
           cache-dependency-glob: "**/uv.lock"
       - name: Fetch the Compose-pinned image for offline alert tests
@@ -72,7 +72,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
-          version: "0.8.22"
+          version: "0.13.4"
       - name: Audit the exact locked runtime and development dependencies
         shell: bash
         run: |
