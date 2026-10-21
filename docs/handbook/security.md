@@ -82,7 +82,7 @@ Si el cliente cierra una conexión, ¿ese abandono debe contar como un fallo del
 
 ## Para profundizar
 
-[*Release It!*, 2.ª edición, de Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) complementa límites, fallos de dependencias y recuperación. La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/master/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten contrastar una biblioteca especializada. Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
+[*Release It!*, 2.ª edición, de Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) complementa límites, fallos de dependencias y recuperación. La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/2f3d998c85f10b8ff88a3dca9f24bacf11c3a250/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten seguir las transiciones cerrado/abierto/prueba y compararlas con `OpenAIProvider`. Localizar qué reinicia los fallos y qué llamadas se permiten durante la recuperación. Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
 
 ## Documentación del capítulo
 
@@ -92,7 +92,7 @@ Si el cliente cierra una conexión, ¿ese abandono debe contar como un fallo del
 
 Dos intentos HTTP de una misma operación fallan. ¿Cuántos fallos debe contabilizar el circuito?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>Un fallo de operación. Los dos intentos pertenecen a la misma operación y su resultado se contabiliza una sola vez. La cancelación del cliente tampoco se atribuye como fallo del proveedor.</p>
 </details>

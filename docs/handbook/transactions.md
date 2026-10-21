@@ -43,7 +43,9 @@ El ejemplo usa dos compras con claves distintas. Un reintento de la misma clave 
 
 [![Modelo físico de las siete tablas de Comercio](../diagrams/commerce-data.svg)](../diagrams/commerce-data.svg)
 
-PK identifica una fila; FK exige una referencia existente. La cardinalidad se lee izquierda:derecha: un pedido tiene cero o una propuesta y cada propuesta corresponde a un pedido. Solo se dibujan las dos FK declaradas en Flyway; las referencias lógicas sin FK se enumeran aparte.
+PK identifica una fila; FK exige una referencia existente. La cardinalidad se lee izquierda:derecha: un pedido tiene cero o una propuesta y cada propuesta corresponde a un pedido. Las siete tablas se agrupan así: `inventory` conserva stock/precio; `orders`, la compra; `return_proposals`, su devolución; `idempotency`, el resultado repetible; `outbox`, el evento pendiente; `inbox`, la identidad consumida; y `audit_orders`, el efecto de auditoría.
+
+Solo hay dos FK declaradas: `return_proposals.order_id → orders.id` y `audit_orders.event_id → inbox.event_id`, ambas únicas en el lado dependiente. Un pedido admite cero o una propuesta; una identidad inbox, cero o un efecto de auditoría. Las relaciones `orders → inventory`, `outbox.aggregate_id → orders` y `audit_orders.order_id → orders` son lógicas, sin FK. No inferir una restricción SQL por la proximidad de dos cajas; contrastar [Flyway V1](../../apps/commerce-api/src/main/resources/db/migration/V1__commerce.sql).
 
 <a id="topic-repetir-una-peticion-es-normal"></a>
 
@@ -90,6 +92,25 @@ Hay una unidad y dos compradores distintos. ¿Qué debe quedar en stock y cuánt
 
 En operación se debe definir retención de claves, volumen de outbox, tiempo de bloqueo y estrategia de migración compatible. No borrar registros idempotentes durante un plazo en el que clientes todavía puedan repetir solicitudes.
 
+<a id="topic-ejercicio-carrera-de-stock"></a>
+
+## Ejercicio de aplicación: corregir una carrera
+
+Dos transacciones con claves idempotentes distintas leen stock 1. Cada una calcula `1 - 1`, escribe stock 0 y guarda un pedido. Construir una tabla de pasos A/B que termine con dos pedidos confirmados y explicar por qué `CHECK(stock >= 0)` no detecta la venta duplicada.
+
+**Entregable:** sustituir esa secuencia por una sentencia SQL parametrizada y describir qué hace cada transacción ante cero filas o ante un rollback. No ejecutar escrituras manuales sobre el laboratorio. **Pista:** comprobar y descontar en la misma escritura; mantenerla dentro de la transacción que guarda el pedido.
+
+<details markdown="1">
+<summary>Ver una solución razonada</summary>
+
+La carrera es `A lee 1 → B lee 1 → A escribe 0 y confirma → B escribe 0 y confirma`. La restricción acepta ambos ceros, aunque se hayan creado dos pedidos.
+
+La sentencia condicional del principio del capítulo evita ese resultado: A reserva y B espera; tras el commit de A, B reevalúa `stock >= quantity` y no obtiene fila. B debe producir conflicto sin guardar pedido ni outbox. Si A revierte, B puede reservar. Una implementación equivalente con bloqueo previo es válida si conserva esa invariante y la misma frontera transaccional.
+
+Comprobar la explicación contra `concurrentLastUnit` y `rollbackIncludesStockAndOrder` en la prueba enlazada. Terminado cuando la solución admite una sola venta tras el commit y permite progresar tras el rollback; decir solo «usar una transacción» no resuelve la carrera.
+
+</details>
+
 ## Documentación del capítulo
 
 [PostgreSQL: Read Committed y actualización concurrente](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED), [bloqueos explícitos](https://www.postgresql.org/docs/17/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html). Para profundizar en aislamiento y sistemas de datos, la [lectura DDIA recomendada en eventos](events.md#topic-lecturas-y-ejemplo-de-referencia) complementa este caso SQL.
@@ -98,7 +119,7 @@ En operación se debe definir retención de claves, volumen de outbox, tiempo de
 
 Si la primera transacción revierte mientras la segunda espera la fila, ¿la segunda tiene que devolver conflicto?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>No necesariamente. Tras el rollback puede volver a haber stock disponible. La actualización condicional de la segunda transacción puede reservarlo; lo decisivo es el estado confirmado de la fila.</p>
 </details>

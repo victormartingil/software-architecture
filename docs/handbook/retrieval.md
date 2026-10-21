@@ -30,7 +30,16 @@ El [recuperador](../../apps/ai-service/src/ai_service/infrastructure/retrieval.p
 
 Un prompt es la entrada preparada para el modelo: instrucciones, pregunta y documentos. Los modelos procesan texto en fragmentos llamados tokens; su tamaño depende del modelo y no coincide necesariamente con palabras. Estos tokens son unidades de texto, distintos del token de acceso que acredita la identidad.
 
-El adaptador OpenAI usa Responses con salida estructurada, modelo explícito y límite de salida. Valida sobre JSON, tipos, rechazo y contenido completo antes de registrar el éxito de la operación: `answer` textual, `abstained` booleano y citas de documentos suministrados. La búsqueda y el servicio de aplicación conservan la autorización por organización; el adaptador no la decide. Un HTTP 200 con JSON inválido produce 503 y cuenta como fallo, sin reintentar ese contenido. La [regresión del proveedor](../../apps/ai-service/tests/test_providers.py) verifica tres fallos, apertura, prueba de recuperación inválida y posterior recuperación válida. El plazo total incluye la espera en cola; el tiempo disponible para generar, los dos intentos como máximo y el circuito de protección limitan los fallos. El [capítulo 7](security.md) desarrolla estos controles. La configuración del proveedor real exige presupuesto declarado y límite de solicitudes. El presupuesto en USD no es un contador de facturación: precios, tokens de entrada y tarifas del modelo deben comprobarse antes de una evaluación real. El cupo se aplica por adaptador/proceso y se reinicia al arrancar: generación y embeddings llevan contadores distintos, sin presupuesto global persistente.
+El adaptador OpenAI usa Responses con salida estructurada, modelo explícito y límite de salida. Antes de considerar la operación correcta valida el sobre JSON y su contenido: `answer` textual, `abstained` booleano y citas de documentos suministrados. Un HTTP 200 con JSON inválido produce 503 y cuenta como fallo, sin reintentar ese contenido. El servicio conserva la autorización por organización; el adaptador no la decide.
+
+Los plazos, intentos y el circuito de protección limitan el daño de un fallo; el [capítulo 7](security.md) desarrolla esos controles. En `OpenAIProvider`, seguir la validación del resultado antes del registro de éxito; [test_providers.py](../../apps/ai-service/tests/test_providers.py) comprueba que una prueba de recuperación inválida no cierra el circuito.
+
+<details markdown="1">
+<summary>Qué limita el presupuesto del proveedor</summary>
+
+El plazo total incluye la espera en cola; generar y realizar hasta dos intentos debe caber dentro del tiempo disponible. El proveedor real exige presupuesto declarado y límite de solicitudes. Ese presupuesto en USD no es un contador de facturación: comprobar precios, tokens de entrada y tarifas del modelo antes de una evaluación real. El cupo se aplica por adaptador/proceso y se reinicia al arrancar; generación y embeddings llevan contadores distintos, sin presupuesto global persistente.
+
+</details>
 
 La variante pgvector valida dimensión de embeddings y filtra tenant en SQL antes de ordenar por distancia. Los tests usan vectores de prueba contra PostgreSQL/pgvector real para verificar aislamiento y orden, sin pagar embeddings. La ingesta de un corpus con embeddings reales requiere configuración deliberada. Búsqueda léxica y vectorial deben compararse sobre las mismas preguntas; una variante híbrida sería una ampliación posterior. Un índice vectorial no garantiza mejores respuestas.
 
@@ -41,6 +50,37 @@ La variante pgvector valida dimensión de embeddings y filtra tenant en SQL ante
 El [dataset](../../apps/ai-service/data/evaluation.json) incluye preguntas respondibles, ausencia de evidencia, accesos cruzados e instrucciones maliciosas. Los identificadores relevantes se etiquetan explícitamente. Recall@3 mide qué proporción de documentos relevantes aparece en los tres recuperados, para casos respondibles. Hit-rate@3 indica si apareció al menos un relevante; MRR@3 promedia el inverso del puesto del primer relevante. Por ejemplo, si A y B son relevantes y se recuperan `[C, A, D]`, recall@3 es 1/2, hit-rate@3 es 1 y el rango recíproco es 1/2 porque el primer relevante ocupa la segunda posición. MRR promedia ese rango recíproco; un caso respondible sin relevante recuperado aporta cero. Abstenciones y aislamiento se reportan por separado; no se mezclan para inflar una media.
 
 La evaluación es pequeña, sintética y cercana al corpus. Una puntuación perfecta no implica generalización. Para un modelo real añadir fidelidad a evidencia, corrección de citas, abstención apropiada, latencia p95, tokens y coste por tarea completada. Conservar modelo, versión de prompt, dataset y juicio humano. Un juez LLM puede ayudar, pero hereda sesgos y no sustituye pruebas deterministas de permisos.
+
+<a id="topic-evaluar-respaldo-de-respuestas"></a>
+
+## Evaluar si la respuesta está respaldada
+
+Ejercicio sin modelo: usar este extracto preparado, identificado como `policy-study`: «El plazo de devolución es de 30 días desde la entrega. El producto debe estar sin usar y conservar su embalaje». No sustituye el corpus ni mide un proveedor real.
+
+Para la pregunta «¿Qué plazo tengo y en qué condiciones?», juzgar las siguientes respuestas antes de abrir la explicación. Las tres citan `policy-study`:
+
+| Respuesta preparada | Cita |
+|---|---|
+| A. «30 días desde la entrega; sin usar y con embalaje» | `policy-study` |
+| B. «90 días desde la entrega; sin usar y con embalaje» | `policy-study` |
+| C. «30 días desde la entrega; sin usar, con embalaje y abono en 24 horas» | `policy-study` |
+
+**Rúbrica:** (1) descomponer la respuesta en afirmaciones y localizar su respaldo; (2) comprobar que la cita es pertinente y no solo existente; (3) responder únicamente a lo respaldado y reconocer lo que falta. Una contradicción o una afirmación inventada impide aprobar, aunque las demás sean correctas.
+
+<details markdown="1">
+<summary>Ver el diagnóstico y cuándo abstenerse</summary>
+
+| Respuesta | Respaldo de las afirmaciones | Pertinencia de la cita |
+|---|---|---|
+| A | Todas respaldadas | Apoya plazo y condiciones |
+| B | Contradice el plazo | El ID existe, pero no respalda 90 días |
+| C | Inventa el plazo de abono | Solo apoya parte de la respuesta |
+
+La primera respuesta cumple la rúbrica para esa pregunta. Las otras fallan en generación: la evidencia necesaria estaba disponible. Si no se hubiera recuperado el plazo, habría que investigar primero recuperación o corpus. Ante «¿cuándo recibiré el dinero?», este extracto no permite responder: debe indicarse que falta información; en la referencia, ausencia de documentos recuperados provoca abstención sin generar.
+
+</details>
+
+Para comparar modelos en el futuro, mantener las mismas preguntas reservadas —distintas de las usadas para ajustar prompts— y esta rúbrica. Elegir primero un mínimo de calidad y permisos; después comparar latencia y coste por tarea válida. Estos ejemplos preparados enseñan el juicio, sin atribuir puntuaciones a modelos ni ejecutar una API.
 
 ## Enviar el resultado mediante SSE
 
@@ -70,6 +110,39 @@ El informe JSON es opcional y queda excluido de Git: identifica versión de esqu
 
 **Alternativa:** comparar embeddings o búsqueda híbrida con las mismas etiquetas, sin asumir que mayor complejidad mejora resultados. Antes de cambiar el ranking, preguntar si el problema es ausencia de evidencia, orden de documentos o fidelidad de generación: requieren controles distintos.
 
+<a id="topic-ejercicio-caso-de-recuperacion"></a>
+
+## Ejercicio de aplicación: añadir una pregunta propia
+
+Crear un caso de estudio en memoria, sin cambiar los 42 casos de referencia: tenant `demo` y pregunta «¿Es obligatorio conservar el embalaje?». Leer el [corpus](../../apps/ai-service/data/corpus.json), elegir el documento relevante y predecir si se recuperará y por qué. Desde la raíz, con Python/uv, completar la lista `relevant` antes de ejecutar:
+
+```bash
+uv run --project apps/ai-service python - <<'PYTHON'
+import asyncio
+from pathlib import Path
+from ai_service.infrastructure.retrieval import LexicalRetriever
+from ai_service.evaluate import retrieval_scores
+
+case = {"question": "¿Es obligatorio conservar el embalaje?", "relevant": []}
+async def run():
+    retriever = LexicalRetriever(Path("apps/ai-service/data/corpus.json"))
+    documents = await retriever.search("demo", case["question"])
+    ids = [document.id for document in documents]
+    print(ids)
+    print(retrieval_scores(case["relevant"], ids))
+asyncio.run(run())
+PYTHON
+```
+
+**Pista:** etiquetar según el contenido del documento y después buscar los términos comunes con la pregunta. La lista vacía es deliberada: sin etiqueta relevante no se pueden calcular estas métricas y el programa debe rechazarla. Terminado cuando la etiqueta procede del contenido y se explican los tres resultados; después proponer otra formulación y analizar su ranking, sin cambiar etiquetas para ocultar un fallo.
+
+<details markdown="1">
+<summary>Ver la solución del caso inicial</summary>
+
+Completar `"relevant": ["demo-returns"]`. Se espera `['demo-returns']` y recall, hit-rate y MRR de 1 para este caso. Coinciden «conservar» y «embalaje»; no hace falta un embedding. El resultado acredita esa recuperación, no una respuesta generada ni generalización. Si una nueva formulación no comparte términos, explicar la limitación léxica antes de cambiar el recuperador.
+
+</details>
+
 ## Documentación del capítulo
 
 [Responses](https://platform.openai.com/docs/api-reference/responses), [salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs), [pgvector: distancias y consultas](https://github.com/pgvector/pgvector#querying), [FastAPI respuestas](https://fastapi.tiangolo.com/advanced/custom-response/).
@@ -78,13 +151,13 @@ El informe JSON es opcional y queda excluido de Git: identifica versión de esqu
 
 ## Para profundizar
 
-Lectura: [*AI Engineering*, de Chip Huyen](https://www.oreilly.com/library/view/ai-engineering/9781098166298/), para diseño, evaluación y operación de aplicaciones con modelos fundacionales. [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/main/docs/examples/low_level/retrieval.ipynb) muestra otra implementación de recuperación; sirve para comparar estrategias, no para sustituir los filtros de autorización de esta referencia.
+Lectura: [*AI Engineering*, de Chip Huyen](https://www.oreilly.com/library/view/ai-engineering/9781098166298/), para diseño, evaluación y operación de aplicaciones con modelos fundacionales. [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/docs/examples/low_level/retrieval.ipynb) permite seguir recuperación, selección del contexto y consulta. Comparar qué decide el recuperador con lo que decide el generador; los filtros de autorización de esta referencia siguen siendo obligatorios. En el libro, buscar el tratamiento de evaluación y contrastarlo con la distinción entre recuperación y respaldo semántico de este capítulo.
 
 ## Comprobar lo aprendido
 
 Se recupera el documento correcto, pero la respuesta contradice su contenido. ¿Qué habría que evaluar para detectar ese fallo?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>El respaldo semántico de la respuesta en la evidencia: si sus afirmaciones concuerdan con los documentos. Recall solo mide qué documentos se han recuperado y no descubre esa contradicción.</p>
 </details>

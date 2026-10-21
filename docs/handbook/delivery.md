@@ -6,6 +6,8 @@ El capítulo 8 mostró cómo observar una operación. El último capítulo estud
 
 **Objetivo:** distinguir ejecución local, escalado comprobado y validación de un plan de infraestructura sin atribuirles las mismas garantías.
 
+**Recorrido esencial:** entender los tres niveles de comprobación y estudiar [CI, migraciones y reversión](#topic-delivery-cambios-y-reversion). **Laboratorios opcionales:** ejecutar kind/HPA o Terraform; se pueden leer sus límites sin levantarlos. Terminar con el [caso integrador](#topic-caso-integrador), que no necesita infraestructura adicional.
+
 <a id="topic-tres-niveles-distintos-de-prueba"></a>
 
 ## Comparar Compose, Kubernetes y Terraform
@@ -18,7 +20,7 @@ Las aplicaciones usan imágenes separadas y usuarios sin privilegios de administ
 
 [![Comparación de despliegue local con Compose y kind](../diagrams/deployment-local.svg)](../diagrams/deployment-local.svg)
 
-Las cajas agrupan recursos de despliegue; las conexiones entre aplicaciones están en el [C4](../repository-design.md).
+Compose ejecuta las tres aplicaciones y sus apoyos en contenedores del equipo, con volúmenes persistentes. kind los distribuye en pods de un clúster local: Commerce admite HPA 1–2; AI y Streams mantienen una réplica y estrategia Recreate. `make down` conserva volúmenes Compose; `make kind-down` elimina el nodo local y sus datos. Las cajas agrupan recursos de despliegue; las conexiones entre aplicaciones están en el [C4](../repository-design.md).
 
 <a id="topic-laboratorio-kubernetes"></a>
 
@@ -141,13 +143,45 @@ make terraform-check
 
 ## Para profundizar
 
-Los [manifiestos de Kubernetes de Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo/tree/main/kubernetes-manifests) muestran despliegues de varias aplicaciones en un demo de Google Cloud. Incluye más servicios y tecnologías que esta referencia; contrasta sus manifiestos con el objetivo y las restricciones de cada sistema antes de adaptar patrones.
+Los [manifiestos de Kubernetes de Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo/tree/99d6025d494fd2ad9cd49a7881d590e7d8a773e5/kubernetes-manifests) permiten comparar un `Deployment` y su `Service`: seguir selector, labels y puertos; después revisar probes y recursos. El demo incluye más servicios y tecnologías; no asumir que su escala o sus decisiones hacen falta aquí.
+
+<a id="topic-caso-integrador"></a>
+
+## Caso integrador: atender más solicitudes del asistente
+
+**Nuevo requisito hipotético:** el asistente recibe más solicitudes y se propone pasar de una a dos réplicas. Decidir si es necesario y qué habría que cambiar para conservar una sola devolución por pedido. No implementar ni desplegar la variante.
+
+**Entregable:** un ADR de una página como máximo y una secuencia de cinco pasos. Incluir necesidad y evidencia de saturación, alternativa más simple, decisión, riesgos y comprobaciones. Usar esta rúbrica; una propuesta solo está completa si responde a todas las filas:
+
+| Criterio | Pregunta de comprobación |
+|---|---|
+| Autoridad y aislamiento | ¿Quién aprueba, de dónde procede el tenant y quién revalida permisos? |
+| Datos y concurrencia | ¿Dónde vive el progreso y cómo se impide que dos procesos cambien a la vez la misma operación? |
+| Repetición | ¿Qué clave conserva un reintento después de perder una respuesta? |
+| Fallos | ¿Qué ocurre tras confirmar Comercio y antes de guardar el checkpoint? |
+| Operación | ¿Qué cola, latencia y errores justificarían escalar, y cómo se limita la carga sobre las dependencias? |
+| Evidencia | ¿Qué prueba concurrente, de reinicio y de acceso cruzado podría refutar la propuesta? |
+
+**Pista:** un checkpointer compartido resuelve persistencia, pero no basta para coordinar dos ejecutores. Admitir una sola réplica sigue siendo válido si la necesidad se resuelve de forma más simple y medible.
+
+<details markdown="1">
+<summary>Ver una propuesta razonada, no una solución única</summary>
+
+Primero medir cola y latencia: si la dependencia remota limita el caudal, dos réplicas pueden empeorarlo. Mantener una réplica y ajustar límites dentro de su capacidad es una alternativa que debe compararse.
+
+Si se justifican dos ejecutores, conservar progreso durable compartido y un mecanismo de exclusión o transición condicionada por versión que coordine **todo** el cambio de cada workflow entre procesos. Diseñar también el registro idempotente del flujo, los cupos compartidos y la recuperación de un ejecutor caído. No basta añadir una BD ni un lock en cada proceso.
+
+Secuencia posible: (1) autenticar y comprobar propietario/tenant; (2) obtener el derecho exclusivo a avanzar el flujo y leer su estado; (3) consultar y aprobar en Comercio con el token actual del responsable; (4) ejecutar con `execute:returnId`, dejando que Comercio revalide; (5) guardar progreso y liberar la exclusión. Un fallo entre 4 y 5 se recupera consultando Comercio y conservando la clave, sin reponer stock otra vez. Nunca persistir JWT.
+
+Las comprobaciones deben intentar dos reanudaciones simultáneas, pérdida de respuesta, reinicio del ejecutor y acceso de otro tenant. Medir efectos únicos, no solo dos HTTP 200. Esta propuesta es un diseño de ejercicio; la referencia mantiene una réplica y no acredita haber implementado ni probado esta variante.
+
+</details>
 
 ## Comprobar lo aprendido
 
 ¿Bastaría cambiar AI de una a dos réplicas para atender el doble de flujos con seguridad?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>No. El bloqueo actual coordina un único proceso y SQLite conserva el progreso. Antes de añadir réplicas harían falta estado compartido y control concurrente entre procesos, con pruebas de sus carreras.</p>
 </details>

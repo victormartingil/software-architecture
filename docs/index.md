@@ -16,9 +16,10 @@ No hace falta instalar herramientas para leer las explicaciones y los diagramas.
 2. Seguir el recorrido por los archivos enlazados: entrada, regla de negocio y acceso al sistema externo.
 3. Predecir el resultado de la práctica antes de ejecutarla.
 4. Comparar la salida con la explicación y responder a la pregunta final.
-5. Consultar las lecturas complementarias cuando se necesite más profundidad.
+5. Resolver los [ejercicios de regla de dominio](handbook/architecture.md#topic-ejercicio-regla-de-dominio), [carrera de stock](handbook/transactions.md#topic-ejercicio-carrera-de-stock) y [pregunta de recuperación](handbook/retrieval.md#topic-ejercicio-caso-de-recuperacion) al llegar a sus capítulos, antes de abrir la solución.
+6. Consultar las lecturas complementarias cuando se necesite más profundidad. Al terminar, resolver el [caso integrador](handbook/delivery.md#topic-caso-integrador) y contrastarlo con su rúbrica.
 
-Los primeros capítulos se apoyan unos en otros. Una vez completados, el [mapa de referencia](reference-map.md) permite consultar un problema concreto sin repetir el recorrido.
+Las prácticas guiadas comprueban la implementación; los ejercicios piden producir una solución y justificarla. No hace falta construir otra aplicación. Los primeros capítulos se apoyan unos en otros. Una vez completados, el [mapa de referencia](reference-map.md) permite consultar un problema concreto sin repetir el recorrido.
 
 Para leer el manual con buscador, índice lateral y modo claro u oscuro, ejecutar `make docs` desde la raíz, con uv instalado. Abrir la dirección local que indique el comando en la terminal. También se puede seguir completo desde los enlaces Markdown de GitHub.
 
@@ -35,7 +36,7 @@ Para leer el manual con buscador, índice lateral y modo claro u oscuro, ejecuta
 | [6. Devoluciones y aprobación](handbook/workflows.md) | ¿Cómo se reanuda una operación sin repetir su efecto? | Diferenciar progreso guardado, autorización y estado de negocio. |
 | [7. Seguridad y resiliencia](handbook/security.md) | ¿Quién puede actuar y qué ocurre si falla una dependencia? | Razonar sobre tokens, permisos, tiempos de espera y reintentos. |
 | [8. Observabilidad y diagnóstico](handbook/operations.md) | ¿Cómo se localiza y se investiga un fallo? | Relacionar métricas, trazas y logs de una misma operación. |
-| [9. Despliegue y cambios](handbook/delivery.md) | ¿Qué se comprueba antes de desplegar o escalar? | Distinguir las garantías de Compose, Kubernetes y Terraform. |
+| [9. Despliegue y cambios](handbook/delivery.md) | ¿Qué se comprueba antes de desplegar o escalar? | Distinguir las garantías de Compose, Kubernetes y Terraform y justificar un cambio. Los laboratorios kind/Terraform son opcionales. |
 
 <a id="topic-cuando-aplicar-cada-mecanismo"></a>
 

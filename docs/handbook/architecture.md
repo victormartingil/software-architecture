@@ -18,13 +18,31 @@ La aplicación de comercio agrupa `orders`, `inventory` y `returns`. Dentro de c
 
 Para seguir una compra, abrir [ManageOrderService](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java): recibe la solicitud, reserva inventario y guarda pedido y evento pendiente. El evento se estudiará en el capítulo 4. Después comparar [OrderRepository](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/port/output/OrderRepository.java) con su adaptador JDBC, que utiliza la API de Java para acceder a SQL. El puerto expresa lo que necesita el caso de uso; el adaptador conoce cómo hacerlo con SQL.
 
+Para localizar lo importante en `ManageOrderService.create`, seguir `idempotency.execute → inventory.reserve → orders.save → events.placed`. Este extracto literal del final de la operación permite reconocer las dos escrituras; `events.placed` guarda el outbox, no envía directamente a Kafka:
+
+```java
+orders.save(order);
+events.placed(
+    order.id(), order.tenant(), order.sku(), order.quantity(), order.totalCents());
+return OrderResult.from(order);
+```
+
 [![Pedidos: dependencias entre puertos y adaptadores](../diagrams/ports-and-adapters.svg)](../diagrams/ports-and-adapters.svg)
 
 Un módulo reúne una capacidad del negocio; una capa separa responsabilidades dentro de ese módulo. `orders` e `inventory` comparten proceso Java y transacción, mientras `ai-service` es otro proceso con una frontera HTTP. Una interfaz Java es un contrato de código; no crea por sí sola un servicio de red.
 
 Spring crea el servicio y le entrega los objetos que necesita a través de su constructor: esto es inyección de dependencias. Por ejemplo, el parámetro `OrderRepository` recibe el adaptador concreto al arrancar, sin que el caso de uso tenga que crearlo.
 
-Las dependencias de código apuntan al núcleo. En ejecución el caso de uso invoca un adaptador mediante su puerto: inversión de dependencias no significa invertir todas las llamadas. Se permite `@Transactional` en aplicación para que la frontera de commit sea fácil de localizar. Es un acoplamiento deliberado a Spring, descrito en el ADR; el dominio sigue independiente. Spring interpone un proxy: un objeto que rodea la llamada y abre/confirma/revierte la transacción. Una llamada directa al objeto fuera del proxy pierde esa intervención, como muestra el caso adicional descrito más abajo. Véase [cómo funciona la transacción declarativa](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-decl-explained.html).
+Las dependencias de código apuntan al núcleo: el controlador usa `OrderUseCase`, `ManageOrderService` lo implementa y utiliza `OrderRepository`; `JdbcOrderRepositoryAdapter` implementa ese puerto y accede a PostgreSQL. En ejecución el caso de uso invoca el adaptador mediante el puerto. Invertir dependencias no significa invertir todas las llamadas.
+
+Se permite `@Transactional` en aplicación para localizar la frontera de confirmación de cambios; es un acoplamiento deliberado a Spring. El dominio sigue independiente. El capítulo 3 explica la transacción.
+
+<details markdown="1">
+<summary>Por qué importa el proxy de Spring</summary>
+
+Spring interpone un proxy: un objeto que rodea la llamada y abre, confirma o revierte la transacción. Una llamada directa al objeto fuera del proxy pierde esa intervención. El caso adicional descrito tras la práctica compara ambas llamadas. Véase [cómo funciona la transacción declarativa](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-decl-explained.html).
+
+</details>
 
 Los tipos del dominio protegen reglas locales: `Quantity` valida 1..100 aun cuando se invoca el caso de uso sin HTTP; `OrderStatus` y `ReturnStatus` evitan estados escritos arbitrariamente. `ReturnProposal.requireExecutable` comprueba aprobación, versión y vencimiento usando una fecha recibida. No consulta base de datos ni reloj global. Las operaciones concurrentes siguen protegidas por transacciones, SQL condicional y restricciones de la base de datos: validar un objeto no sustituye el control concurrente.
 
@@ -37,6 +55,21 @@ Los tipos del dominio protegen reglas locales: `Quantity` valida 1..100 aun cuan
 Commerce tiene una única transacción de negocio. Dividir pedidos e inventario en servicios introduciría consistencia eventual y compensaciones sin mejorar este ejemplo. Analytics escala y reconstruye una proyección independiente. AI tiene dependencias, costes y ciclo de ejecución distintos; solo accede a comercio por HTTP. Estas diferencias justifican procesos separados. El tamaño de una clase o una entidad no los justifica por sí solo.
 
 Un monolito modular sería una alternativa razonable para una tienda real pequeña. La referencia separa procesos para poder observar fallos de red, replay y permisos entre sistemas. No propone copiar esta topología en cualquier producto.
+
+<a id="topic-del-requisito-a-la-decision"></a>
+
+## Del requisito a la decisión
+
+Antes de elegir una tecnología, describir qué debe ocurrir en una situación concreta. Un atributo de calidad es una propiedad como fiabilidad, seguridad o facilidad de cambio. «Debe ser fiable» resulta demasiado vago para elegir entre soluciones; interesa precisar el fallo y la respuesta esperada.
+
+| Necesidad y restricción | Calidad buscada | Alternativas | Decisión y coste | Evidencia |
+|---|---|---|---|---|
+| Aceptar una compra con Kafka caído, conservando el aviso tras confirmar SQL | Fiabilidad ante un fallo de dependencia | Enviar antes de guardar; guardar y enviar; guardar un outbox en la misma transacción | Outbox y entrega posterior; hay retraso, almacenamiento pendiente y posibles duplicados | EVT-01/03: caída y recuperación del broker; confirmación antes de marcar |
+| Cambiar el acceso a datos sin reescribir las reglas del pedido | Facilidad de cambio | JDBC dentro del caso de uso; puerto por intención y adaptador JDBC | Puerto `OrderRepository`; mantener su contrato y comprobar cada adaptador | ARCH-01/02: límites de dependencias; integración comprueba SQL, sin afirmar que exista un segundo adaptador |
+
+En el primer caso, enviar antes puede anunciar un pedido inexistente; enviar solo después de guardar deja una ventana de pérdida. La decisión se deriva de ese riesgo y de conservar una transacción local. No promete disponibilidad indefinida: una caída prolongada exige vigilar el espacio del outbox.
+
+Para otra necesidad, completar la misma tabla y señalar qué dato haría cambiar la decisión. El [SEI explica este razonamiento mediante escenarios de atributos de calidad](https://www.sei.cmu.edu/library/reasoning-about-software-quality-attributes/). Los [ADR](../decisions/index.md) registran la decisión resultante; no sustituyen formular primero el problema.
 
 <a id="topic-patrones-con-una-responsabilidad-concreta"></a>
 
@@ -82,6 +115,35 @@ Un módulo puede respetar sus capas y aun así formar un ciclo con otro: `orders
 
 **Alternativa:** llamar directamente a JDBC ahorra un puerto, pero acopla el caso de uso a persistencia. Justificar cada abstracción por una sustitución o responsabilidad concreta; la revisión sigue siendo necesaria para detectar interfaces vacías o conceptos filtrados.
 
+<a id="topic-ejercicio-regla-de-dominio"></a>
+
+## Ejercicio de aplicación: proteger una cantidad
+
+En una copia de trabajo, completar el constructor de [Quantity](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/domain/Quantity.java) sin consultar primero su cuerpo: debe aceptar 1..100 y lanzar `BusinessException` con `Kind.INVALID_INPUT` fuera del rango. No importar HTTP ni Spring ni cambiar el contrato. Antes de programar, escribir el resultado esperado para 0, 1, 100 y 101.
+
+**Pista:** la regla debe cumplirse también al crear el objeto desde Java, sin controlador. Comprobar la variante con Java 21, desde la raíz:
+
+```bash
+(cd apps/commerce-api && ./mvnw -B -ntp -Dtest=CommerceDomainTest test)
+```
+
+La prueba `quantityCannotBypassHttpValidation` debe pasar; también comprueba que comando y pedido no eluden la regla. No requiere Docker. Terminado cuando se conservan los extremos válidos y se rechazan los inválidos sin introducir dependencias de infraestructura.
+
+<details markdown="1">
+<summary>Ver una solución y su motivo</summary>
+
+```java
+public Quantity {
+  if (value < 1 || value > 100)
+    throw new BusinessException(
+        BusinessException.Kind.INVALID_INPUT, "Quantity must be between 1 and 100");
+}
+```
+
+Es el constructor compacto del `record Quantity(int value)`. Usa tipos de su propio paquete. Validar solo en HTTP permitiría construir una cantidad inválida desde otro adaptador; devolver un 400 desde aquí mezclaría negocio y transporte. Comparar la variante con la fuente y conservar la implementación de referencia al terminar.
+
+</details>
+
 ## Documentación del capítulo
 
 [arquitectura hexagonal original](https://alistair.cockburn.us/hexagonal-architecture), [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), [import-linter](https://import-linter.readthedocs.io/en/stable/contract_types/layers/).
@@ -90,13 +152,13 @@ Un módulo puede respetar sus capas y aun así formar un ciclo con otro: `orders
 
 ## Para profundizar
 
-Lectura: [*Fundamentals of Software Architecture*, 2.ª edición](https://www.oreilly.com/library/view/fundamentals-of-software/9781098175504/), para estilos, límites, decisiones y evolución de arquitectura. Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/main/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring. Es una referencia de la biblioteca, no una dependencia de este proyecto.
+Lectura: [*Fundamentals of Software Architecture*, 2.ª edición](https://www.oreilly.com/library/view/fundamentals-of-software/9781098175504/), para estilos, límites, decisiones y evolución de arquitectura. Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/1028b09682320bb3feaf017c72379a81835e3ad3/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring. Al leerla, localizar cómo identifica un módulo y compararlo con las reglas de `ArchitectureRules`: ¿qué verifica cada enfoque? Es una referencia de la biblioteca, no una dependencia de este proyecto.
 
 ## Comprobar lo aprendido
 
 ¿Qué problema introduce que dos módulos se llamen mutuamente, aunque utilicen puertos de entrada?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>Introducen un ciclo entre módulos. Respetar las capas no elimina esa dependencia circular; hace falta revisar la dirección de la colaboración.</p>
 </details>

@@ -50,7 +50,7 @@ Spring AI, MCP, event sourcing, sagas, service mesh, Backstage y múltiples prov
 
 ## Lecturas y ejemplos externos
 
-Cada capítulo incluye las fuentes oficiales del concepto y, cuando ayuda a estudiarlo, una lectura o un ejemplo de código externo:
+Cada capítulo incluye fuentes oficiales y lecturas con una pregunta de comparación. Los seis ejemplos de código externos están fijados a commits consultados el 21-10-2026 para conservar el contenido explicado; las cifras de popularidad de abajo mantienen su fecha original. No son versiones elegidas para las dependencias de esta referencia:
 
 | Tema | Recursos complementarios |
 |---|---|

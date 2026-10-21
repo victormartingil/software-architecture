@@ -76,11 +76,27 @@ La integración Java automatiza el fallo y recuperación. Vigilar disco: una ca�
 
 ## Procedimiento de recuperación: DLT y mensajes tardíos
 
-Inspeccionar una muestra acotada de `orders.placed.v1.dlt` o `orders.analytics.v1.dlt` con kafka-console-consumer. Identificar si el error es de contrato, despliegue o dato. Corregir en un archivo local el evento original sin cambiar eventId, tenant ni el hecho de negocio. Validar contra esquema y reprocesar explícitamente:
+Con el núcleo arrancado (`make up`), leer como máximo un mensaje de la DLT de auditoría, sin utilizar su grupo de consumidores:
 
 ```bash
-uv run --project tools/docs python scripts/replay_event.py --file /ruta/evento-reparado.json --confirm-replay
+docker compose exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh \
+  --bootstrap-server kafka:9092 --topic orders.placed.v1.dlt \
+  --from-beginning --max-messages 1 --timeout-ms 5000 \
+  --consumer-property enable.auto.commit=false \
+  --property print.headers=true --property print.key=true
 ```
+
+Si no hay mensajes, el consumidor termina por timeout; no significa que haya fallado la aplicación. Para Analytics, sustituir el topic por `orders.analytics.v1.dlt` y añadir `--isolation-level read_committed`. La muestra puede ser histórica: identificar evento y causa antes de actuar, sin presentarla como fallo de la operación actual.
+
+El valor contiene el evento original. En auditoría, los headers añadidos por Spring pueden aportar origen y excepción; Analytics conserva el valor sin añadir ese diagnóstico. No copiar headers ni clave Kafka dentro del JSON de reproceso. Por ejemplo, `data.quantity=0` incumple el rango 1..100. No cambiarlo a 1 por conveniencia: solo repararlo si el hecho confirmado demuestra que esa era la cantidad real; si la causa fue un consumidor incompatible, corregir primero el consumidor. Una DLT vacía no requiere fabricar un incidente para continuar el manual.
+
+Guardar **solo el JSON completo del evento** en `reports/repaired-event.json`, conservando eventId, tenant y hecho de negocio. El siguiente comando valida el esquema y después publica; ejecutarlo únicamente tras investigar la causa y decidir el reproceso:
+
+```bash
+uv run --project tools/docs python scripts/replay_event.py --file reports/repaired-event.json --confirm-replay
+```
+
+El [esquema](../../contracts/events/orders.placed.v1.schema.json) y el [ejemplo completo de sobre](../../contracts/events/fixtures/orders.placed.v1.json) ayudan a reconocer la forma; el ejemplo no sustituye el evento investigado. Las [opciones del consumidor Kafka 4.0.2](https://github.com/apache/kafka/blob/4.0.2/tools/src/main/java/org/apache/kafka/tools/consumer/ConsoleConsumerOptions.java) documentan el límite de mensajes, timeout y lectura de headers.
 
 No renombrar identidades para eludir deduplicación. Un evento tardío fuera de grace no debe recuperarse como si hubiera llegado a tiempo: reconstruir una proyección histórica con applicationId y topics separados, después reconciliar. Retención y siete días de deduplicación delimitan qué replay está soportado.
 
@@ -137,13 +153,13 @@ Una respuesta SSE comienza con HTTP 200 y termina con un error. ¿Basta contar l
 
 ## Para profundizar
 
-La [configuración del OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/main/otel-config.yml) muestra un Collector conectado a varias aplicaciones y backends. Es un sistema mucho mayor que este laboratorio; úsalo para seguir la configuración de señales, no como topología mínima recomendada.
+La [configuración del OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/3ee33db6f17a7482f63553c514c81c53ba8a696f/src/otel-collector/otelcol-config.yml) permite seguir receptores, procesadores y exportadores hasta los pipelines de señales. Comparar ese recorrido con `infra/observability/collector.yaml`: ¿qué recibe y a dónde reenvía cada uno? Es un sistema mucho mayor que este laboratorio; úsalo para seguir la configuración de señales, no como topología mínima recomendada.
 
 ## Comprobar lo aprendido
 
 Hay eventos pendientes durante un minuto y después se publican. ¿Debe activarse OutboxBacklog?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>No. La regla exige que la condición se mantenga durante dos minutos. Un pico más corto no debe activar esa alerta; los datos sintéticos permiten comprobar ese plazo.</p>
 </details>

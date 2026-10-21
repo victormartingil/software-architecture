@@ -22,6 +22,7 @@ theme:
 plugins: [search]
 hooks: [tools/docs/source_links.py]
 markdown_extensions:
+  - md_in_html
   - admonition
   - pymdownx.details
   - pymdownx.superfences

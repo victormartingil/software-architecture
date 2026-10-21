@@ -75,3 +75,7 @@ El comprador consulta y solicita; el responsable aprueba. El [mapa de componente
 | Modificar documentación o diagramas | [Guía de contribución](docs/contributing.md) |
 
 El entorno local facilita el aprendizaje; no demuestra alta disponibilidad ni calidad de un modelo generativo real. Kubernetes y Terraform se estudian como prácticas adicionales, sin crear infraestructura de pago.
+
+## Licencia
+
+Código y documentación originales bajo [MIT](LICENSE). Los componentes y materiales de terceros conservan sus propias licencias; véase [reutilización y referencias](docs/contributing.md#topic-reutilizacion-y-referencias).

@@ -65,7 +65,14 @@ El stream time avanza con las marcas de tiempo de los eventos observados por la 
 
 El almacén local (state store) permite consultar el agregado; un registro de cambios en Kafka (changelog) permite reconstruirlo. No es una copia de seguridad universal: depende de retención, identidad de aplicación y disponibilidad de Kafka. El laboratorio verifica reinicio y restauración; la topología determinista verifica ventanas y mensajes tardíos sin esperas reales.
 
-El consumidor limita cada poll a 100 registros y pausa por partición al superar un umbral de 100 en su cola; un lote puede excederlo. Son umbrales por lote o partición, no límites globales de memoria o caudal. El lag es la distancia entre lo publicado y la posición del consumidor: observarlo junto a la capacidad antes de añadir tareas. `StreamsLifecycle` prueba arranque RUNNING hasta 60 s y cierre solicitado hasta 20 s, con readiness HTTP/archivo retirado durante rebalance y parada. Compose y Kubernetes conceden 30 s de terminación. Si se agota el plazo, el cierre se comunica como fallido.
+El lag es la distancia entre lo publicado y la posición del consumidor. Observarlo junto a la capacidad antes de añadir tareas; consumir más deprisa puede trasladar el cuello de botella a SQL o al procesamiento.
+
+<details markdown="1">
+<summary>Límites de consumo, arranque y parada del laboratorio</summary>
+
+El consumidor limita cada poll a 100 registros y pausa por partición al superar un umbral de 100 en su cola; un lote puede excederlo. Son umbrales por lote o partición, no límites globales de memoria o caudal. `StreamsLifecycle` espera el estado RUNNING hasta 60 s y solicita cierre hasta 20 s, con readiness HTTP/archivo retirado durante redistribución de particiones (rebalance) y parada. Compose y Kubernetes conceden 30 s de terminación. Si se agota el plazo, el cierre se comunica como fallido.
+
+</details>
 
 Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman dentro de la transacción Kafka. Sus consumidores deben leer con `isolation.level=read_committed`. Esta atomicidad no incluye PostgreSQL ni HTTP; eventId sigue siendo necesario para reconocer publicaciones repetidas del mismo hecho de negocio.
 
@@ -110,13 +117,13 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 
 ## Para profundizar
 
-Lectura complementaria: [*Designing Data-Intensive Applications*, 2.ª edición](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html), para comparar sistemas de datos, procesamiento y sus trade-offs. El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/trunk/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) muestra una topología mínima en el repositorio Apache Kafka; sirve para estudiar la API, no como dependencia de esta implementación.
+Lectura complementaria: [*Designing Data-Intensive Applications*, 2.ª edición](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html), para comparar sistemas de datos, procesamiento y sus trade-offs. El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/e4cc5d18f45d2965e4e1e571adc34bfb80cba642/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) permite localizar la secuencia `stream → groupBy → count → toStream`. Comparar su conteo por palabra con tenant/SKU/ventana y deduplicación de esta referencia: ¿qué cambia en la clave y en el estado? Sirve para estudiar la API, no como dependencia de esta implementación.
 
 ## Comprobar lo aprendido
 
 ¿Puede evitarse un duplicado asignando un eventId nuevo a cada reintento?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>No. La deduplicación necesita reconocer la identidad original. Un ID nuevo presenta la repetición como otro hecho y puede duplicar el efecto.</p>
 </details>

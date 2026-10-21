@@ -10,7 +10,16 @@ El capítulo 1 separó el caso de uso de su adaptador HTTP. Este capítulo estud
 
 Una API puede devolver JSON válido y dejar de ser compatible con sus clientes: cambia un estado, permite un campo que antes rechazaba o lista recursos de otro usuario. El contrato debe describir esas decisiones y tener una comprobación ejecutable. OpenAPI describe rutas, entradas y respuestas en un formato que pueden leer las herramientas. JSON Schema define la forma y las restricciones de los datos JSON. En esta referencia, [OpenAPI de Comercio](../../contracts/http/commerce.openapi.json) es la fuente canónica HTTP; [la especificación](../specification.md) explica las invariantes y límites. Un contrato formal no sustituye pruebas de autorización ni una transacción correcta.
 
-Los controladores de pedidos, inventario y devoluciones adaptan cada entrada a su puerto de aplicación. Los nombres y estados del JSON forman parte del contrato. `quantity` y `version` requieren literales enteros: cadenas como `"2"` y números escritos como `1.9` o `2.0` producen 400, en vez de conversiones silenciosas. OpenAPI/JSON Schema considera entero el valor matemático 2.0; esa restricción sobre la escritura del número se indica en la descripción y se comprueba en HTTP. Los campos extra de entrada se toleran por compatibilidad; las respuestas siguen un esquema definido. Las llamadas del asistente usan operaciones por intención; solo el adaptador HTTP conoce rutas y verbos. Que una integración use HTTP no obliga a exponer `request(method, path)` en su puerto.
+Los controladores de pedidos, inventario y devoluciones adaptan cada entrada a su puerto de aplicación. Los nombres y estados del JSON forman parte del contrato. `quantity` y `version` requieren literales enteros; por ejemplo, `2` es válido y `"2"` produce 400. Los campos extra de entrada se toleran por compatibilidad; las respuestas siguen un esquema definido.
+
+<details markdown="1">
+<summary>Por qué el literal 2.0 requiere una comprobación HTTP</summary>
+
+También se rechazan `1.9` y `2.0`, en vez de convertirlos silenciosamente. OpenAPI/JSON Schema considera entero el valor matemático 2.0; la restricción sobre su escritura se indica en la descripción y se comprueba en HTTP. Un validador de esquema no acredita por sí solo esa condición del transporte.
+
+</details>
+
+Las llamadas del asistente usan operaciones por intención; solo el adaptador HTTP conoce rutas y verbos. Que una integración use HTTP no obliga a exponer `request(method, path)` en su puerto.
 
 <a id="topic-significado-antes-que-transporte"></a>
 
@@ -65,7 +74,7 @@ La alternativa offset es más sencilla para saltar a un número de página, pero
 
 ### 1. Seguir el código
 
-Leer el OpenAPI enlazado, [OrderQuery](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/model/OrderQuery.java) y [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java). Desde la raíz, con Java 21 y Docker:
+Leer el OpenAPI enlazado, [OrderQuery](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/model/OrderQuery.java) y [CommerceIntegrationTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java). En la prueba, localizar `orderPagesUseTenantOwnerAndKeyset` para permisos y cursor, y `httpContractMatchesActualRoutesAndResponses` para la forma de las respuestas. Desde la raíz, con Java 21 y Docker:
 
 ### 2. Predecir el resultado
 
@@ -92,7 +101,7 @@ Si se leen tres filas para devolver una página de dos elementos, ¿qué identif
 
 En el ejemplo A, B, C, ¿qué ocurre si la primera página devuelve A y B pero utiliza C como cursor?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>La segunda consulta empezaría después de C y se saltaría ese pedido. El cursor debe ser B, el último elemento realmente devuelto.</p>
 </details>

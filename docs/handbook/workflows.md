@@ -16,6 +16,19 @@ Un flujo de trabajo (workflow) coordina varios pasos. Al crearlo, el asistente l
 
 [![Secuencia de devolución con aprobación humana](../diagrams/return-sequence.svg)](../diagrams/return-sequence.svg)
 
+La secuencia se lee así: comprador solicita → Comercio crea propuesta → asistente guarda progreso y pausa → responsable aporta su JWT actual → asistente consulta y aprueba la versión → Comercio revalida y ejecuta → asistente guarda el resultado. Si el checkpoint ya indica EXECUTED se devuelve ese progreso; si Comercio ya ejecutó, se evita repetir el efecto. El JWT nunca se guarda en el checkpoint.
+
+En `ReturnApprovalWorkflow`, seguir `propose → wait_for_approval → execute`. Este extracto literal conecta los nodos; cada nombre corresponde a un método del mismo archivo:
+
+```python
+builder.add_edge(START, "propose")
+builder.add_edge("propose", "approval")
+builder.add_edge("approval", "execute")
+builder.add_edge("execute", END)
+```
+
+El nodo `approval` llama a `wait_for_approval`, que ejecuta `interrupt`. La petición del responsable reanuda el grafo; `execute` consulta el estado actual de Comercio antes del efecto. La flecha del grafo indica orden, no autorización.
+
 El [puerto de Comercio](../../apps/ai-service/src/ai_service/application/ports.py) expresa operaciones de devolución y devuelve `ReturnResult` tipado. El [adaptador HTTP](../../apps/ai-service/src/ai_service/infrastructure/commerce.py) conoce rutas, verbos y JSON; valida identidad, estado y versión antes de devolver el resultado. Una respuesta malformada se traduce en error de dependencia, sin registrar su cuerpo ni reintentar escrituras arbitrariamente. No es necesario un módulo desplegable adicional para esta frontera.
 
 El JWT se usa transitoriamente para la llamada y no se guarda en puntos de control. Guardarlo convertiría el almacén del flujo en una colección de credenciales reutilizables. La identidad de propietario y tenant sí debe persistir para controlar consultas y reanudaciones.
@@ -26,7 +39,9 @@ El JWT se usa transitoriamente para la llamada y no se guarda en puntos de contr
 
 [![Estados de negocio de una devolución](../diagrams/return-states.svg)](../diagrams/return-states.svg)
 
-Este diagrama describe el estado de negocio. Una nueva aprobación explícita cambia versión y vencimiento; no es una repetición idempotente de la misma aprobación. El vencimiento se verifica como condición de ejecución, sin un estado EXPIRED persistido. Un punto de control (checkpoint) es una copia guardada del progreso del grafo para poder pausar y reanudar; puede guardar IDs y un estado observado, pero no es la fuente de verdad del negocio ni concede permisos. No existe commit atómico entre la llamada HTTP y el checkpoint: comercio puede confirmar y la respuesta perderse. Al reintentar, la clave estable devuelve el efecto anterior y el backend vuelve a validar la autorización. LangGraph no proporciona por sí solo «exactamente una ejecución» sobre sistemas externos.
+Los estados de negocio son `PENDING → APPROVED → EXECUTED`: crear propuesta, aprobar con rol y versión vigentes y ejecutar con aprobación no vencida. Una nueva aprobación explícita incrementa versión y renueva el vencimiento; no es una repetición idempotente de la misma aprobación. La caducidad se comprueba al ejecutar, sin un estado EXPIRED persistido. Una repetición idempotente de ejecución conserva EXECUTED.
+
+Un punto de control (checkpoint) es una copia guardada del progreso del grafo para pausar y reanudar. Puede guardar IDs y un estado observado, pero no es la fuente de verdad del negocio ni concede permisos. No existe commit atómico entre HTTP y checkpoint: Comercio puede confirmar y perderse la respuesta. Al reintentar, la clave estable devuelve el efecto anterior y el backend vuelve a validar la autorización. LangGraph no proporciona por sí solo «exactamente una ejecución» sobre sistemas externos.
 
 Al reanudar un `interrupt`, LangGraph vuelve a ejecutar el nodo desde su principio. Cualquier efecto anterior a la pausa debe admitir repetición. Aquí el nodo de espera solo interrumpe; propuesta y ejecución usan claves estables frente a reinicios o respuestas perdidas. La pausa se conserva entre peticiones HTTP distintas: no mantiene una conexión abierta esperando al responsable. Véanse las [reglas de reanudación e idempotencia de interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent).
 
@@ -70,7 +85,7 @@ Con Docker, `make up` y `make demo` prueban JWT reales de Keycloak, aprobación,
 
 ¿Guardar el JWT del responsable en el punto de control facilitaría una reanudación segura?
 
-<details>
+<details markdown="1">
 <summary>Ver la explicación</summary>
 <p>No. Guardaría una credencial reutilizable. El flujo conserva progreso e identidades; las nuevas peticiones aportan el token y Comercio comprueba los permisos vigentes.</p>
 </details>
