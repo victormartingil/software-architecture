@@ -1,8 +1,8 @@
 # 0. Preparar el entorno y ejecutar el primer pedido
 
-[Índice del manual](index.md) · [Siguiente: organización del código →](handbook/architecture.md)
+[Índice de la referencia](index.md) · [Siguiente: organización del código →](handbook/architecture.md)
 
-**Objetivo:** reconocer las aplicaciones del ejemplo y ejecutar una compra y su devolución completa antes de estudiar su implementación.
+**Objetivo:** reconocer las aplicaciones del ejemplo y ejecutar una compra y su devolución completa para contrastar después su implementación.
 
 ## 1. Entender el caso
 
@@ -88,7 +88,7 @@ make kafka-summary ORDER_ID=UUID_DEL_PEDIDO
 make down
 ```
 
-Los datos se conservan entre arranques. `make reset CONFIRM=delete-local-data` los elimina de forma explícita; no hace falta ejecutarlo para seguir el manual. Las credenciales locales son ficticias (`local-demo-only`) y los puertos se publican solo en el propio equipo.
+Los datos se conservan entre arranques. `make reset CONFIRM=delete-local-data` los elimina de forma explícita; no hace falta ejecutarlo para reproducir los casos. Las credenciales locales son ficticias (`local-demo-only`) y los puertos se publican solo en el propio equipo.
 
 **Comprobación:** ¿por qué la respuesta del asistente no permite devolver un pedido sin aprobación? Porque una recomendación no concede permisos: Comercio conserva la decisión y comprueba al usuario cuando se solicita el efecto.
 

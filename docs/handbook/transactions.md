@@ -1,6 +1,6 @@
 # 3. Proteger datos con transacciones e idempotencia
 
-[← Anterior](api-contracts.md) · [Índice del manual](../index.md) · [Siguiente →](events.md)
+[← Anterior](api-contracts.md) · [Índice de la referencia](../index.md) · [Siguiente →](events.md)
 
 El capítulo 2 definió el contrato de compra. Ahora se comprueba qué garantiza el backend cuando dos peticiones llegan a la vez o cuando el cliente repite una compra tras perder la respuesta.
 
@@ -67,7 +67,10 @@ Bloquear la fila antes de decidir puede simplificar reglas más complejas; aumen
 
 Mantener inventario y pedidos en la misma base evita una transacción distribuida. Si fueran servicios independientes, la reserva necesitaría protocolo, estado intermedio, caducidad y compensación. Una saga coordina esas etapas, pero no ofrece el rollback instantáneo de una transacción SQL.
 
-## Práctica guiada: comprobar reserva, repetición y rollback
+<a id="practica-guiada-comprobar-reserva-repeticion-y-rollback"></a>
+<a id="práctica-guiada-comprobar-reserva-repetición-y-rollback"></a>
+
+## Comprobación reproducible: comprobar reserva, repetición y rollback
 
 ### 1. Seguir el código
 
@@ -94,14 +97,17 @@ En operación se debe definir retención de claves, volumen de outbox, tiempo de
 
 <a id="topic-ejercicio-carrera-de-stock"></a>
 
-## Ejercicio de aplicación: corregir una carrera
+<a id="ejercicio-de-aplicacion-corregir-una-carrera"></a>
+<a id="ejercicio-de-aplicación-corregir-una-carrera"></a>
+
+## Caso de aplicación: corregir una carrera
 
 Dos transacciones con claves idempotentes distintas leen stock 1. Cada una calcula `1 - 1`, escribe stock 0 y guarda un pedido. Construir una tabla de pasos A/B que termine con dos pedidos confirmados y explicar por qué `CHECK(stock >= 0)` no detecta la venta duplicada.
 
 **Entregable:** sustituir esa secuencia por una sentencia SQL parametrizada y describir qué hace cada transacción ante cero filas o ante un rollback. No ejecutar escrituras manuales sobre el laboratorio. **Pista:** comprobar y descontar en la misma escritura; mantenerla dentro de la transacción que guarda el pedido.
 
 <details markdown="1">
-<summary>Ver una solución razonada</summary>
+<summary>Ver una resolución razonada</summary>
 
 La carrera es `A lee 1 → B lee 1 → A escribe 0 y confirma → B escribe 0 y confirma`. La restricción acepta ambos ceros, aunque se hayan creado dos pedidos.
 
@@ -111,11 +117,16 @@ Comprobar la explicación contra `concurrentLastUnit` y `rollbackIncludesStockAn
 
 </details>
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [PostgreSQL: Read Committed y actualización concurrente](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED), [bloqueos explícitos](https://www.postgresql.org/docs/17/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html). Para profundizar en aislamiento y sistemas de datos, la [lectura DDIA recomendada en eventos](events.md#topic-lecturas-y-ejemplo-de-referencia) complementa este caso SQL.
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 Si la primera transacción revierte mientras la segunda espera la fila, ¿la segunda tiene que devolver conflicto?
 

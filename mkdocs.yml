@@ -1,5 +1,5 @@
 site_name: Arquitectura de software e integración de IA
-site_description: Manual práctico de backend, eventos e integración fiable de IA
+site_description: Decisiones de arquitectura backend e integración fiable de IA, con implementación y verificación
 docs_dir: docs
 site_dir: site
 theme:
@@ -27,8 +27,8 @@ markdown_extensions:
   - pymdownx.details
   - pymdownx.superfences
 nav:
-  - Manual:
-      - Cómo estudiar este manual: index.md
+  - Referencia:
+      - Cómo utilizar esta referencia: index.md
       - 0. Preparación y primer pedido: getting-started.md
       - 1. Organización del código: handbook/architecture.md
       - 2. Contratos HTTP: handbook/api-contracts.md

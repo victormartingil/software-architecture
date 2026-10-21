@@ -1,6 +1,6 @@
 # 8. Observar el sistema y diagnosticar fallos
 
-[← Anterior](security.md) · [Índice del manual](../index.md) · [Siguiente →](delivery.md)
+[← Anterior](security.md) · [Índice de la referencia](../index.md) · [Siguiente →](delivery.md)
 
 El capítulo 7 limitó errores y esperas. Para investigar un fallo real hace falta observar qué ocurrió. Este capítulo relaciona una operación con sus métricas, su traza y sus logs, y muestra cómo actuar ante eventos pendientes.
 
@@ -88,7 +88,7 @@ docker compose exec -T kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 Si no hay mensajes, el consumidor termina por timeout; no significa que haya fallado la aplicación. Para Analytics, sustituir el topic por `orders.analytics.v1.dlt` y añadir `--isolation-level read_committed`. La muestra puede ser histórica: identificar evento y causa antes de actuar, sin presentarla como fallo de la operación actual.
 
-El valor contiene el evento original. En auditoría, los headers añadidos por Spring pueden aportar origen y excepción; Analytics conserva el valor sin añadir ese diagnóstico. No copiar headers ni clave Kafka dentro del JSON de reproceso. Por ejemplo, `data.quantity=0` incumple el rango 1..100. No cambiarlo a 1 por conveniencia: solo repararlo si el hecho confirmado demuestra que esa era la cantidad real; si la causa fue un consumidor incompatible, corregir primero el consumidor. Una DLT vacía no requiere fabricar un incidente para continuar el manual.
+El valor contiene el evento original. En auditoría, los headers añadidos por Spring pueden aportar origen y excepción; Analytics conserva el valor sin añadir ese diagnóstico. No copiar headers ni clave Kafka dentro del JSON de reproceso. Por ejemplo, `data.quantity=0` incumple el rango 1..100. No cambiarlo a 1 por conveniencia: solo repararlo si el hecho confirmado demuestra que esa era la cantidad real; si la causa fue un consumidor incompatible, corregir primero el consumidor. Una DLT vacía no requiere fabricar un incidente para continuar el recorrido.
 
 Guardar **solo el JSON completo del evento** en `reports/repaired-event.json`, conservando eventId, tenant y hecho de negocio. El siguiente comando valida el esquema y después publica; ejecutarlo únicamente tras investigar la causa y decidir el reproceso:
 
@@ -124,7 +124,10 @@ El comando forma parte de `make verify`, reutiliza la imagen Prometheus fijada e
 
 `make down` apaga sin borrar volúmenes. `make up` recupera datos. `make reset CONFIRM=delete-local-data` elimina únicamente volúmenes del proyecto Compose y exige intención explícita. Un reset no sustituye una migración ni una prueba de restauración. Ejecutar kind después de apagar Compose para evitar puertos y memoria competidos.
 
-## Práctica guiada: contar el resultado de cada operación una vez
+<a id="practica-guiada-contar-el-resultado-de-cada-operacion-una-vez"></a>
+<a id="práctica-guiada-contar-el-resultado-de-cada-operación-una-vez"></a>
+
+## Comprobación reproducible: contar el resultado de cada operación una vez
 
 ### 1. Seguir el código
 
@@ -145,7 +148,10 @@ Una respuesta SSE comienza con HTTP 200 y termina con un error. ¿Basta contar l
 
 **Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [Spring logging estructurado](https://docs.spring.io/spring-boot/reference/features/logging.html), [Tempo API](https://grafana.com/docs/tempo/latest/api_docs/), [OTel configuración](https://opentelemetry.io/docs/collector/configuration/), [Prometheus alertas](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [SRE SLO](https://sre.google/workbook/implementing-slos/).
 
@@ -155,7 +161,9 @@ Una respuesta SSE comienza con HTTP 200 y termina con un error. ¿Basta contar l
 
 La [configuración del OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/3ee33db6f17a7482f63553c514c81c53ba8a696f/src/otel-collector/otelcol-config.yml) permite seguir receptores, procesadores y exportadores hasta los pipelines de señales. Comparar ese recorrido con `infra/observability/collector.yaml`: ¿qué recibe y a dónde reenvía cada uno? Es un sistema mucho mayor que este laboratorio; úsalo para seguir la configuración de señales, no como topología mínima recomendada.
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 Hay eventos pendientes durante un minuto y después se publican. ¿Debe activarse OutboxBacklog?
 

@@ -1,6 +1,6 @@
 # 2. Definir contratos HTTP y paginar resultados
 
-[← Anterior](architecture.md) · [Índice del manual](../index.md) · [Siguiente →](transactions.md)
+[← Anterior](architecture.md) · [Índice de la referencia](../index.md) · [Siguiente →](transactions.md)
 
 El capítulo 1 separó el caso de uso de su adaptador HTTP. Este capítulo estudia ese adaptador desde el punto de vista del cliente: qué datos acepta, qué errores devuelve y cómo permite recorrer los pedidos.
 
@@ -70,7 +70,10 @@ El cursor acota la respuesta, no garantiza un coste constante. Antes de reutiliz
 
 La alternativa offset es más sencilla para saltar a un número de página, pero necesita razonar sobre coste y desplazamientos ante cambios. El cursor sirve bien a la navegación secuencial de este caso; no es una solución universal para cualquier catálogo.
 
-## Práctica guiada: contrato y aislamiento reales
+<a id="practica-guiada-contrato-y-aislamiento-reales"></a>
+<a id="práctica-guiada-contrato-y-aislamiento-reales"></a>
+
+## Comprobación reproducible: contrato y aislamiento reales
 
 ### 1. Seguir el código
 
@@ -93,11 +96,16 @@ Si se leen tres filas para devolver una página de dos elementos, ¿qué identif
 
 **Alternativa:** generar clientes desde OpenAPI puede aportar valor si existen consumidores que los necesitan. Aquí no se añade un generador ni modelos duplicados: el contrato se verifica contra el comportamiento. Una modificación de ruta, seguridad, entrada o respuesta exige actualizar contrato y pruebas en el mismo cambio.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/17/using-explain.html), [OpenAPI](https://spec.openapis.org/oas/v3.1.0), [JSON Schema: tipos numéricos y enteros](https://json-schema.org/understanding-json-schema/reference/numeric), [Problem Details](https://www.rfc-editor.org/rfc/rfc9457).
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 En el ejemplo A, B, C, ¿qué ocurre si la primera página devuelve A y B pero utiliza C como cursor?
 

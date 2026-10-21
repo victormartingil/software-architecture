@@ -1,6 +1,6 @@
 # 9. Desplegar, escalar y entregar cambios
 
-[← Anterior](operations.md) · [Índice del manual](../index.md) · [Volver al índice →](../index.md)
+[← Anterior](operations.md) · [Índice de la referencia](../index.md) · [Volver al índice →](../index.md)
 
 El capítulo 8 mostró cómo observar una operación. El último capítulo estudia dónde se ejecuta el sistema y qué hay que comprobar antes de cambiar su despliegue. Se parte de Compose y se comparan las prácticas de Kubernetes y Terraform.
 
@@ -115,7 +115,10 @@ TLS (el nombre anterior SSL suele usarse coloquialmente) cifra el canal entre ap
 
 El laboratorio local no configura TLS para PostgreSQL. TLS no cifra por sí solo los datos almacenados ni reemplaza la autenticación SQL; la [configuración del servidor](https://www.postgresql.org/docs/17/ssl-tcp.html) también debe revisarse antes de un despliegue real.
 
-## Práctica guiada: comprobar permisos en un plan Terraform
+<a id="practica-guiada-comprobar-permisos-en-un-plan-terraform"></a>
+<a id="práctica-guiada-comprobar-permisos-en-un-plan-terraform"></a>
+
+## Comprobación reproducible: comprobar permisos en un plan Terraform
 
 ### 1. Seguir el código
 
@@ -135,7 +138,10 @@ make terraform-check
 
 **Alternativa:** ejecutar solo `validate` prueba sintaxis y tipos, sin comprobar esa política. Mocks tampoco acreditan IAM efectivo: un despliegue autorizado requeriría pruebas reales. En local, `make kind-smoke` enlaza el pedido de su ejecución con SQL y Kafka del clúster; no reutiliza conexiones Compose. No es necesario levantar kind para esta práctica.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [kind](https://kind.sigs.k8s.io/docs/user/quick-start/), [HPA](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/), [probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/), [requests y limits](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/), [Terraform mocks](https://developer.hashicorp.com/terraform/language/tests/mocking), [GKE Autopilot](https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview).
 
@@ -177,7 +183,9 @@ Las comprobaciones deben intentar dos reanudaciones simultáneas, pérdida de re
 
 </details>
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 ¿Bastaría cambiar AI de una a dos réplicas para atender el doble de flujos con seguridad?
 
@@ -190,4 +198,4 @@ El recorrido ha unido código, datos, eventos, IA y despliegue. Para repasar una
 
 ---
 
-[← 8. Observar el sistema y diagnosticar fallos](operations.md) · [Índice](../index.md) · [Repasar el manual →](../index.md)
+[← 8. Observar el sistema y diagnosticar fallos](operations.md) · [Índice](../index.md) · [Consultar la referencia →](../index.md)

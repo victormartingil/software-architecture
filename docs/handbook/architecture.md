@@ -1,6 +1,6 @@
 # 1. Organizar el código en módulos, puertos y adaptadores
 
-[← Anterior](../getting-started.md) · [Índice del manual](../index.md) · [Siguiente →](api-contracts.md)
+[← Anterior](../getting-started.md) · [Índice de la referencia](../index.md) · [Siguiente →](api-contracts.md)
 
 En el capítulo anterior se ha seguido un pedido desde fuera. Ahora se estudia su recorrido dentro de Comercio: la petición llega por HTTP, el caso de uso coordina el trabajo y un adaptador accede a PostgreSQL.
 
@@ -87,7 +87,10 @@ Para otra necesidad, completar la misma tabla y señalar qué dato haría cambia
 
 Un Command pide un cambio y una Query solicita información. CQRS (separación de responsabilidades de comandos y consultas) separa los modelos de escritura y lectura; no obliga a desplegar dos servicios. Event-driven comunica hechos mediante eventos. Event sourcing conserva el historial de eventos como fuente de verdad para reconstruir el estado. Commerce mantiene el estado actual en SQL y publica un outbox; Analytics construye un resumen derivado. Esas decisiones no convierten el dominio en event sourcing. Factory, Observer o Decorator se explican cuando resuelven un caso concreto; no se añaden capas para demostrar nombres. Para patrones adicionales, consultar el [catálogo de Refactoring.Guru](https://refactoring.guru/design-patterns) y contrastar ejemplos antes de reutilizar código.
 
-## Práctica guiada: comprobar las dependencias permitidas
+<a id="practica-guiada-comprobar-las-dependencias-permitidas"></a>
+<a id="práctica-guiada-comprobar-las-dependencias-permitidas"></a>
+
+## Comprobación reproducible: comprobar las dependencias permitidas
 
 ### 1. Seguir el código
 
@@ -117,7 +120,10 @@ Un módulo puede respetar sus capas y aun así formar un ciclo con otro: `orders
 
 <a id="topic-ejercicio-regla-de-dominio"></a>
 
-## Ejercicio de aplicación: proteger una cantidad
+<a id="ejercicio-de-aplicacion-proteger-una-cantidad"></a>
+<a id="ejercicio-de-aplicación-proteger-una-cantidad"></a>
+
+## Caso de aplicación: proteger una cantidad
 
 En una copia de trabajo, completar el constructor de [Quantity](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/domain/Quantity.java) sin consultar primero su cuerpo: debe aceptar 1..100 y lanzar `BusinessException` con `Kind.INVALID_INPUT` fuera del rango. No importar HTTP ni Spring ni cambiar el contrato. Antes de programar, escribir el resultado esperado para 0, 1, 100 y 101.
 
@@ -130,7 +136,7 @@ En una copia de trabajo, completar el constructor de [Quantity](../../apps/comme
 La prueba `quantityCannotBypassHttpValidation` debe pasar; también comprueba que comando y pedido no eluden la regla. No requiere Docker. Terminado cuando se conservan los extremos válidos y se rechazan los inválidos sin introducir dependencias de infraestructura.
 
 <details markdown="1">
-<summary>Ver una solución y su motivo</summary>
+<summary>Ver una resolución razonada</summary>
 
 ```java
 public Quantity {
@@ -144,7 +150,10 @@ Es el constructor compacto del `record Quantity(int value)`. Usa tipos de su pro
 
 </details>
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [arquitectura hexagonal original](https://alistair.cockburn.us/hexagonal-architecture), [ArchUnit](https://www.archunit.org/userguide/html/000_Index.html), [import-linter](https://import-linter.readthedocs.io/en/stable/contract_types/layers/).
 
@@ -154,7 +163,9 @@ Es el constructor compacto del `record Quantity(int value)`. Usa tipos de su pro
 
 Lectura: [*Fundamentals of Software Architecture*, 2.ª edición](https://www.oreilly.com/library/view/fundamentals-of-software/9781098175504/), para estilos, límites, decisiones y evolución de arquitectura. Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/1028b09682320bb3feaf017c72379a81835e3ad3/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring. Al leerla, localizar cómo identifica un módulo y compararlo con las reglas de `ArchitectureRules`: ¿qué verifica cada enfoque? Es una referencia de la biblioteca, no una dependencia de este proyecto.
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 ¿Qué problema introduce que dos módulos se llamen mutuamente, aunque utilicen puertos de entrada?
 

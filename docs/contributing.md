@@ -2,9 +2,12 @@
 
 La [especificación](specification.md) y los [criterios de aceptación](acceptance.md) fijan los contratos. Antes de modificar una capacidad, revisar sus criterios y la [evidencia disponible](verification.md). Las instrucciones completas están en `AGENTS.md`, en la raíz del repositorio.
 
-## Redactar un capítulo
+<a id="redactar-un-capitulo"></a>
+<a id="redactar-un-capítulo"></a>
 
-Mantener un problema concreto de la tienda como hilo conductor. Introducir el término en español antes de utilizar su nombre técnico; conservar en inglés los identificadores del código. Usar títulos que indiquen el contenido y frases que expliquen una acción o una relación concreta.
+## Documentar una decisión
+
+Presentar decisiones respaldadas por código y evidencia: problema, restricciones, alternativas, decisión, implementación, verificación y límites. Mantener un problema concreto de la tienda como hilo conductor. Conservar las explicaciones iniciales, ejemplos y casos de aplicación para repasar y compartir criterios; no atribuir experiencia productiva ni resultados que la evidencia no acredite. Introducir el término en español antes de utilizar su nombre técnico; conservar en inglés los identificadores del código. Usar títulos que indiquen el contenido y frases que expliquen una acción o una relación concreta.
 
 Un capítulo debe permitir entender el caso, seguir la implementación y comprobar un resultado. Los ejercicios de aplicación deben pedir un entregable y ofrecer pista, criterios de éxito y solución razonada; no convertir todos los capítulos en talleres ni confundir ejecutar pruebas con demostrar aprendizaje. Indicar requisitos de la práctica, resultado esperado y límites. Al cambiar títulos, conservar las anclas explícitas para no romper enlaces. Mantener los enlaces de capítulo anterior, índice y siguiente.
 

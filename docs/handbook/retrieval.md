@@ -1,6 +1,6 @@
 # 5. Buscar documentos y evaluar respuestas de IA
 
-[← Anterior](events.md) · [Índice del manual](../index.md) · [Siguiente →](workflows.md)
+[← Anterior](events.md) · [Índice de la referencia](../index.md) · [Siguiente →](workflows.md)
 
 Hasta aquí el pedido ha circulado entre servicios. Se incorpora ahora el asistente: antes de responder sobre una devolución debe buscar información que el usuario pueda consultar. Este capítulo separa esa búsqueda de la generación de texto.
 
@@ -86,7 +86,10 @@ Para comparar modelos en el futuro, mantener las mismas preguntas reservadas —
 
 SSE (Server-Sent Events) mantiene una respuesta HTTP abierta para enviar eventos del servidor al cliente. Aquí emite inicio y un resultado completo ya validado. Permite enseñar conexión, terminación y cancelación sin permitir acciones a partir de texto parcial. No es streaming token a token. Desconectar cancela la tarea y libera capacidad para otra petición. La prueba utiliza ASGI, la interfaz entre el servidor y la aplicación Python, para simular esa desconexión. Un cliente debe distinguir un evento `error` de una respuesta válida.
 
-## Práctica guiada: interpretar el ranking de documentos
+<a id="practica-guiada-interpretar-el-ranking-de-documentos"></a>
+<a id="práctica-guiada-interpretar-el-ranking-de-documentos"></a>
+
+## Comprobación reproducible: interpretar el ranking de documentos
 
 ### 1. Seguir el código
 
@@ -112,7 +115,10 @@ El informe JSON es opcional y queda excluido de Git: identifica versión de esqu
 
 <a id="topic-ejercicio-caso-de-recuperacion"></a>
 
-## Ejercicio de aplicación: añadir una pregunta propia
+<a id="ejercicio-de-aplicacion-anadir-una-pregunta-propia"></a>
+<a id="ejercicio-de-aplicación-añadir-una-pregunta-propia"></a>
+
+## Caso de aplicación: añadir una pregunta propia
 
 Crear un caso de estudio en memoria, sin cambiar los 42 casos de referencia: tenant `demo` y pregunta «¿Es obligatorio conservar el embalaje?». Leer el [corpus](../../apps/ai-service/data/corpus.json), elegir el documento relevante y predecir si se recuperará y por qué. Desde la raíz, con Python/uv, completar la lista `relevant` antes de ejecutar:
 
@@ -137,13 +143,16 @@ PYTHON
 **Pista:** etiquetar según el contenido del documento y después buscar los términos comunes con la pregunta. La lista vacía es deliberada: sin etiqueta relevante no se pueden calcular estas métricas y el programa debe rechazarla. Terminado cuando la etiqueta procede del contenido y se explican los tres resultados; después proponer otra formulación y analizar su ranking, sin cambiar etiquetas para ocultar un fallo.
 
 <details markdown="1">
-<summary>Ver la solución del caso inicial</summary>
+<summary>Ver una resolución razonada del caso inicial</summary>
 
 Completar `"relevant": ["demo-returns"]`. Se espera `['demo-returns']` y recall, hit-rate y MRR de 1 para este caso. Coinciden «conservar» y «embalaje»; no hace falta un embedding. El resultado acredita esa recuperación, no una respuesta generada ni generalización. Si una nueva formulación no comparte términos, explicar la limitación léxica antes de cambiar el recuperador.
 
 </details>
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [Responses](https://platform.openai.com/docs/api-reference/responses), [salidas estructuradas](https://developers.openai.com/api/docs/guides/structured-outputs), [pgvector: distancias y consultas](https://github.com/pgvector/pgvector#querying), [FastAPI respuestas](https://fastapi.tiangolo.com/advanced/custom-response/).
 
@@ -153,7 +162,9 @@ Completar `"relevant": ["demo-returns"]`. Se espera `['demo-returns']` y recall,
 
 Lectura: [*AI Engineering*, de Chip Huyen](https://www.oreilly.com/library/view/ai-engineering/9781098166298/), para diseño, evaluación y operación de aplicaciones con modelos fundacionales. [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/docs/examples/low_level/retrieval.ipynb) permite seguir recuperación, selección del contexto y consulta. Comparar qué decide el recuperador con lo que decide el generador; los filtros de autorización de esta referencia siguen siendo obligatorios. En el libro, buscar el tratamiento de evaluación y contrastarlo con la distinción entre recuperación y respaldo semántico de este capítulo.
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 Se recupera el documento correcto, pero la respuesta contradice su contenido. ¿Qué habría que evaluar para detectar ese fallo?
 

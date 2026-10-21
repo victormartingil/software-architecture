@@ -1,10 +1,13 @@
 # Arquitectura de software e integración de IA
 
-Un manual práctico para estudiar cómo organizar un backend, proteger sus datos, comunicar servicios e integrar IA con permisos y límites claros. El hilo conductor es una tienda de ejemplo: un comprador realiza un pedido, consulta las condiciones de devolución y solicita una devolución que aprueba un responsable.
+Una implementación de referencia que reúne decisiones de arquitectura backend e integración fiable de IA, con sus motivos, alternativas, código y verificaciones reproducibles. El hilo conductor es una tienda de ejemplo: un comprador realiza un pedido, consulta las condiciones de devolución y solicita una devolución que aprueba un responsable.
 
-**[Empezar a estudiar](docs/index.md)** · **[Preparar el entorno](docs/getting-started.md)** · **[Consultar un tema](docs/reference-map.md)**
+**[Explorar la arquitectura](docs/index.md)** · **[Preparar el entorno](docs/getting-started.md)** · **[Consultar un tema](docs/reference-map.md)**
 
-## Qué se aprende
+<a id="que-se-aprende"></a>
+<a id="qué-se-aprende"></a>
+
+## Qué cubre esta referencia
 
 El recorrido sigue el mismo pedido a través de tres aplicaciones:
 
@@ -14,17 +17,36 @@ El recorrido sigue el mismo pedido a través de tres aplicaciones:
 | Resumen de pedidos · `order-analytics` | Procesamiento de eventos y agregaciones con Kafka Streams. |
 | Asistente · `ai-service` | Consulta de documentos y coordinación de devoluciones con Python y FastAPI. |
 
-Cada capítulo explica un problema, sigue su solución en el código y propone una práctica para comprobar el resultado. Los diagramas ayudan a relacionar las piezas; al final se incluyen documentación oficial, lecturas y ejemplos para profundizar.
+Cada sección explica un problema, sigue su solución en el código y ofrece una comprobación reproducible del resultado. Los casos de aplicación permiten discutir alternativas y contrastar el razonamiento. Los diagramas ayudan a relacionar las piezas; al final se incluyen documentación oficial, lecturas y ejemplos para profundizar.
 
-## Antes de empezar
+## Criterios implementados y comprobaciones
 
-Conviene conocer programación, HTTP y SQL básicos. El manual explica los conceptos de arquitectura a medida que aparecen. Se puede leer sin instalar nada; las prácticas indican las herramientas que necesitan.
+El método de trabajo sigue **problema → restricciones → alternativas → decisión → implementación → verificación → límites**. Los [ADR](docs/decisions/index.md) registran las decisiones y la [verificación](docs/verification.md) identifica qué se ha comprobado y en qué condiciones.
+
+| Criterio | Implementación y comprobación |
+|---|---|
+| Separar responsabilidades y proteger límites entre módulos | [Puertos y adaptadores](docs/handbook/architecture.md#topic-problema-y-decision), con reglas ArchUnit/import-linter y contraejemplos |
+| Conservar invariantes ante concurrencia y reintentos | [Stock e idempotencia](docs/handbook/transactions.md), con transacciones y pruebas PostgreSQL reales |
+| Conservar eventos pendientes ante una caída del broker | [Outbox/Inbox y Streams](docs/handbook/events.md), con recuperación, deduplicación y ventanas |
+| Integrar IA conservando evidencia y autoridad de negocio | [RAG](docs/handbook/retrieval.md) y [aprobación](docs/handbook/workflows.md), con aislamiento, validación de formato y citas, y claves estables |
+| Investigar fallos con señales de una operación concreta | [Observabilidad](docs/handbook/operations.md), con métricas, trazas y logs correlacionados |
+
+Las pruebas de integración y los escenarios comprueban el comportamiento de la referencia. La calidad generativa de un modelo real, la alta disponibilidad y el despliegue cloud tienen [límites explícitos](docs/verification.md); no se deducen de una demostración local.
+
+<a id="antes-de-empezar"></a>
+
+## Requisitos para consultar y ejecutar
+
+Conviene conocer programación, HTTP y SQL básicos. La documentación explica los conceptos de arquitectura a medida que aparecen. Se puede leer sin instalar nada; cada comprobación indica las herramientas que necesita.
 
 Para ejecutar la tienda hacen falta Docker Compose, Python, uv y Make. El [capítulo 0](docs/getting-started.md) detalla versiones, memoria, arranque y resultado esperado. La IA está simulada por defecto: la demostración no necesita claves ni genera costes de API.
 
-## Índice de capítulos
+<a id="indice-de-capitulos"></a>
+<a id="índice-de-capítulos"></a>
 
-Empezar por [0. Preparar el entorno y ejecutar el primer pedido](docs/getting-started.md). Después, seguir los capítulos en orden; los subtemas permiten volver directamente a una explicación.
+## Recorrido por las decisiones
+
+Empezar por [0. Preparar el entorno y ejecutar el primer pedido](docs/getting-started.md). El orden permite seguir una operación de extremo a extremo; los subtemas permiten consultar directamente una explicación.
 
 1. [Organización del código y límites de arquitectura](docs/handbook/architecture.md)
    1. [Módulos, servicios y puertos/adaptadores](docs/handbook/architecture.md#topic-problema-y-decision)
@@ -74,7 +96,7 @@ El comprador consulta y solicita; el responsable aprueba. El [mapa de componente
 | Saber qué se ha comprobado | [Verificación y límites](docs/verification.md) |
 | Modificar documentación o diagramas | [Guía de contribución](docs/contributing.md) |
 
-El entorno local facilita el aprendizaje; no demuestra alta disponibilidad ni calidad de un modelo generativo real. Kubernetes y Terraform se estudian como prácticas adicionales, sin crear infraestructura de pago.
+El entorno local permite reproducir los casos, repasar conceptos y compartir su explicación; no demuestra alta disponibilidad ni calidad de un modelo generativo real. Kubernetes y Terraform se presentan como laboratorios adicionales, sin crear infraestructura de pago.
 
 ## Licencia
 

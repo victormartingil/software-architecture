@@ -1,6 +1,6 @@
 # Mapa de referencia
 
-Usar esta página para volver a una explicación o localizar su código después de estudiar el [manual](index.md). El [estado comprobado](verification.md) prevalece sobre cualquier descripción de capacidad.
+Usar esta página para volver a una explicación o localizar su código al consultar la [referencia](index.md). El [estado comprobado](verification.md) prevalece sobre cualquier descripción de capacidad.
 
 | Pregunta | Código | Explicación | AC |
 |---|---|---|---|

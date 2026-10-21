@@ -1,6 +1,6 @@
 # 6. Coordinar una devolución con aprobación
 
-[← Anterior](retrieval.md) · [Índice del manual](../index.md) · [Siguiente →](security.md)
+[← Anterior](retrieval.md) · [Índice de la referencia](../index.md) · [Siguiente →](security.md)
 
 El capítulo 5 permitió consultar políticas. Consultar una política y autorizar una devolución son operaciones distintas. Ahora se estudia el flujo que guarda progreso, espera al responsable y continúa sin duplicar el efecto.
 
@@ -55,7 +55,10 @@ Para varias réplicas se necesita un almacén compartido de puntos de control, r
 
 Un flujo determinista —con pasos definidos por el programa— es suficiente aquí. Un agente autónomo tendría sentido si existieran decisiones abiertas justificadas y evaluables. Añadir herramientas aumenta superficie de autorización y riesgo; MCP es un protocolo para intercambiar contexto y exponer herramientas a aplicaciones de IA; no reemplaza permisos ni aislamiento.
 
-## Práctica guiada: recuperar progreso sin repetir el efecto
+<a id="practica-guiada-recuperar-progreso-sin-repetir-el-efecto"></a>
+<a id="práctica-guiada-recuperar-progreso-sin-repetir-el-efecto"></a>
+
+## Comprobación reproducible: recuperar progreso sin repetir el efecto
 
 ### 1. Seguir el código
 
@@ -77,11 +80,16 @@ Con Docker, `make up` y `make demo` prueban JWT reales de Keycloak, aprobación,
 
 **Alternativa:** una máquina de estados propia puede ser suficiente para este flujo pequeño. ¿Qué aporta LangGraph aquí? Persistencia y reanudación inspeccionables; no autoridad de negocio ni exclusión entre réplicas.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [LangGraph persistencia](https://docs.langchain.com/oss/python/langgraph/persistence), [interrupciones](https://docs.langchain.com/oss/python/langgraph/interrupts), [OWASP autorización](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html).
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 ¿Guardar el JWT del responsable en el punto de control facilitaría una reanudación segura?
 

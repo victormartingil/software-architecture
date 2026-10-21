@@ -1,6 +1,6 @@
 # 4. Publicar eventos y procesarlos con Kafka Streams
 
-[← Anterior](transactions.md) · [Índice del manual](../index.md) · [Siguiente →](retrieval.md)
+[← Anterior](transactions.md) · [Índice de la referencia](../index.md) · [Siguiente →](retrieval.md)
 
 El capítulo 3 guardó pedido, stock y evento pendiente en una transacción. Falta entregar ese evento a otros procesos. Aquí se sigue desde el outbox hasta la auditoría y el resumen por minuto.
 
@@ -82,7 +82,10 @@ Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman 
 
 El tiempo de evento decide cuándo se cierra una ventana. Un `occurredAt` de 2099 puede adelantar el tiempo observado por la tarea y convertir pedidos actuales en descartes tardíos. [OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) aplica una tolerancia máxima de treinta segundos respecto al reloj del proceso antes de asignar la marca de tiempo. Un mensaje inválido conserva el tiempo previo de la partición (cero al inicio) y va a DLT: tampoco se confía en su timestamp Kafka. Solo la rama DLT asigna hora de cuarentena, para que su retención no nazca vencida. El límite exacto se admite; [la regresión](../../apps/order-analytics/src/test/java/dev/reference/analytics/OrderSummaryTopologyTest.java) comprueba que el siguiente pedido actual sigue agregándose. Sincronizar relojes y revisar DLT; el replay del pasado sigue sujeto a grace/retención, no se convierte en una reconstrucción histórica automática.
 
-## Práctica guiada: recuperar un mensaje y reconstruir el resumen
+<a id="practica-guiada-recuperar-un-mensaje-y-reconstruir-el-resumen"></a>
+<a id="práctica-guiada-recuperar-un-mensaje-y-reconstruir-el-resumen"></a>
+
+## Comprobación reproducible: recuperar un mensaje y reconstruir el resumen
 
 ### 1. Seguir el código
 
@@ -109,7 +112,10 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 
 **Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [Kafka y retención por timestamp](https://kafka.apache.org/40/implementation/log/), [Kafka Streams: conceptos](https://kafka.apache.org/40/streams/core-concepts/), [KStream/KTable y agregación](https://kafka.apache.org/40/streams/developer-guide/dsl-api/), [biblioteca y aplicación Streams](https://kafka.apache.org/40/streams/developer-guide/write-streams-app/), [pruebas de Streams](https://kafka.apache.org/40/streams/developer-guide/testing/), [outbox transaccional](https://microservices.io/patterns/data/transactional-outbox.html).
 
@@ -119,7 +125,9 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 
 Lectura complementaria: [*Designing Data-Intensive Applications*, 2.ª edición](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html), para comparar sistemas de datos, procesamiento y sus trade-offs. El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/e4cc5d18f45d2965e4e1e571adc34bfb80cba642/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) permite localizar la secuencia `stream → groupBy → count → toStream`. Comparar su conteo por palabra con tenant/SKU/ventana y deduplicación de esta referencia: ¿qué cambia en la clave y en el estado? Sirve para estudiar la API, no como dependencia de esta implementación.
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 ¿Puede evitarse un duplicado asignando un eventId nuevo a cada reintento?
 

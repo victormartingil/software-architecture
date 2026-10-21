@@ -1,6 +1,6 @@
 # 7. Aplicar permisos y limitar los fallos
 
-[← Anterior](workflows.md) · [Índice del manual](../index.md) · [Siguiente →](operations.md)
+[← Anterior](workflows.md) · [Índice de la referencia](../index.md) · [Siguiente →](operations.md)
 
 Los capítulos anteriores utilizaron identidad y permisos para separar organizaciones y aprobar devoluciones. Aquí se reúne el mecanismo completo y se estudia además cómo limitar el daño cuando el proveedor de IA tarda o falla.
 
@@ -57,7 +57,10 @@ No guardar claves ni credenciales reales en Git. El archivo compose.live.yaml ex
 
 Los archivos de versiones fijadas (lockfiles) y los análisis de dependencias reducen cambios imprevistos; un build reproducible no implica ausencia de vulnerabilidades. Revisar avisos de seguridad, compatibilidad y licencias antes de actualizar. Las verificaciones automáticas y sus resultados constan en la evidencia, sin afirmar un pentest completo.
 
-## Práctica guiada: comprobar esperas y cancelaciones
+<a id="practica-guiada-comprobar-esperas-y-cancelaciones"></a>
+<a id="práctica-guiada-comprobar-esperas-y-cancelaciones"></a>
+
+## Comprobación reproducible: comprobar esperas y cancelaciones
 
 ### 1. Seguir el código
 
@@ -84,11 +87,16 @@ Si el cliente cierra una conexión, ¿ese abandono debe contar como un fallo del
 
 [*Release It!*, 2.ª edición, de Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) complementa límites, fallos de dependencias y recuperación. La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/2f3d998c85f10b8ff88a3dca9f24bacf11c3a250/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten seguir las transiciones cerrado/abierto/prueba y compararlas con `OpenAIProvider`. Localizar qué reinicia los fallos y qué llamadas se permiten durante la recuperación. Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
 
-## Documentación del capítulo
+<a id="documentacion-del-capitulo"></a>
+<a id="documentación-del-capítulo"></a>
+
+## Documentación de la sección
 
 [HTTPX: plazos por fase](https://www.python-httpx.org/advanced/timeouts/), [OWASP API Security](https://owasp.org/API-Security/), [OWASP: autorización por operación](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html), [OWASP GenAI: prompt injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/), [Keycloak contenedores](https://www.keycloak.org/server/containers), [RFC 9700 OAuth Security BCP](https://www.rfc-editor.org/rfc/rfc9700.html).
 
-## Comprobar lo aprendido
+<a id="comprobar-lo-aprendido"></a>
+
+## Pregunta de diseño
 
 Dos intentos HTTP de una misma operación fallan. ¿Cuántos fallos debe contabilizar el circuito?
 
