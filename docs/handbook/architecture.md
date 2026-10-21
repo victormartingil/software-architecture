@@ -12,13 +12,17 @@ En el capítulo anterior se ha seguido un pedido desde fuera. Ahora se estudia s
 
 Una regla como «no vender más unidades de las disponibles» debe sobrevivir a un cambio de transporte o base de datos. Interpretar una petición HTTP corresponde al controlador que la recibe. Separar estas responsabilidades reduce el número de conceptos que hay que entender para modificar cada una.
 
+Un caso de uso es una operación completa del negocio, como crear un pedido. El dominio reúne sus conceptos y reglas; la aplicación coordina los pasos para cumplirlos.
+
 La aplicación de comercio agrupa `orders`, `inventory` y `returns`. Dentro de cada módulo, `domain` contiene conceptos; `application` coordina casos de uso y transacciones; `infrastructure` traduce HTTP, SQL y Kafka. Un puerto de entrada expresa una operación disponible. Un puerto de salida expresa una capacidad que esa operación necesita. Un adaptador implementa la traducción concreta. «Entrada» y «salida» describen la dirección de la llamada desde el caso de uso, no si el protocolo transmite bytes hacia dentro o fuera.
 
-Para seguir una compra, abrir [ManageOrderService](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java): recibe la solicitud, reserva inventario y guarda pedido y evento pendiente. El evento se estudiará en el capítulo 4. Después comparar [OrderRepository](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/port/output/OrderRepository.java) con su adaptador JDBC. El puerto expresa lo que necesita el caso de uso; el adaptador conoce cómo hacerlo con SQL.
+Para seguir una compra, abrir [ManageOrderService](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java): recibe la solicitud, reserva inventario y guarda pedido y evento pendiente. El evento se estudiará en el capítulo 4. Después comparar [OrderRepository](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/port/output/OrderRepository.java) con su adaptador JDBC, que utiliza la API de Java para acceder a SQL. El puerto expresa lo que necesita el caso de uso; el adaptador conoce cómo hacerlo con SQL.
 
 [![Pedidos: dependencias entre puertos y adaptadores](../diagrams/ports-and-adapters.svg)](../diagrams/ports-and-adapters.svg)
 
 Un módulo reúne una capacidad del negocio; una capa separa responsabilidades dentro de ese módulo. `orders` e `inventory` comparten proceso Java y transacción, mientras `ai-service` es otro proceso con una frontera HTTP. Una interfaz Java es un contrato de código; no crea por sí sola un servicio de red.
+
+Spring crea el servicio y le entrega los objetos que necesita a través de su constructor: esto es inyección de dependencias. Por ejemplo, el parámetro `OrderRepository` recibe el adaptador concreto al arrancar, sin que el caso de uso tenga que crearlo.
 
 Las dependencias de código apuntan al núcleo. En ejecución el caso de uso invoca un adaptador mediante su puerto: inversión de dependencias no significa invertir todas las llamadas. Se permite `@Transactional` en aplicación para que la frontera de commit sea fácil de localizar. Es un acoplamiento deliberado a Spring, descrito en el ADR; el dominio sigue independiente. Spring interpone un proxy: un objeto que rodea la llamada y abre/confirma/revierte la transacción. Una llamada directa al objeto fuera del proxy pierde esa intervención, como muestra el caso adicional descrito más abajo. Véase [cómo funciona la transacción declarativa](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/tx-decl-explained.html).
 

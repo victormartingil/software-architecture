@@ -12,7 +12,7 @@ El capítulo 3 guardó pedido, stock y evento pendiente en una transacción. Fal
 
 Un evento es un registro que cuenta algo que ya ocurrió, como `OrderPlaced`; no es una consulta del estado actual del pedido. Kafka conserva esos registros en canales llamados topics. Cada topic se divide en particiones, que son secuencias ordenadas de registros. La clave `orderId` reúne los registros del pedido en una partición mientras se conserva la estrategia de particionado. Kafka conserva el orden de escritura de esa partición; no establece un orden global ni reconstruye por sí solo el orden causal del negocio.
 
-Kafka es el servidor que recibe y entrega registros. Kafka Streams es una biblioteca Java que se ejecuta dentro de una aplicación consumidora: puede filtrar, agrupar y resumir esos registros y publicar resultados en otro topic. Un consumidor Kafka común también puede escuchar eventos sin usar Streams. En esta referencia, Commerce publica `OrderPlaced`; el consumidor de auditoría aplica Inbox, mientras `order-analytics` usa Streams para resumir pedidos por tenant, SKU y minuto. El evento describe un hecho; el resumen es una proyección derivada y puede recibir varias actualizaciones.
+El servidor de Kafka también se denomina broker. Kafka recibe y entrega registros. Kafka Streams es una biblioteca Java que se ejecuta dentro de una aplicación consumidora: puede filtrar, agrupar y resumir esos registros y publicar resultados en otro topic. Un consumidor Kafka común también puede escuchar eventos sin usar Streams. En esta referencia, Commerce publica `OrderPlaced`; el consumidor de auditoría aplica Inbox, mientras `order-analytics` usa Streams para resumir pedidos por tenant, SKU y minuto. El evento describe un hecho; el resumen es una proyección derivada y puede recibir varias actualizaciones.
 
 [![Kafka conserva eventos y cada grupo los procesa de forma independiente](../diagrams/kafka-consumers.svg)](../diagrams/kafka-consumers.svg)
 
@@ -26,7 +26,7 @@ Un grupo de consumidores (consumer group) identifica un lector lógico: auditor�
 
 Guardar un pedido y enviar un mensaje a Kafka son dos escrituras en sistemas distintos. Si la primera funciona y la segunda falla, el consumidor nunca recibe el hecho. Enviar primero invierte el problema: puede publicarse un pedido que luego no existe. `@Async` cambia el hilo, sin crear atomicidad.
 
-El outbox es una tabla de eventos pendientes: guarda el evento en la misma transacción que el pedido. Un publicador reclama lotes pendientes con `FOR UPDATE SKIP LOCKED`, envía y espera confirmación del broker antes de marcarlos. Si cae tras enviar y antes de marcar, publicará de nuevo. La garantía es entrega al menos una vez dentro de las condiciones de retención y recuperación; el consumidor debe tolerar duplicados.
+El outbox es una tabla de eventos pendientes: guarda el evento en la misma transacción que el pedido. Un publicador reclama lotes pendientes con `FOR UPDATE SKIP LOCKED` (bloquea las filas elegidas y omite las que otro publicador ya ha bloqueado), envía y espera confirmación del broker antes de marcarlos. Si cae tras enviar y antes de marcar, publicará de nuevo. La garantía es entrega al menos una vez dentro de las condiciones de retención y recuperación; el consumidor debe tolerar duplicados.
 
 `OutboxPublisher` reclama hasta veinte filas pendientes con bloqueo. Su scheduler espera un segundo tras terminar el lote antes de volver a consultar; una publicación lenta alarga el intervalo. Consultar periódicamente si hay trabajo pendiente se llama polling. Aquí se usa para publicar el outbox; el cliente no lo utiliza para consultar el estado del pedido. La respuesta HTTP no espera a Kafka.
 
@@ -46,18 +46,20 @@ La evolución debe mantener forma y semántica compatibles. Aquí los esquemas y
 
 ## Ventanas y deduplicación
 
-[OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) resume pedidos por tenant, SKU y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia, o grace, es de treinta segundos. Se calcula respecto al avance del tiempo observado por la tarea de procesamiento (stream time). No significa esperar treinta segundos de reloj tras cada mensaje.
+[OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) resume pedidos por organización, producto y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia, o grace, es de treinta segundos. Se calcula respecto al avance del tiempo observado por la tarea de procesamiento (stream time). No significa esperar treinta segundos de reloj tras cada mensaje.
 
 [![Validación, deduplicación y resumen de pedidos](../diagrams/order-summary-flow.svg)](../diagrams/order-summary-flow.svg)
 
-Un `KStream` interpreta cada registro como un hecho individual; una `KTable` interpreta la última actualización de cada clave como su valor actual. La agregación de esta topología produce una tabla por tenant/SKU/ventana y la vuelve a publicar como registros. El topic de salida publica actualizaciones de una tabla: la misma clave de ventana puede aparecer varias veces con un agregado más reciente. No sumar esas actualizaciones como si fueran hechos distintos. El resultado cuenta creaciones, aunque después exista una devolución; llamarlo ventas netas sería incorrecto. La deduplicación dura siete días, acorde al contrato de retención. Un replay más antiguo requiere otra política.
+Un `KStream` interpreta cada registro como un hecho individual; una `KTable` interpreta la última actualización de cada clave como su valor actual. La agregación de esta topología produce una tabla por tenant/SKU/ventana y la vuelve a publicar como registros. El topic de salida publica actualizaciones de una tabla: la misma clave de ventana puede aparecer varias veces con un agregado más reciente. Por ejemplo, dos pedidos distintos de un mismo producto y organización en una ventana pueden publicar primero `orderCount=1` y después `orderCount=2`. El total actualizado es 2, no la suma 1 + 2. No sumar esas actualizaciones como si fueran hechos distintos. El resultado cuenta creaciones, aunque después exista una devolución; llamarlo ventas netas sería incorrecto. La deduplicación dura siete días, acorde al contrato de retención. Un replay más antiguo requiere otra política.
 
-Dos casos ilustrativos independientes para la ventana `[10:00, 10:01)`, con marcas de tiempo válidas:
+Las ventanas son consecutivas y no se solapan: `[10:00, 10:01)` incluye las 10:00, pero excluye las 10:01, que pertenecen a la siguiente.
+
+Dos casos ilustrativos independientes para esa ventana, con marcas de tiempo válidas:
 
 | Hora del hecho recibido | Tiempo observado por la tarea (stream time) | Resultado |
 |---|---|---|
 | 10:00:50 | 10:01:10 | Todavía dentro de los 30 s de tolerancia |
-| 10:00:50 | 10:01:40 | Ventana cerrada: se cuenta y descarta |
+| 10:00:50 | 10:01:40 | Ventana cerrada: aumenta la métrica de tardíos y se descarta sin modificar el agregado |
 
 El stream time avanza con las marcas de tiempo de los eventos observados por la tarea. Esperar treinta segundos sin recibir registros no equivale a ese avance.
 

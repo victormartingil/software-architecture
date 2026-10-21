@@ -16,13 +16,24 @@ Dos compradores pueden consultar el inventario al mismo tiempo y ver que queda u
 
 El [adaptador de inventario](../../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/persistence/JdbcInventoryRepositoryAdapter.java) usa una actualización condicional: descontar solo si `stock >= quantity`, comprobando filas afectadas. PostgreSQL coordina escrituras concurrentes sobre la misma fila. La reserva, el pedido, el registro idempotente y el evento outbox se confirman en una transacción local. Precio e importe se calculan en servidor; el cliente no puede enviar un total arbitrario.
 
+La sentencia del adaptador, con formato para facilitar la lectura, es:
+
+```sql
+UPDATE inventory
+SET stock = stock - ?, version = version + 1
+WHERE tenant = ? AND sku = ? AND stock >= ?
+RETURNING price;
+```
+
+Los `?` son parámetros JDBC: cantidad, organización, SKU y de nuevo cantidad. Con stock 1 y cantidad 1, la primera reserva deja stock 0 y devuelve el precio. Otra reserva de una unidad no encuentra una fila que cumpla la condición y no devuelve precio; el adaptador lo traduce a conflicto. `RETURNING` obtiene el precio de la misma fila actualizada. La sentencia se ejecuta dentro de la transacción del pedido; no es un comando independiente para copiar en la consola.
+
 [![Secuencia de pedido y publicación del evento](../diagrams/order-sequence.svg)](../diagrams/order-sequence.svg)
 
 <a id="topic-dos-peticiones-y-la-ultima-unidad"></a>
 
 ## Dos peticiones y la última unidad
 
-La siguiente secuencia muestra una intercalación posible con Read Committed, el aislamiento predeterminado de PostgreSQL. La segunda actualización espera el bloqueo de la fila; después del commit de la primera, PostgreSQL vuelve a evaluar `stock >= quantity` sobre la fila actualizada. Sin unidades disponibles, no devuelve filas y el adaptador produce un conflicto. Si la primera transacción revierte, la segunda puede reservar.
+La siguiente secuencia muestra una intercalación posible con Read Committed, el aislamiento predeterminado de PostgreSQL: una lectura no ve cambios sin confirmar de otras transacciones, pero puede ver nuevos cambios confirmados en una instrucción posterior. La segunda actualización espera el bloqueo de la fila; después del commit de la primera, PostgreSQL vuelve a evaluar `stock >= quantity` sobre la fila actualizada. Sin unidades disponibles, no devuelve filas y el adaptador produce un conflicto. Si la primera transacción revierte, la segunda puede reservar.
 
 [![Dos transacciones compiten por la última unidad](../diagrams/stock-concurrency.svg)](../diagrams/stock-concurrency.svg)
 
@@ -38,7 +49,9 @@ PK identifica una fila; FK exige una referencia existente. La cardinalidad se le
 
 ## Recuperar el resultado al repetir una petición
 
-El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor, operación y recurso. Se almacena también el hash del cuerpo: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.
+Idempotencia significa que repetir la misma intención conserva el efecto de una sola ejecución. Por ejemplo, tras perder la respuesta a `compra-001`, se repiten esa clave y el mismo cuerpo para recuperar el pedido; una clave nueva identifica otra intención y podría crear otro pedido.
+
+El cliente puede perder la respuesta después del commit. Repetir la solicitud no debería duplicar pedido ni reserva. `Idempotency-Key` identifica la intención del cliente, dentro del tenant, actor, operación y recurso. Se almacena también el hash del cuerpo, una huella calculada a partir de su contenido: reutilizar una clave para otra intención produce 409. La misma intención recupera el resultado anterior. La identidad del actor viene del JWT, no del JSON.
 
 El puerto recibe un ámbito estructurado y el [adaptador idempotente](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/persistence/JdbcIdempotencyAdapter.java) lo codifica como array JSON. Concatenar con `:` permitiría confundir componentes legítimos. La versión V2 rechaza migrar si hay claves antiguas ambiguas: no las borra ni permite repetir efectos con otro prefijo; [ADR002](../decisions/002-consistency.md) explica el límite y el reset sintético explícito.
 
@@ -48,7 +61,7 @@ La devolución tiene una invariante semejante. Una aprobación se vincula a la v
 
 ## Alternativas y costes
 
-Bloquear la fila antes de decidir puede simplificar reglas más complejas; aumenta el tiempo de espera y exige orden consistente de bloqueos. Una versión optimista sirve cuando los conflictos son infrecuentes y el cliente puede reintentar. La actualización condicional expresa bien este caso pequeño. No se escoge un nivel de aislamiento más costoso por costumbre: se razona sobre anomalías concretas y se prueba la invariante.
+Bloquear la fila antes de decidir puede simplificar reglas más complejas; aumenta el tiempo de espera y exige orden consistente de bloqueos. El bloqueo previo es una estrategia pesimista: excluye escrituras competidoras mientras se decide. La alternativa optimista comprueba una versión al escribir y rechaza el cambio si otro la ha modificado. Sirve cuando los conflictos son infrecuentes y el cliente puede reintentar. La actualización condicional expresa bien este caso pequeño. No se escoge un nivel de aislamiento más costoso por costumbre: se razona sobre anomalías concretas y se prueba la invariante.
 
 Mantener inventario y pedidos en la misma base evita una transacción distribuida. Si fueran servicios independientes, la reserva necesitaría protocolo, estado intermedio, caducidad y compensación. Una saga coordina esas etapas, pero no ofrece el rollback instantáneo de una transacción SQL.
 

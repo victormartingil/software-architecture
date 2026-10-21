@@ -10,6 +10,8 @@ El capítulo 8 mostró cómo observar una operación. El último capítulo estud
 
 ## Comparar Compose, Kubernetes y Terraform
 
+Kubernetes administra contenedores en un conjunto de máquinas o clúster; cada máquina se denomina nodo. Busca mantener el estado declarado en archivos de configuración, llamados manifiestos. kind permite ejecutar un clúster de aprendizaje dentro de contenedores Docker. Terraform describe recursos de infraestructura como código y calcula qué cambios harían falta para obtenerlos.
+
 Compose verifica colaboración local de servicios. kind verifica manifiestos y comportamiento de Kubernetes en un clúster local dedicado. Terraform con respuestas simuladas (mocks) verifica forma y decisiones del plan. Ninguno de estos niveles demuestra por sí solo un despliegue cloud correcto o disponible.
 
 Las aplicaciones usan imágenes separadas y usuarios sin privilegios de administrador, comprobaciones de salud y memoria limitada. Las dependencias locales son deliberadamente simples: un PostgreSQL/pgvector, un broker Kafka único y Keycloak de desarrollo. Las bases tienen usuarios distintos por dueño. Los puertos publicados solo escuchan en el propio equipo; no exponer esta configuración a Internet.
@@ -57,6 +59,17 @@ AI mantiene una réplica con estrategia Recreate. SQLite y un bloqueo de proceso
 ```bash
 make terraform-check
 ```
+
+GCP se refiere a Google Cloud. Para leer el diagrama basta distinguir estas funciones:
+
+| Componente | Función |
+|---|---|
+| Red privada VPC y salida NAT | La VPC separa la red del proyecto; NAT permite conexiones salientes desde nodos sin IP pública. |
+| GKE Autopilot | Servicio gestionado de Kubernetes con gestión de infraestructura a cargo de Google. |
+| Artifact Registry | Almacén de imágenes que utilizan los despliegues. |
+| IAM | Define qué identidades pueden realizar qué acciones sobre los recursos. |
+
+Un prefijo CIDR indica el rango de direcciones de una red; en IPv4, `/32` identifica una única dirección, aquí la del operador autorizado.
 
 La [configuración GCP](../../infra/cloud/main.tf) define red, subredes, salida NAT, Artifact Registry, identidad de nodos y GKE Autopilot. Fija las versiones de la herramienta y de su proveedor de recursos. El plano de control limita acceso a un `/32` de operador; nodos privados y Workload Identity forman parte de la base. DB, Kafka gestionado, OIDC, TLS, secretos y sus permisos son entradas o trabajo de despliegue explícito. No se crea un clúster con `apply`.
 

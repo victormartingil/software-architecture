@@ -12,6 +12,8 @@ El capítulo 7 limitó errores y esperas. Para investigar un fallo real hace fal
 
 Las métricas resumen cantidades y tendencias; las trazas muestran el recorrido de una petición; los logs registran sucesos concretos. Se complementan para responder a preguntas distintas.
 
+Prometheus recoge y consulta métricas; Tempo almacena y consulta trazas; OpenTelemetry Collector recibe y reenvía telemetría; Grafana permite consultar y visualizar esas señales. Las aplicaciones generan los datos que utilizan estas herramientas.
+
 Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta.
 
 ```bash
@@ -28,7 +30,7 @@ Grafana permite consultar las señales en una interfaz local: [dashboard](http:/
 
 Un span representa un tramo de trabajo; una traza reúne spans relacionados bajo un traceId. correlationId es el identificador de correlación de la aplicación y no sustituye el contexto de trazado. Propagar contexto permite enlazar el trabajo asíncrono con su origen; el [modelo de OpenTelemetry](https://opentelemetry.io/docs/concepts/context-propagation/) explica esa relación.
 
-El dashboard es diagnóstico local: retención corta, muestreo 100% para la práctica, infraestructura efímera y sin HA. En producción, ajustar muestreo, retención, autenticación y presupuesto según tráfico. El colector limita memoria y exporta por lotes. Las APIs no registran tokens ni cuerpos; al añadir instrumentación revisar atributos y exclusiones para no convertir trazas en otro almacén de secretos.
+El dashboard es diagnóstico local: retención corta, muestreo 100% para la práctica, infraestructura efímera y sin alta disponibilidad (HA): no hay réplicas de esas herramientas que mantengan el servicio ante su caída. En producción, ajustar muestreo, retención, autenticación y presupuesto según tráfico. El colector limita memoria y exporta por lotes. Las APIs no registran tokens ni cuerpos; al añadir instrumentación revisar atributos y exclusiones para no convertir trazas en otro almacén de secretos.
 
 `make observability` activa exportadores; el arranque básico los mantiene desactivados. También puede recuperarse el `trace_id` persistido con el evento:
 
@@ -86,7 +88,7 @@ No renombrar identidades para eludir deduplicación. Un evento tardío fuera de 
 
 ## SLI, SLO y capacidad
 
-SLI es la medida observada, por ejemplo la proporción de operaciones válidas completadas; SLO es el objetivo de esa medida en una ventana temporal acordada. Un presupuesto de error expresa el margen de incumplimiento admitido por ese objetivo. Estos términos no fijan un objetivo de producción para la referencia.
+SLI es la medida observada, por ejemplo la proporción de operaciones válidas completadas; SLO es el objetivo de esa medida en una ventana temporal acordada. Un presupuesto de error expresa el margen de incumplimiento admitido por ese objetivo. Como ejemplo hipotético, un SLO del 99 % de éxito sobre 1000 operaciones válidas permite hasta 10 fallos en la ventana acordada. No es un objetivo medido ni establecido para esta referencia.
 
 El percentil p95 describe el valor bajo el que cae aproximadamente el 95 % de las observaciones; la media puede ocultar la cola lenta. Prometheus estima percentiles de histogramas con buckets: su precisión depende de esos intervalos y no permite promediar p95 de varios pods como si fueran una media. Véase [histogramas y cuantiles](https://prometheus.io/docs/practices/histograms/).
 

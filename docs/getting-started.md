@@ -6,7 +6,7 @@
 
 ## 1. Entender el caso
 
-Un comprador pide una unidad de `BOOK-1`. La API de comercio reserva stock y guarda el pedido. Después publica un evento: un mensaje que comunica que el pedido ya se ha creado. Otro proceso lo utiliza para actualizar el resumen de pedidos por producto y minuto.
+Un comprador pide una unidad de `BOOK-1`, el código de producto o SKU del ejemplo. La API de comercio reserva stock y guarda el pedido. Después publica un evento: un mensaje que comunica que el pedido ya se ha creado. Otro proceso lo utiliza para actualizar el resumen de pedidos por producto y minuto.
 
 El asistente consulta documentos para responder preguntas sobre devoluciones. También coordina una solicitud de devolución: un responsable debe aprobarla y Comercio vuelve a comprobar los permisos antes de reponer stock. El asistente no modifica directamente las tablas de negocio.
 
@@ -42,6 +42,8 @@ cd software-architecture
 | JDK 21 | Ejecutar las pruebas Java de los capítulos 1–4. La demostración usa el Java de los contenedores. Maven Wrapper descarga Maven. |
 | kind y kubectl | Solo para la práctica opcional de Kubernetes del capítulo 9. |
 
+Una imagen contiene la aplicación y lo necesario para ejecutarla; un contenedor es una ejecución de esa imagen. Docker Compose utiliza `compose.yaml` para arrancar y conectar los servicios del ejemplo. Los volúmenes conservan datos aunque se sustituyan los contenedores.
+
 La primera construcción descarga imágenes y dependencias y necesita conexión a Internet. No se necesita una cuenta cloud ni una clave de IA.
 
 ## 3. Arrancar la tienda
@@ -56,7 +58,7 @@ Si el arranque falla, consultar `docker compose ps` y `docker compose logs --tai
 
 ## 4. Ejecutar y leer la demostración
 
-Antes de ejecutarla, pensar qué debería pasar al enviar dos veces la misma compra y al intentar aprobar una devolución como comprador.
+Cada compra lleva una clave de idempotencia: una cadena que permite reconocer el reintento de la misma operación. El capítulo 3 explica cómo se conserva su resultado. Antes de ejecutar la demostración, pensar qué debería pasar al enviar dos veces la misma compra y al intentar aprobar una devolución como comprador.
 
 ```bash
 make demo
@@ -70,7 +72,7 @@ La demostración obtiene los tokens sin imprimirlos, realiza peticiones HTTP y c
 4. Aprobar como responsable y ejecutar la devolución una sola vez, incluso al reintentar.
 5. Comprobar que el stock vuelve a su valor inicial y que el evento del pedido aparece en SQL y en el resumen Kafka.
 
-Al terminar debe aparecer `"result": "PASS"`, junto a los identificadores `orderId` y `workflowId` y las comprobaciones realizadas. Los UUID cambian en cada ejecución. El escenario utiliza datos ficticios y debe ejecutarse sin otras operaciones que modifiquen el mismo stock.
+Al terminar debe aparecer `"result": "PASS"`, junto a los identificadores `orderId` y `workflowId` y las comprobaciones realizadas. Un UUID es un identificador escrito en cinco grupos de caracteres hexadecimales, como `11111111-1111-4111-8111-111111111111`. Los UUID cambian en cada ejecución. El escenario utiliza datos ficticios y debe ejecutarse sin otras operaciones que modifiquen el mismo stock.
 
 Para volver a comprobar el resumen del pedido, sustituir el valor del ejemplo por el `orderId` obtenido:
 

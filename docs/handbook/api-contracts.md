@@ -18,13 +18,13 @@ Los controladores de pedidos, inventario y devoluciones adaptan cada entrada a s
 
 El dominio expresa errores como NOT_FOUND o CONFLICT, sin importar Spring ni devolver un status HTTP. `ProblemAdvice` traduce esos significados a 404 o 409. Otro adaptador podría traducir el mismo fallo a un resultado de mensajería. Esta separación evita que la regla «aprobación vencida» dependa del protocolo con el que se ejecuta.
 
-Las respuestas de error mantienen Problem Details: status, title, detail y correlationId, con mensajes controlados. No devuelven el cuerpo del proveedor ni un stacktrace. Los códigos distinguen la causa: 401 para credenciales ausentes o inválidas, 403 para permisos insuficientes, 404 para un recurso no visible y 409 para un conflicto de negocio. Un 503 no autoriza a repetir cualquier escritura: hace falta identidad idempotente y una política explícita.
+Las respuestas de error mantienen Problem Details: status, title, detail y correlationId, con mensajes controlados. No devuelven el cuerpo del proveedor ni un stacktrace. Los códigos distinguen la causa: 401 para credenciales ausentes o inválidas, 403 para permisos insuficientes, 404 para un recurso no visible y 409 para un conflicto de negocio. 400 indica una entrada inválida y 503, indisponibilidad temporal del servicio, por ejemplo por saturación, plazo agotado o fallo de una dependencia. Un 503 no autoriza a repetir cualquier escritura: hace falta identidad idempotente y una política explícita.
 
 <a id="topic-un-listado-pequeno-y-estable"></a>
 
 ## Paginar pedidos con un cursor
 
-`GET /api/v1/orders` acepta `limit` de 1 a 50, predeterminado 10, `after` UUID opcional y filtro `status` PLACED o REFUNDED. Devuelve `items` y `nextCursor`; este último es nulo al terminar. El orden es fijo por id ascendente. No ofrece un lenguaje genérico de filtros ni permite ordenar por cualquier columna.
+Un cursor identifica dónde continuar una lista; cada página devuelve solo una parte de los resultados. `GET /api/v1/orders` acepta `limit` de 1 a 50, predeterminado 10, `after` UUID opcional y filtro `status` PLACED o REFUNDED. Devuelve `items` y `nextCursor`; este último es nulo al terminar. El orden es fijo por id ascendente. No ofrece un lenguaje genérico de filtros ni permite ordenar por cualquier columna.
 
 La consulta aplica tenant y propietario en SQL; MANAGER ve únicamente su tenant. Recupera como máximo límite más uno: la fila adicional indica si existe otra página. El cursor procede del último elemento devuelto, no de la fila adicional. Un cursor indica una posición, pero no concede permisos; la consulta vuelve a aplicar el aislamiento en cada petición.
 
@@ -38,6 +38,24 @@ Ejemplo ilustrativo con tres pedidos autorizados ordenados `A < B < C`: las letr
 | limit=2, after=B | C | C | null |
 
 La fila C permite detectar otra página en la primera petición; devolverla también haría que la página superase su límite. El cursor B solo expresa una posición: permisos y filtros vuelven a aplicarse en la segunda consulta.
+
+Para reconocer la respuesta real, este ejemplo ilustrativo pide `GET /api/v1/orders?limit=1` y supone que hay más de un pedido visible. HTTP 200 indica que la consulta se ha completado:
+
+```json
+{
+  "items": [{
+    "id": "11111111-1111-4111-8111-111111111111",
+    "sku": "BOOK-1",
+    "quantity": 1,
+    "totalCents": 2500,
+    "status": "PLACED",
+    "version": 0
+  }],
+  "nextCursor": "11111111-1111-4111-8111-111111111111"
+}
+```
+
+`items` contiene los pedidos de esta página; `totalCents` expresa céntimos de euro (2500 = 25 €). Para continuar, enviar el mismo límite y `after=11111111-1111-4111-8111-111111111111`. Cuando no quedan más resultados después de la página, `nextCursor` es `null`, aunque esa última página contenga pedidos.
 
 El cursor acota la respuesta, no garantiza un coste constante. Antes de reutilizar el [listado JDBC](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/persistence/JdbcOrderRepositoryAdapter.java) con mucho volumen, examinar `EXPLAIN (ANALYZE, BUFFERS)` sobre datos representativos. Índices compuestos que empiecen por tenant y, según consulta, actor pueden reducir filas recorridas; también cuestan escritura y espacio. El filtro status y su selectividad cambian el plan. No se atribuye rendimiento industrial al dataset pequeño.
 

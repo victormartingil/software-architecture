@@ -12,7 +12,7 @@ El capítulo 5 permitió consultar políticas. Consultar una política y autoriz
 
 Recuperar una política o generar una recomendación no autoriza una devolución. La API de comercio conserva las reglas y comprueba al actor en cada operación. El flujo coordina pasos y recuerda progreso; no otorga roles ni escribe directamente en tablas de negocio.
 
-Un flujo de trabajo (workflow) coordina varios pasos. Al crearlo, el asistente llama a Comercio con el JWT del usuario y una clave idempotente. Comercio registra una propuesta PENDING para un pedido visible. LangGraph representa los pasos como un grafo: cada nodo realiza una tarea y cada conexión indica qué paso viene después. Guarda el progreso y se pausa. Un MANAGER del mismo tenant puede aprobar; otro tenant recibe 404 y un cliente sin rol recibe 403. Después se recupera la versión aprobada y se ejecuta con una clave estable derivada de la devolución.
+Un flujo de trabajo (workflow) coordina varios pasos. Al crearlo, el asistente llama a Comercio con el JWT del usuario y una clave idempotente. Comercio registra una propuesta PENDING (pendiente) para un pedido visible. LangGraph representa los pasos como un grafo: cada nodo realiza una tarea y cada conexión indica qué paso viene después. Guarda el progreso y se pausa. Un MANAGER del mismo tenant puede aprobar; otro tenant recibe 404 y un cliente sin rol recibe 403. Después se recupera la versión aprobada y se ejecuta con una clave estable derivada de la devolución.
 
 [![Secuencia de devolución con aprobación humana](../diagrams/return-sequence.svg)](../diagrams/return-sequence.svg)
 
@@ -30,7 +30,7 @@ Este diagrama describe el estado de negocio. Una nueva aprobación explícita ca
 
 Al reanudar un `interrupt`, LangGraph vuelve a ejecutar el nodo desde su principio. Cualquier efecto anterior a la pausa debe admitir repetición. Aquí el nodo de espera solo interrumpe; propuesta y ejecución usan claves estables frente a reinicios o respuestas perdidas. La pausa se conserva entre peticiones HTTP distintas: no mantiene una conexión abierta esperando al responsable. Véanse las [reglas de reanudación e idempotencia de interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent).
 
-La aprobación cambia versión. Ejecutar con la versión anterior debe fallar. Una propuesta aprobada no se edita silenciosamente; cualquier cambio requiere nueva aprobación. La caducidad de diez minutos limita una autorización que dejó de representar la intención actual. El backend aplica estos controles dentro de su transacción, incluso si se invoca sin pasar por AI.
+La versión es un contador de cambios, no la versión de la API. Si se aprueba una propuesta con versión 0, Comercio devuelve la versión 1; ejecutar todavía con 0 debe fallar. El flujo consulta la versión aprobada para ejecutar con ella. Una propuesta aprobada no se edita silenciosamente; cualquier cambio requiere nueva aprobación. La caducidad de diez minutos limita una autorización que dejó de representar la intención actual. El backend aplica estos controles dentro de su transacción, incluso si se invoca sin pasar por AI.
 
 ## Persistencia y escalado
 
