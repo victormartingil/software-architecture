@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 
 SERVICES = ('otel-collector', 'prometheus', 'tempo', 'grafana')
-SCANNER = 'aquasec/trivy:0.70.0'
+SCANNER = 'aquasec/trivy:0.76.1'
 
 
 def vulnerabilities(report, expected_artifact):

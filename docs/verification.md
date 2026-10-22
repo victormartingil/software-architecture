@@ -2,7 +2,7 @@
 
 Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Docker con 2 CPU/10 GiB. Las ejecuciones actuales se distinguen de las evidencias heredadas, fechadas explícitamente; no equivalen a una certificación de producción. Informes regenerables y revisiones simuladas se conservan ignorados en `reports/` y `target/`; la historia anterior se consulta en Git.
 
-**Estado de entrega: pendiente de seguridad.** Pruebas funcionales y documentación aprobadas; Grafana 12.4.13 conserva ocho coincidencias HIGH en el análisis de imagen. El gate falla y no hay excepciones ni supresiones. [ADR006](decisions/006-maintenance.md) registra versiones, contraste de alternativa y límites. No interpretar esos ocho registros como ocho vulnerabilidades distintas o explotación demostrada.
+**Estado de entrega: pendiente de seguridad.** Pruebas funcionales y documentación aprobadas; Grafana 12.4.13 conserva ocho coincidencias HIGH en el análisis de imagen. El gate falla y no hay excepciones ni supresiones. Se aplaza la corrección de esta herramienta local opcional; no se introduce una compilación propia de Grafana. [ADR006](decisions/006-maintenance.md) registra versiones, contraste de alternativa y límites. No interpretar esos ocho registros como ocho vulnerabilidades distintas o explotación demostrada.
 
 ## Resultado por capacidad
 
@@ -66,13 +66,13 @@ Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Dock
 | K8S-03 | Dos POST simultáneos por port-forward a pods distintos, misma respuesta y decremento único; devolución restaura stock | Verificado en kind, 23-10-2026 |
 | TF-01 | fmt/validate y cuatro planes mock; rol GKE mínimo, imágenes por repositorio, rechazo IPv6/IPv4 inválida/red abierta; mutación Owner rechazada | Verificado, sin cloud |
 | DOC-01 | Nueve capítulos con objetivos, conceptos introducidos, ejemplos, alternativas, prácticas y fuentes; preparación inicial separada. Revisión editorial independiente del recorrido y sus explicaciones | Verificado documentalmente, 23-10-2026 |
-| DOC-02 | Índice jerárquico y recorrido 0–9; anterior/índice/siguiente. Navegación renderizada local: 26 HTML y 1680 enlaces internos, sin IDs duplicados; higiene y build estricto aprobados | Verificado documentalmente, 23-10-2026 |
+| DOC-02 | Índice jerárquico y recorrido 0–9; anterior/índice/siguiente. Navegación renderizada local: 26 HTML y 1681 enlaces internos, sin IDs duplicados; higiene y build estricto aprobados | Verificado documentalmente, 23-10-2026 |
 | DOC-03 | Maestro de dieciséis vistas; vocabulario corregido en contexto y cloud, sin cambiar relaciones ni geometría. Exportación de 16 páginas coincide con sus SVG; 14 páginas intactas. Dos SVG finales inspeccionados a 720 px | Verificado; diagramas conservan evidencia del 18-10 |
 | DOC-05 | Nueve microprácticas con archivos/comando/resultado/fallo/alternativa; runbook autenticado con broker detenido ejecutado literalmente | Verificado |
 | DOC-04 | Mapa funcional/código, servicios de apoyo y distinción de niveles en explicaciones y dieciséis vistas | Verificado |
 | DOC-06 | Fichas seleccionadas enlazan libros y código/README externo pertinente; páginas oficiales concretas, fragmentos fijados y propósito de consulta. Revisión de contenido y enlaces en `make verify` | Verificado documentalmente |
 | DOC-07 | Nueve fichas revisadas contra implementación y fuentes; tres SVG inspeccionados a 720 px. Revisión independiente y precisión TLS corregida con verificación de CA/hostname y fuente libpq | Verificado documentalmente, 2026-10-17 |
-| QA-03 | JUnit obligatorio local/CI; 24 pruebas de scripts y omisión deliberada rechazada aunque pytest termine 0 | Verificado |
+| QA-03 | JUnit obligatorio local/CI; 25 pruebas de scripts y omisión deliberada rechazada aunque pytest termine 0 | Verificado |
 | DOC-08 | Preparación y nueve capítulos repasados: definiciones en primer uso, ejemplo OrderPage válido contra OpenAPI, SQL idéntico a reserva JDBC salvo formato, búsqueda léxica 2/0 términos, ventanas y versiones aclaradas. Funciones de observabilidad y GCP introducidas sin nuevas capacidades. Revisión independiente, ajuste de explicación 503 reparado; comandos y navegación conservados | Verificado, 2026-10-21 |
 | DOC-09 | Tres ejercicios con pista y solución: Quantity, carrera SQL y caso léxico propio; cierre de dos réplicas con seis criterios. Comando de dominio: dos pruebas aprobadas; caso léxico inicial rechaza etiqueta vacía y completado obtiene el documento/métricas previstos | Verificado, 2026-10-21 |
 | DOC-10 | Dos escenarios de calidad trazados a EVT/ARCH y tres respuestas preparadas con rúbrica de respaldo/citas/abstención. Diagnósticos dentro de solución desplegable; no se atribuyen resultados a modelos | Revisado documentalmente, sin modelo |
@@ -85,7 +85,7 @@ Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Dock
 | CLOUD-DEPLOY | Sin apply ni recursos cloud creados | Fuera de alcance |
 | REF-HTTP-01, REF-LOG-01 | Cuatro pruebas ProblemAdvice y caso MVC integrado: 404/405/406/415, headers/correlación y logs sanitizados. Regresión Commerce completa | Verificado |
 | REF-ARCH-05 | Doce pruebas de arquitectura: producción, negativos de servicio ajeno y positivos input/modelos/shared | Verificado |
-| REF-OBS-05 | Cuatro releases oficiales ARM64/AMD64; validación, promtool y smoke integrado pasan. Trivy por digest: tres imágenes sin HIGH/CRITICAL, Grafana con ocho HIGH | **Bloqueado en seguridad de Grafana** |
+| REF-OBS-05 | Cuatro releases oficiales ARM64/AMD64; validación, promtool y smoke integrado pasan. Trivy 0.76.1 por digest: tres imágenes sin HIGH/CRITICAL, Grafana con ocho HIGH | **Bloqueado en seguridad de Grafana** |
 | REF-NAV-01, REF-DOC-01 | 104 alias previos conservados, 35 anclas nuevas, nueve bloques de lectura; checker HTML con ocho pruebas, revisión especializada y navegador | Verificado documentalmente |
 | REF-STUDY-01 | Tres sesiones orientativas; dos soluciones Java insertadas en copia temporal, cuatro pruebas de integración existentes aprobadas | Verificado; no medido con alumnos |
 | REF-BIB-01 | 17 volúmenes, 35 temas, 50 asociaciones, nueve repositorios; índices/extractos y fragmentos consultados, una lectura inicial por capítulo | Verificado; no lectura íntegra de libros de pago |
@@ -102,8 +102,8 @@ Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Dock
 | Comprobación | Ejecución y alcance |
 |---|---|
 | Aplicaciones | `make verify eval`: 45 pruebas Commerce, 19 Analytics y 134 Python, cero fallos/errores/omitidas. PostgreSQL, Kafka y pgvector reales mediante fixtures efímeras; arquitectura Java e import-linter incluidos. |
-| Scripts | 24 pruebas unitarias tras la reparación del scanner. Incluyen navegación negativa, provisioning/PromQL e informes malformados, obsoletos o de otro digest. |
-| Documentación | Higiene sobre 33 Markdown, MkDocs estricto y verificador: 26 HTML/1680 enlaces locales, sin destinos, fragmentos ni IDs duplicados erróneos. GitHub GFM: 26 documentos renderizados por API oficial y 224 enlaces con fragmento contrastados. Inspección de portada y bibliografía en navegador local; no acredita accesibilidad WCAG. |
+| Scripts | 25 pruebas unitarias tras actualizar el scanner a 0.76.1, incluida consistencia de versión con CI. Incluyen navegación negativa, provisioning/PromQL e informes malformados, obsoletos o de otro digest. |
+| Documentación | Higiene sobre 33 Markdown, MkDocs estricto y verificador: 26 HTML/1681 enlaces locales, sin destinos, fragmentos ni IDs duplicados erróneos. GitHub GFM: 26 documentos renderizados por API oficial y 224 enlaces con fragmento contrastados. Inspección de portada y bibliografía en navegador local; no acredita accesibilidad WCAG. |
 | Ejercicios | Copia temporal de Commerce con los dos métodos de las soluciones: paginación, precio/idempotencia, rollback y bypass del proxy, cuatro pruebas aprobadas. La fuente productiva quedó intacta. |
 | Evaluación IA | 42 casos/32 respondibles; recall@3=1, hit-rate@3=1, MRR@3=0,953125, aislamiento=abstención=1. Corpus sintético; recuperación offline, sin modelo real ni coste API. |
 | Alertas | Validación y fixtures con Prometheus 3.15.1; ambas reglas comprueban umbral, plazo y resolución. Las cuatro mutaciones de umbral/for conservan su evidencia anterior; no se repitieron en esta entrega. |
@@ -114,7 +114,7 @@ Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Dock
 | Kubernetes/HPA | Clúster nuevo y smoke aprobados. Escalado CPU real 1→2 con dos pods/endpoints listos; 89.955 GET correctos y cero errores en 300 s, cap 300/s y 16 workers. POST simultáneos en pods distintos: mismo resultado, decremento único y stock restaurado. Sin parchear réplicas; no es benchmark ni prueba de HA. |
 | Dependencias Python | pip-audit 2.9.0 sobre exportaciones completas y congeladas de runtime/desarrollo y documentación: sin vulnerabilidades conocidas. |
 | Fuente y Java | Trivy 0.70.0 de fuente/manifiestos/secretos y archivos Java empaquetados más dependencias runtime Analytics: sin HIGH/CRITICAL conocidos ni secretos detectados. No es pentest ni garantía de ausencia de datos sensibles. |
-| Imágenes de observabilidad | Referencias exactas de Compose e inventario digest/plataforma ARM64: Collector, Prometheus y Tempo sin HIGH/CRITICAL; Grafana ocho HIGH. Alternativa oficial 13.2.4: 75 coincidencias HIGH/CRITICAL, descartada. No se infiere estado AMD64 a partir del scan ARM64. |
+| Imágenes de observabilidad | Nuevo análisis con Trivy 0.76.1 de las referencias exactas de Compose e inventario digest/plataforma ARM64: Collector, Prometheus y Tempo sin HIGH/CRITICAL; Grafana ocho HIGH. Alternativa oficial 13.2.4: 75 coincidencias HIGH/CRITICAL, descartada. No se infiere estado AMD64 a partir del scan ARM64. |
 
 [Pruebas HTTP](../apps/commerce-api/src/test/java/dev/reference/commerce/shared/infrastructure/rest/ProblemAdviceTest.java) · [integración Commerce](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) · [Kafka y ciclo de vida](../apps/order-analytics/src/test/java/dev/reference/analytics/StreamsLifecycleTest.java) · [evaluación](../apps/ai-service/src/ai_service/evaluate.py) · [señales](../scenarios/observability.py) · [scanner](../scripts/scan-observability-images.py).
 

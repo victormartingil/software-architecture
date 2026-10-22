@@ -48,6 +48,13 @@ class ImageSecurityTest(unittest.TestCase):
                 inventory = json.loads((root / 'reports/image-security/inventory.json').read_text())
                 return result, run.call_args_list, inventory
 
+    def test_ci_uses_the_same_maintained_scanner_release(self):
+        workflow = (Path(__file__).parents[2] / '.github/workflows/verify.yml').read_text()
+        versions = [line.strip().split(': ', 1)[1]
+                    for line in workflow.splitlines() if line.strip().startswith('version: v0.')]
+        self.assertEqual(len(versions), 2)
+        self.assertEqual(set(versions), {'v' + image_scan.SCANNER.rsplit(':', 1)[1]})
+
     def test_compose_is_source_of_images_and_digest_platform_are_scanned(self):
         result, calls, inventory = self.invoke()
         self.assertEqual(result, 0)
