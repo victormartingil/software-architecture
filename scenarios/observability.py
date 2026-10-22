@@ -3,6 +3,7 @@
 import datetime
 import json
 import os
+from pathlib import Path
 import subprocess
 import time
 import urllib.parse
@@ -66,10 +67,38 @@ def complete_trace(value):
     return value if {"ai-service", "commerce-api"} <= set(services_in_trace(value)) else None
 
 
+def provisioned_dashboard(payload, expected):
+    """Check provisioned panel queries, accepting Grafana's additional metadata."""
+    dashboard = payload.get("dashboard", {})
+    if dashboard.get("uid") != expected.get("uid"):
+        return False
+    actual_panels = dashboard.get("panels", [])
+    panels = {panel.get("id"): panel for panel in actual_panels}
+    if len(panels) != len(actual_panels):
+        return False
+    if set(panels) != {panel["id"] for panel in expected["panels"]}:
+        return False
+    for wanted in expected["panels"]:
+        actual = panels[wanted["id"]]
+        if actual.get("type") != wanted["type"]:
+            return False
+        if actual.get("datasource", {}).get("uid") != wanted["datasource"]["uid"]:
+            return False
+        if [target.get("expr") for target in actual.get("targets", [])] != [
+                target["expr"] for target in wanted["targets"]]:
+            return False
+    return True
+
+
 def main():
     started = datetime.datetime.now(datetime.timezone.utc)
     health = request(GRAFANA, "/api/health")
     assert health["database"] == "ok"
+    dashboard = json.loads((Path(__file__).resolve().parents[1] /
+                            "infra/observability/dashboard.json").read_text())
+    eventually(lambda: provisioned_dashboard(
+        request(GRAFANA, "/api/dashboards/uid/" + dashboard["uid"]), dashboard),
+        "provisioned dashboard panels and queries")
     eventually(lambda: healthy_targets(request(PROMETHEUS, "/api/v1/targets?state=active"), not_before=started), "three fresh healthy scrapes")
     expression = 'sum(ai_http_requests_total{route="/api/v1/workflows/returns",status="201"})'
     before = metric(expression)
@@ -114,7 +143,7 @@ def main():
     request(AI, "/api/v1/workflows/" + workflow["workflowId"] + "/approve", "POST", {}, token("manager"))
     print(json.dumps({"result": "PASS", "traceId": trace_id, "correlationId": correlation,
         "services": sorted(services), "httpMetricDelta": after - before, "correlatedJsonLogs": len(events),
-        "checks": ["three fresh scrapes", "current metric increment", "exact W3C cross-service trace",
+        "checks": ["provisioned dashboard panels", "three fresh scrapes", "current metric increment", "exact W3C cross-service trace",
                    "safe correlated JSON logs", "Grafana datasource proxy"],
         "dashboard": GRAFANA + "/d/architecture-reference"}, indent=2))
 
