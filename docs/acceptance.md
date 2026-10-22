@@ -49,9 +49,9 @@
 | SEC-03 | Prompt injection no llama herramienta privilegiada | Adversarial tests |
 | SEC-04 | No secretos/PII en logs; sin token minting en APIs | Scan y revisión logs |
 | OBS-01 | HTTP-evento-consumidor correlacionados | Escenario y trazas visibles |
-| OBS-02 | Dashboard lag/outbox/errors/IA y alerta accionable; éxitos, abstenciones, errores y cancelaciones IA contabilizados una sola vez | Inspección y runbook |
+| OBS-02 | Dashboard lag/outbox/errors/IA y alerta accionable; lag sin medición se omite y cero observado se conserva; éxitos, abstenciones, errores y cancelaciones IA contabilizados una sola vez | Inspección y runbook |
 | OBS-03 | Un comando optativo verifica targets de las tres aplicaciones, incremento de métricas y traza de una operación nueva; no acepta señales históricas. Dashboard local permite consultar métricas y trazas sin cuenta externa | Escenario real sobre Compose con telemetría activada y pruebas negativas |
-| OBS-04 | Logs operativos estructurados con correlación cuando existe; sin cuerpos, JWT, preguntas ni identificadores personales como labels. Explicación breve de cuándo usar métricas, logs y trazas y enlace al código | Tests de privacidad/correlación y revisión de configuración |
+| OBS-04 | Logs operativos estructurados con correlación cuando existe; errores inesperados HTTP/SSE de AI registran una única causa acotada por tipo, sin mensaje ni traceback; sin cuerpos, JWT, preguntas ni identificadores personales como labels. Explicación breve de cuándo usar métricas, logs y trazas y enlace al código | Tests de privacidad/correlación y revisión de configuración |
 | K8S-03 | Comprobación optativa acotada observa HPA de una a dos réplicas disponibles bajo carga y verifica idempotencia concurrente entre pods; restaura su carga/configuración temporal sin afectar otros clústeres | Escenario kind real, no inferido de manifests ni de carga GET aislada |
 | OPS-01 | Compose arranca desde vacío, seed y demo terminan | make up/demo/smoke |
 | OPS-04 | Pedido recién creado observado en outbox, inbox y actualización Kafka de su tenant/SKU/ventana; no aceptar primer histórico | Escenario integrado con plazo y aserciones |

@@ -4,7 +4,10 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.function.BooleanSupplier;
+import org.apache.kafka.common.Metric;
+import org.apache.kafka.common.MetricName;
 import org.apache.kafka.streams.KafkaStreams;
 
 /** Internal probe/metrics listener, deliberately independent of business APIs. */
@@ -49,22 +52,28 @@ final class MetricsServer implements AutoCloseable {
   }
 
   static String render(KafkaStreams streams, OrderSummaryTopology topology) {
-    double lag =
-        streams.metrics().entrySet().stream()
+    return render(streams.metrics(), topology);
+  }
+
+  static String render(Map<MetricName, ? extends Metric> metrics, OrderSummaryTopology topology) {
+    var lag =
+        metrics.entrySet().stream()
             .filter(e -> e.getKey().name().equals("records-lag-max"))
             .map(e -> e.getValue().metricValue())
             .filter(Number.class::isInstance)
             .mapToDouble(v -> ((Number) v).doubleValue())
             .filter(Double::isFinite)
-            .max()
-            .orElse(0);
+            .max();
     return "# TYPE analytics_late_events_total counter\nanalytics_late_events_total "
         + topology.lateEvents.sum()
         + "\n# TYPE analytics_invalid_events_total counter\nanalytics_invalid_events_total "
         + topology.invalidEvents.sum()
-        + "\n# TYPE analytics_records_lag_max gauge\nanalytics_records_lag_max "
-        + lag
-        + "\n";
+        + "\n"
+        + (lag.isPresent()
+            ? "# TYPE analytics_records_lag_max gauge\nanalytics_records_lag_max "
+                + lag.getAsDouble()
+                + "\n"
+            : "");
   }
 
   int port() {

@@ -71,7 +71,7 @@ Analytics rechaza occurredAt adelantado más de treinta segundos respecto a un C
 
 ## Seguridad y entornos
 
-Observabilidad local optativa con OpenTelemetry, Prometheus, Tempo y Grafana: métricas para tendencias/alertas, trazas para seguir una operación y logs estructurados para hechos diagnósticos. No requiere Datadog ni cuenta externa. El escenario verifica targets, incremento de señales y traza de una operación actual, con plazos y sin aceptar datos históricos como evidencia. No registrar cuerpos, preguntas o tokens; etiquetas métricas de cardinalidad acotada. La consola de contenedores es suficiente para logs locales; no añadir un almacén de logs sin necesidad demostrada.
+Observabilidad local optativa con OpenTelemetry, Prometheus, Tempo y Grafana: métricas para tendencias/alertas, trazas para seguir una operación y logs estructurados para hechos diagnósticos. No requiere Datadog ni cuenta externa. El escenario verifica targets, incremento de señales y traza de una operación actual, con plazos y sin aceptar datos históricos como evidencia. No registrar cuerpos, preguntas o tokens; etiquetas métricas de cardinalidad acotada. Analytics omite el lag cuando Kafka no ofrece una muestra válida; un cero observado conserva su significado. AI registra una causa estructurada por error inesperado HTTP/SSE, con tipo y correlación, sin mensaje de excepción ni traceback. La consola de contenedores es suficiente para logs locales; no añadir un almacén de logs sin necesidad demostrada.
 
 El laboratorio HPA debe observar una transición real de una a dos réplicas disponibles y comprobar idempotencia concurrente entre pods. La carga y cualquier ajuste temporal son acotados, visibles y restaurados; no equivale a un benchmark o a disponibilidad cloud.
 

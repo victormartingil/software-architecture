@@ -122,11 +122,24 @@ def create_app(settings: Settings | None = None):
                     "correlationId": request.state.correlation,
                     "traceId": format(span.trace_id, "032x") if span.is_valid else None}))
 
+    def diagnose(request, exc):
+        from opentelemetry import trace
+        span = trace.get_current_span().get_span_context()
+        method = request.method if request.method in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"} else "OTHER"
+        # Never serialize the exception, its message, traceback or request data.
+        ACCESS_LOG.error(json.dumps({"event": "unexpected_error", "service": "ai-service",
+            "timestamp": datetime.now(timezone.utc).isoformat(), "level": "ERROR",
+            "errorType": type(exc).__name__,
+            "route": getattr(request.scope.get("route"), "path", "unmatched"), "method": method,
+            "correlationId": request.state.correlation,
+            "traceId": format(span.trace_id, "032x") if span.is_valid else None}))
+
     def problem(request, status, detail):
         return JSONResponse(status_code=status, content={"status": status,
             "title": "Request failed", "detail": detail, "correlationId": request.state.correlation},
             media_type="application/problem+json",
-            headers={"WWW-Authenticate": "Bearer"} if status == 401 else None)
+            headers={"X-Correlation-ID": request.state.correlation,
+                **({"WWW-Authenticate": "Bearer"} if status == 401 else {})})
 
     @app.exception_handler(ServiceError)
     async def service_error(request, exc):
@@ -138,6 +151,7 @@ def create_app(settings: Settings | None = None):
 
     @app.exception_handler(Exception)
     async def unexpected_error(request, exc):
+        diagnose(request, exc)
         return problem(request, 503, "Dependency temporarily unavailable")
 
     async def identity(request: Request, authorization: str = Header(default="")):
@@ -198,7 +212,8 @@ def create_app(settings: Settings | None = None):
                     yield 'event: result\ndata: ' + json.dumps(result, ensure_ascii=False) + '\n\n'
                 except ServiceError as exc:
                     yield 'event: error\ndata: ' + json.dumps({"status": exc.status, "detail": exc.detail}) + '\n\n'
-                except Exception:
+                except Exception as exc:
+                    diagnose(request, exc)
                     yield 'event: error\ndata: {"status":503,"detail":"Dependency unavailable"}\n\n'
             finally:
                 if not task.done():
