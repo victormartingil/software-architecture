@@ -2,7 +2,7 @@
 
 Fecha de corte: **23-10-2026**. Entorno local ARM64, Java 21, Python 3.12 y Docker con 2 CPU/10 GiB. Las ejecuciones actuales se distinguen de las evidencias heredadas, fechadas explícitamente; no equivalen a una certificación de producción. Informes regenerables y revisiones simuladas se conservan ignorados en `reports/` y `target/`; la historia anterior se consulta en Git.
 
-**Estado de entrega: pendiente de seguridad.** Pruebas funcionales y documentación aprobadas; Grafana 12.4.13 conserva ocho coincidencias HIGH en el análisis de imagen. El gate falla y no hay excepciones ni supresiones. Se aplaza la corrección de esta herramienta local opcional; no se introduce una compilación propia de Grafana. [ADR006](decisions/006-maintenance.md) registra versiones, contraste de alternativa y límites. No interpretar esos ocho registros como ocho vulnerabilidades distintas o explotación demostrada.
+**Estado de entrega: integración autorizada con pendiente de seguridad.** Pruebas funcionales y documentación aprobadas; Grafana 12.4.13 conserva ocho coincidencias HIGH en el análisis de imagen. El gate falla y no hay excepciones ni supresiones. Se aplaza la corrección de esta herramienta local opcional; no se introduce una compilación propia de Grafana. [ADR006](decisions/006-maintenance.md) registra versiones, contraste de alternativa y límites. No interpretar esos ocho registros como ocho vulnerabilidades distintas o explotación demostrada.
 
 ## Resultado por capacidad
 
@@ -127,7 +127,7 @@ Cada bloque se revisó como una PR local antes de su commit, por un agente difer
 
 Los índices editoriales y extractos permiten verificar títulos y capítulos; no demuestran lectura integral ni respaldo de los autores. Los nueve ejemplos GitHub se recuperaron y fijaron a commits; no se ejecutaron esos proyectos externos. Los dieciséis diagramas y su maestro no se modificaron; conservan su verificación anterior de exportación e inspección. El verificador HTML no consulta Internet ni renderiza GitHub Markdown. Los anchors explícitos y los enlaces relativos mantienen la navegación del repositorio; el contraste GFM corresponde al contenido renderizado por la API oficial, sin atribuir inspección visual de la PR remota.
 
-La CI separa verificación funcional, dependencias Python, fuente/Java e imágenes de telemetría. El resultado remoto debe corresponder al SHA final, sin atribuirle un verde de otra revisión. La PR permanece en borrador mientras haya un control obligatorio fallido.
+La CI separa verificación funcional, dependencias Python, fuente/Java e imágenes de telemetría. El resultado remoto debe corresponder al SHA final, sin atribuirle un verde de otra revisión. Para la PR #1, el mantenedor autoriza expresamente la integración con el pendiente de Grafana documentado en [ADR006](decisions/006-maintenance.md). El control de imágenes conserva su resultado fallido; esta aceptación puntual no acredita seguridad completa ni modifica los controles o las protecciones de rama.
 
 <a id="decisiones-y-reparaciones-que-deben-conservarse"></a>
 <a id="valoracion-y-uso-productivo"></a>
