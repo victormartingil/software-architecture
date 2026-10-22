@@ -1,6 +1,6 @@
 # Criterios de aceptación
 
-2026-10-21. Cada fila es un AC obligatorio salvo LIVE y CLOUD-DEPLOY. Estado y evidencia por ID en [verificación](verification.md). Una implementación sin prueba/evidencia no está verificada.
+2026-10-23. Cada fila es un AC obligatorio salvo LIVE y CLOUD-DEPLOY. Estado y evidencia por ID en [verificación](verification.md). Una implementación sin prueba/evidencia no está verificada.
 
 | ID | Condición y resultado observable | Verificación |
 |---|---|---|
@@ -65,7 +65,7 @@
 | DOC-03 | C4, identidad/señales, dependencias internas, secuencias/estados, RAG/Streams, modelo SQL y despliegue local/cloud trazan a implementación o propuesta explícita; los diagramas de aprendizaje aclaran una relación concreta sin duplicar vistas existentes | Revisión de código/configuración, SVG insertados y maestro draw.io editable; inspección visual de cada SVG modificado |
 | DOC-05 | Cada ficha incluye ruta de lectura, micropráctica ejecutable, salida esperada, fallo y alternativa | Revisión especializada y comandos comprobados |
 | DOC-04 | Nombre funcional y nombre técnico se corresponden; se distinguen aplicaciones, módulos, bibliotecas, servidores y protocolos | Mapa canónico, diagramas y referencias a código |
-| DOC-06 | Cada tema enlaza código y prueba, documentación oficial específica y, solo cuando aporta, una lectura o repositorio público pertinente. Los repositorios externos llevan enlace a código/README concreto y estrellas con fecha de consulta; las estrellas no se presentan como aval | Revisión de fuentes y enlaces; comprobación de estrellas y fecha |
+| DOC-06 | Cada tema enlaza código y prueba, documentación oficial específica y, solo cuando aporta, una lectura o repositorio público pertinente. Los ejemplos externos identifican fragmento/commit, fecha de consulta, utilidad y diferencias; la popularidad no acredita corrección | Revisión de contenido, fuentes, enlaces y fecha; sustituye el recuento de estrellas para priorizar utilidad y reducir mantenimiento |
 | DOC-07 | Las nueve fichas aclaran vocabulario y un ejemplo concreto donde exista ambigüedad; vistas de topología Kafka, concurrencia SQL y circuito IA trazan a código y conviven en el maestro único. Ejemplos numéricos son ilustrativos, no mediciones nuevas | Revisión por ficha, contraste con código, exportación e inspección de los tres SVG; enlaces y MkDocs estricto |
 | DOC-08 | La referencia ofrece preparación inicial y nueve capítulos ordenados, con conocimientos previos, objetivos, práctica guiada, comprobación razonada y navegación anterior/índice/siguiente. La lectura introduce los términos necesarios en su primer uso, muestra ejemplos SQL/JSON reconocibles y usa español natural de España; conserva contratos y separa mantenimiento de aprendizaje | Revisión editorial independiente, enlaces/anclas y build estricto |
 | DOC-09 | Tres ejercicios requieren completar una regla, corregir una carrera y añadir un caso de recuperación; incluyen entrada, resultado, pista y solución. Cierre integrador con rúbrica de autoridad, datos, repetición, fallos y señales | Revisión independiente de objetivos, soluciones y correspondencia con código; sin modificar contratos ni dataset canónico |
@@ -96,6 +96,20 @@
 | REF-OBS-02 | una mutación reversible del umbral y otra del `for` hacen fallar los casos pertinentes. Registrar el resultado y restaurar las reglas; no conservar mutaciones ni un framework de mutation testing. | Pruebas enfocadas, negativos y gate integrado |
 | REF-OBS-03 | el comando devuelve fallo cuando promtool falla, reutiliza la versión fijada y no modifica servicios ni requiere credenciales. Con la imagen disponible, se ejecuta sin red. | Pruebas enfocadas, negativos y gate integrado |
 | REF-OBS-04 | la verificación automatizada ejecuta los fixtures y la documentación distingue pruebas de reglas de observabilidad extremo a extremo. | Pruebas enfocadas, negativos y gate integrado |
+
+## Ampliación de aprendizaje y mantenimiento
+
+| ID | Condición y resultado observable | Verificación |
+|---|---|---|
+| REF-HTTP-01 | Errores MVC conservan 404/405/406/415, encabezados pertinentes y Problem Details con correlación; éxitos y errores de negocio/seguridad conservan contratos | MockMvc, negativos y OpenAPI de operaciones existentes |
+| REF-LOG-01 | Un diagnóstico por fallo 5xx contiene tipos y correlación, sin mensajes, cuerpos, SQL, credenciales ni Throwable completo | Captura de logs con marcadores sensibles y regresión de correlación |
+| REF-ARCH-05 | Módulos de negocio colaboran mediante input y datos de contrato, sin importar servicios de aplicación ajenos; firmas actuales y guardas anteriores se conservan | Producción, negativos de acceso directo y positivos de modelos/input |
+| REF-OBS-05 | Imágenes de observabilidad fijadas a releases mantenidas, configuración compatible y análisis de referencias exactas sin duplicar versiones | Manifiestos ARM64/AMD64, validación, promtool, smoke actual, provisioning y scanner |
+| REF-NAV-01 | Se conservan rutas/anclas previas y funcionan lectura 0–9 y consulta directa por conceptos; enlaces y fragmentos internos renderizados comprobados con negativos | Higiene, MkDocs estricto, verificador de navegación y lectura en GitHub |
+| REF-DOC-01 | Nueve capítulos conectan conceptos esenciales con explicación breve, ejemplo pertinente, código y comprobación; se distinguen capacidades implementadas y alternativas | Matriz por conceptos del mapa existente y revisión especializada |
+| REF-STUDY-01 | Ruta de tres sesiones orientativas de 45 minutos y dos ejercicios Java/Spring de paginación/proxy, con predicción, pista, resultado y solución | Ejecución en copia temporal y contraste con pruebas existentes |
+| REF-BIB-01 | Biblioteca opcional de 17 volúmenes y nueve repositorios, con enlaces oficiales/editoriales o fragmentos fijados; 35 correspondencias/50 asociaciones y capítulos verificados, sin páginas inventadas | Contraste de catálogo, fuentes y navegación; una lectura prioritaria por capítulo |
+| REF-EVIDENCE-01 | Evidencia vigente por capacidad con fecha, entorno, resultado y límites; historia repetida consolidada, sin presentar revisión de agentes como certificación | Revisión editorial, pruebas completas y CI del SHA final |
 
 ## Protocolo de entrega
 
