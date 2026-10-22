@@ -27,6 +27,22 @@ No hace falta instalar herramientas para leer las explicaciones y los diagramas.
 
 Las comprobaciones reproducibles contrastan la implementación; los casos de aplicación ofrecen ejercicios, pistas y resoluciones para producir una solución y justificarla. No hace falta construir otra aplicación. Se puede seguir el recorrido completo, cuyas primeras secciones se apoyan unas en otras, o utilizar el [mapa de referencia](reference-map.md) para consultar una decisión concreta. Ambos recorridos sirven para repasar y compartir las explicaciones.
 
+La [bibliografía recomendada](bibliography.md) reúne lecturas y ejemplos asociados a cada problema. Es una biblioteca de consulta: no hace falta comprar ni leer todos los libros para seguir el recorrido. Para una duda concreta, empezar por la lectura breve del final del capítulo y usar el catálogo solo si hace falta ampliar.
+
+<a id="study-java-spring"></a>
+
+## Repasar Java y Spring en tres sesiones
+
+Sesiones orientativas de unos 45 minutos de trabajo activo; descargas y arranque pueden necesitar tiempo adicional. Empezar con JDK 21 y una copia de trabajo. Docker solo es necesario para las comprobaciones de integración. Si se puede resolver la predicción y justificar el código sin mirar, pasar a la siguiente sesión y consultar el libro solo ante una duda.
+
+| Sesión | Leer y predecir · 10 min | Escribir y contrastar · 25 min | Cierre · 10 min |
+|---|---|---|---|
+| 1. Reglas y contratos Java | [Responsabilidades](handbook/architecture.md#topic-problema-y-decision): ¿qué conoce Spring y qué conoce SQL? | [Reconstruir Quantity](handbook/architecture.md#topic-ejercicio-regla-de-dominio) sin mirar y ejecutar CommerceDomainTest, sin Docker. Seguir después constructor, interfaces y adaptador. | Explicar por qué la validación HTTP no basta y qué protege el dominio frente a lo que protege SQL. Consulta: [records y constructores](bibliography.md#refs-r06). |
+| 2. Colecciones y paginación | [Cursor y sobrelectura](handbook/api-contracts.md#topic-un-listado-pequeno-y-estable): predecir 0, limit y limit+1 filas. | [Reconstruir list](handbook/api-contracts.md#exercise-java-pagination); comparar con la fuente. Con Docker, ejecutar la prueba enfocada enlazada. | Explicar qué fila determina el cursor, dónde se filtran permisos y por qué no hay snapshot. Consulta: [streams y acceso a datos](bibliography.md#refs-r08). |
+| 3. Spring y transacciones | [Última unidad](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad): predecir commit y rollback. | [Reconstruir la frontera transaccional](handbook/transactions.md#exercise-spring-transaction) y contrastar proxy frente a llamada directa, con la prueba existente si hay Docker. | Explicar qué garantiza Spring, qué exige SQL y cómo se relaciona la [idempotencia](handbook/transactions.md#topic-repetir-una-peticion-es-normal). Consulta: [transacciones](bibliography.md#refs-r10). |
+
+Los ejercicios modifican solo una copia de estudio y conservan contratos. Volver a la implementación de referencia al terminar; no introducir variantes de aprendizaje en una entrega. No hace falta ejecutar Kubernetes, Terraform ni un modelo real.
+
 Para consultar la referencia con buscador, índice lateral y modo claro u oscuro, ejecutar `make docs` desde la raíz, con uv instalado. Abrir la dirección local que indique el comando en la terminal. También se puede seguir completo desde los enlaces Markdown de GitHub.
 
 <a id="orden-de-estudio"></a>
@@ -50,7 +66,7 @@ Para consultar la referencia con buscador, índice lateral y modo claro u oscuro
 
 ## Volver a una explicación
 
-Para localizar una implementación, usar el [mapa por preguntas](reference-map.md). Para entender una decisión, consultar los [ADR](decisions/index.md): registros breves del problema, las alternativas y sus consecuencias. La [verificación](verification.md) separa resultados comprobados y limitaciones pendientes.
+Para localizar una implementación, usar el [mapa por preguntas y conceptos](reference-map.md#concept-index): Java/Spring, Kafka, Python/IA, seguridad, observabilidad o despliegue. Para entender una decisión, consultar los [ADR](decisions/index.md): registros breves del problema, las alternativas y sus consecuencias. La [verificación](verification.md) separa resultados comprobados y limitaciones pendientes.
 
 La referencia se centra en backend e integración fiable de IA. La simulación permite estudiar permisos y coordinación sin pagar un modelo; su resultado no mide la calidad de una respuesta generativa real. Las lecturas enlazadas amplían los temas que el ejemplo solo introduce.
 

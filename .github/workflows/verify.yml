@@ -59,6 +59,17 @@ jobs:
         if: always()
         run: docker compose --profile observability down --remove-orphans
 
+  observability-security:
+    # Image findings and application test failures remain independent signals.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Scan the four Compose-selected telemetry images by digest
+        run: python3 scripts/scan-observability-images.py
+
   python-security:
     # Findings in Python must not prevent the independent Java scan from running.
     runs-on: ubuntu-24.04
@@ -110,7 +121,7 @@ jobs:
       - name: Scan source manifests and potential secrets
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          version: v0.70.0
+          version: v0.76.1
           scan-type: fs
           scan-ref: .
           scanners: vuln,secret
@@ -127,7 +138,7 @@ jobs:
         env:
           TRIVY_JAVA_DB_REPOSITORY: ghcr.io/aquasecurity/trivy-java-db:1
         with:
-          version: v0.70.0
+          version: v0.76.1
           # fs checks manifests; rootfs additionally enables the Java archive analyzer.
           scan-type: rootfs
           scan-ref: ${{ runner.temp }}/architecture-jars

@@ -8,6 +8,8 @@ El capítulo 2 definió el contrato de compra. Ahora se comprueba qué garantiza
 
 <a id="topic-la-invariante-primero"></a>
 
+<a id="ref-topic-r10"></a>
+
 ## Evitar que dos pedidos vendan la misma unidad
 
 Una transacción agrupa cambios para confirmarlos juntos (commit) o deshacerlos si fallan (rollback). La atomicidad significa que no quedan cambios a medias. Su aislamiento define cómo interactúa con otras transacciones simultáneas.
@@ -39,6 +41,8 @@ La siguiente secuencia muestra una intercalación posible con Read Committed, el
 
 El ejemplo usa dos compras con claves distintas. Un reintento de la misma clave se serializa antes mediante idempotencia; recuperar su resultado evita reservar otra vez.
 
+<a id="ref-topic-r12"></a>
+
 ## Esquema que sostiene las garantías
 
 [![Modelo físico de las siete tablas de Comercio](../diagrams/commerce-data.svg)](../diagrams/commerce-data.svg)
@@ -48,6 +52,8 @@ PK identifica una fila; FK exige una referencia existente. La cardinalidad se le
 Solo hay dos FK declaradas: `return_proposals.order_id → orders.id` y `audit_orders.event_id → inbox.event_id`, ambas únicas en el lado dependiente. Un pedido admite cero o una propuesta; una identidad inbox, cero o un efecto de auditoría. Las relaciones `orders → inventory`, `outbox.aggregate_id → orders` y `audit_orders.order_id → orders` son lógicas, sin FK. No inferir una restricción SQL por la proximidad de dos cajas; contrastar [Flyway V1](../../apps/commerce-api/src/main/resources/db/migration/V1__commerce.sql).
 
 <a id="topic-repetir-una-peticion-es-normal"></a>
+
+<a id="ref-topic-r11"></a>
 
 ## Recuperar el resultado al repetir una petición
 
@@ -100,6 +106,8 @@ En operación se debe definir retención de claves, volumen de outbox, tiempo de
 <a id="ejercicio-de-aplicacion-corregir-una-carrera"></a>
 <a id="ejercicio-de-aplicación-corregir-una-carrera"></a>
 
+<a id="ref-topic-r13"></a>
+
 ## Caso de aplicación: corregir una carrera
 
 Dos transacciones con claves idempotentes distintas leen stock 1. Cada una calcula `1 - 1`, escribe stock 0 y guarda un pedido. Construir una tabla de pasos A/B que termine con dos pedidos confirmados y explicar por qué `CHECK(stock >= 0)` no detecta la venta duplicada.
@@ -117,12 +125,61 @@ Comprobar la explicación contra `concurrentLastUnit` y `rollbackIncludesStockAn
 
 </details>
 
+<a id="exercise-spring-transaction"></a>
+
+## Caso de aplicación: reconstruir la frontera transaccional
+
+En una copia de estudio, reconstruir solo [ManageOrderService.create](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) conservando su firma, anotación y contrato. Primero dibujar sin mirar el cuerpo: ámbito idempotente → reserva → construcción del pedido → pedido y outbox → resultado. Mantener cálculo de precio en servidor, tipos existentes e identidad estable. No añadir una llamada HTTP ni enviar Kafka dentro del caso de uso.
+
+**Predicción:** ¿qué queda en stock, pedidos y outbox si falla la escritura del evento? ¿Cambia al invocar directamente el objeto objetivo, evitando el proxy? **Entregable:** el método y una tabla de ambos resultados. **Pista:** `@Transactional` actúa cuando la llamada atraviesa el proxy de Spring; la acción de `idempotency.execute` debe participar en la misma transacción.
+
+Con JDK 21 y Docker, desde la raíz:
+
+```bash
+(cd apps/commerce-api && \
+  DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
+  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
+  ./mvnw -B -ntp -Dapi.version=1.44 '-Dtest=CommerceIntegrationTest#priceAndIdempotency+rollbackIncludesStockAndOrder+directInvocationBypassesTransactionAndLeavesPartialEffects' test)
+```
+
+Las pruebas provocan el fallo y limpian sus efectos. No reproducirlo con escrituras manuales sobre Compose. Sin Docker, la tabla sigue siendo un ejercicio de razonamiento, no una comprobación ejecutada. Terminado cuando se explica por qué SQL condicional protege la carrera y el proxy conserva la atomicidad del conjunto. Restaurar el código de referencia al acabar.
+
+<details markdown="1">
+<summary>Ver una resolución razonada</summary>
+
+```java
+@Transactional
+public OrderResult create(Actor actor, String idempotencyKey, CreateOrderCommand command) {
+  return idempotency.execute(
+      new Idempotency.Scope(actor.tenant(), actor.subject(), "order", "", idempotencyKey),
+      command,
+      OrderResult.class,
+      () -> {
+        int price = inventory.reserve(actor.tenant(), command.sku(), command.quantity());
+        var order = new Order(UUID.randomUUID(), actor.tenant(), actor.subject(),
+            command.sku(), command.quantity(), Math.multiplyExact(price, command.quantity()),
+            OrderStatus.PLACED, 0);
+        orders.save(order);
+        events.placed(order.id(), order.tenant(), order.sku(), order.quantity(), order.totalCents());
+        return OrderResult.from(order);
+      });
+}
+```
+
+A través del proxy, el fallo del outbox revierte stock y pedido; tampoco se conserva un resultado idempotente exitoso. Una llamada directa al objeto objetivo evita esa frontera y puede dejar reserva y pedido confirmados antes del fallo. La prueba existente contrasta ambas rutas: la segunda enseña qué rompe el contrato de composición, no una alternativa válida. El adaptador idempotente también necesita la transacción compartida; su bloqueo dura esa transacción.
+
+</details>
+
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>
 
 ## Documentación de la sección
 
-[PostgreSQL: Read Committed y actualización concurrente](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED), [bloqueos explícitos](https://www.postgresql.org/docs/17/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html). Para profundizar en aislamiento y sistemas de datos, la [lectura DDIA recomendada en eventos](events.md#topic-lecturas-y-ejemplo-de-referencia) complementa este caso SQL.
+[PostgreSQL: Read Committed y actualización concurrente](https://www.postgresql.org/docs/17/transaction-iso.html#XACT-READ-COMMITTED), [bloqueos explícitos](https://www.postgresql.org/docs/17/explicit-locking.html), [Spring transacciones](https://docs.spring.io/spring-framework/reference/data-access/transaction.html).
+
+## Para profundizar
+
+**Primero:** [DDIA, 2.ª, capítulo 8](../bibliography.md#book-b3), consultando atomicidad y aislamiento para la carrera estudiada. **Alternativa:** [Spring Start Here, 2.ª MEAP, capítulo 13](../bibliography.md#book-b2), para la frontera transaccional; numeración provisional. Terminado cuando se separa la atomicidad del conjunto de la condición SQL que protege stock. [Correspondencias de transacciones](../bibliography.md#chapters-transactions).
 
 <a id="comprobar-lo-aprendido"></a>
 

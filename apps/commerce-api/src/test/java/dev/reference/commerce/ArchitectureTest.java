@@ -16,9 +16,13 @@ class ArchitectureTest {
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages(ArchitectureRules.ROOT);
     for (String module : java.util.List.of("orders", "inventory", "returns")) {
-      assertThat(classes.stream()
-              .filter(type -> type.getPackageName().startsWith(ArchitectureRules.ROOT + "." + module + "."))
-              .count())
+      assertThat(
+              classes.stream()
+                  .filter(
+                      type ->
+                          type.getPackageName()
+                              .startsWith(ArchitectureRules.ROOT + "." + module + "."))
+                  .count())
           .isPositive();
     }
     ArchitectureRules.ALL.forEach(rule -> rule.check(classes));
@@ -50,6 +54,18 @@ class ArchitectureTest {
   }
 
   @Test
+  void moduleRejectsForeignApplicationService() {
+    rejects(ApplicationBoundaryFixtures.ForeignService.class, "ManageOrderService");
+  }
+
+  @Test
+  void moduleCanUseForeignContractTypes() {
+    var classes =
+        new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.ForeignModel.class);
+    ArchitectureRules.ALL.forEach(rule -> rule.allowEmptyShould(true).check(classes));
+  }
+
+  @Test
   void moduleCanUseForeignInputPort() {
     var classes =
         new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class);
@@ -58,20 +74,26 @@ class ArchitectureTest {
 
   @Test
   void rejectsFirstModuleCycle() {
-    rejectsCycle(dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.First.class,
+    rejectsCycle(
+        dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.First.class,
         dev.reference.commerce.returns.application.port.input.ModuleCycleFixtures.First.class);
   }
 
   @Test
   void rejectsSecondModuleCycle() {
-    rejectsCycle(dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.Second.class,
+    rejectsCycle(
+        dev.reference.commerce.orders.application.port.input.ModuleCycleFixtures.Second.class,
         dev.reference.commerce.returns.application.port.input.ModuleCycleFixtures.Second.class);
   }
 
   @Test
   void acceptsAcyclicBusinessCollaborationAndSharedTypes() {
-    var classes = new ClassFileImporter().importClasses(ApplicationBoundaryFixtures.InputPort.class,
-        dev.reference.commerce.orders.application.port.input.OrderUseCase.class, ApplicationBoundaryFixtures.SharedType.class);
+    var classes =
+        new ClassFileImporter()
+            .importClasses(
+                ApplicationBoundaryFixtures.InputPort.class,
+                dev.reference.commerce.orders.application.port.input.OrderUseCase.class,
+                ApplicationBoundaryFixtures.SharedType.class);
     ArchitectureRules.ALL.forEach(rule -> rule.allowEmptyShould(true).check(classes));
   }
 
@@ -81,7 +103,8 @@ class ArchitectureTest {
     assertThat(result.hasViolation()).isTrue();
     assertThat(result.getFailureReport().toString())
         .contains("Cycle detected", "orders", "returns", first.getName(), second.getName());
-    ArchitectureRules.ALL.stream().filter(rule -> rule != ArchitectureRules.MODULE_CYCLES)
+    ArchitectureRules.ALL.stream()
+        .filter(rule -> rule != ArchitectureRules.MODULE_CYCLES)
         .forEach(rule -> rule.allowEmptyShould(true).check(classes));
   }
 

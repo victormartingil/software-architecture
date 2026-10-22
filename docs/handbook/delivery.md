@@ -24,6 +24,8 @@ Compose ejecuta las tres aplicaciones y sus apoyos en contenedores del equipo, c
 
 <a id="topic-laboratorio-kubernetes"></a>
 
+<a id="ref-topic-r31"></a>
+
 ## Laboratorio Kubernetes
 
 ```bash
@@ -56,6 +58,8 @@ AI mantiene una réplica con estrategia Recreate. SQLite y un bloqueo de proceso
 
 <a id="topic-fundacion-cloud"></a>
 
+<a id="ref-topic-r32"></a>
+
 ## Infraestructura en Google Cloud
 
 ```bash
@@ -85,6 +89,8 @@ Cuatro pruebas mock comprueban la base y rechazan CIDR abierto, IPv6 e IPv4 inv�
 
 <a id="topic-delivery-cambios-y-reversion"></a>
 
+<a id="ref-topic-r33"></a>
+
 ## Entregar cambios y preparar la reversión
 
 CI ejecuta pruebas, reglas de dependencia, contratos, evaluación offline y documentación. Un análisis de dependencias añade señales de vulnerabilidad; no acredita ausencia de vulnerabilidades ni una auditoría de seguridad completa. Actualizar lockfiles en cambios revisables, probar compatibilidad y retirar versiones obsoletas con criterio.
@@ -92,6 +98,8 @@ CI ejecuta pruebas, reglas de dependencia, contratos, evaluación offline y docu
 Si se necesita un despliegue con versiones mezcladas, las migraciones deben ser compatibles: añadir antes de eliminar, medir uso y retirar después. Volver a una imagen anterior no revierte automáticamente una migración destructiva ni un evento ya publicado. Las versiones del contrato y las claves idempotentes necesitan convivir durante el plazo de replay. V2 de idempotencia exige parada de escritores y rechaza datos V1 ambiguos: es una excepción explícita, sin prometer actualización gradual; véase [ADR002](../decisions/002-consistency.md).
 
 <a id="topic-reutilizar-la-referencia-en-un-sistema-real"></a>
+
+<a id="ref-topic-r34"></a>
 
 ## Reutilizar la referencia en un sistema real
 
@@ -148,6 +156,8 @@ make terraform-check
 <a id="topic-ejemplo-de-kubernetes"></a>
 
 ## Para profundizar
+
+**Primero:** [Kubernetes: Up and Running, 3.ª, capítulo 10](../bibliography.md#book-b16), para comparar estrategias de Deployment en Commerce y AI. **Alternativa:** si se estudia Terraform, [Terraform: Up and Running, 3.ª, capítulo 3](../bibliography.md#book-b17), para comprender estado; los mocks nativos se consultan en HashiCorp. No es necesario leer ambos para ejecutar Compose. Terminado cuando se justifica una réplica AI y se distingue plan simulado de infraestructura real. [Correspondencias de entrega](../bibliography.md#chapters-delivery).
 
 Los [manifiestos de Kubernetes de Online Boutique](https://github.com/GoogleCloudPlatform/microservices-demo/tree/99d6025d494fd2ad9cd49a7881d590e7d8a773e5/kubernetes-manifests) permiten comparar un `Deployment` y su `Service`: seguir selector, labels y puertos; después revisar probes y recursos. El demo incluye más servicios y tecnologías; no asumir que su escala o sus decisiones hacen falta aquí.
 

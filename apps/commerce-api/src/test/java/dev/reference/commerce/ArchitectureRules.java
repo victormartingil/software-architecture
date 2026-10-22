@@ -1,12 +1,12 @@
 package dev.reference.commerce;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
+import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.dependencies.SliceAssignment;
 import com.tngtech.archunit.library.dependencies.SliceIdentifier;
-import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,16 +28,22 @@ final class ArchitectureRules {
           .dependOnClassesThat()
           .resideInAPackage(ROOT + "..infrastructure..");
 
-  static final SliceAssignment BUSINESS_MODULES = new SliceAssignment() {
-    public SliceIdentifier getIdentifierOf(JavaClass type) {
-      for (String module : List.of("orders", "inventory", "returns")) {
-        if (type.getPackageName().startsWith(ROOT + "." + module + ".")) return SliceIdentifier.of(module);
-      }
-      return SliceIdentifier.ignore();
-    }
-    public String getDescription() { return "business modules excluding shared and composition"; }
-  };
-  static final ArchRule MODULE_CYCLES = slices().assignedFrom(BUSINESS_MODULES).should().beFreeOfCycles();
+  static final SliceAssignment BUSINESS_MODULES =
+      new SliceAssignment() {
+        public SliceIdentifier getIdentifierOf(JavaClass type) {
+          for (String module : List.of("orders", "inventory", "returns")) {
+            if (type.getPackageName().startsWith(ROOT + "." + module + "."))
+              return SliceIdentifier.of(module);
+          }
+          return SliceIdentifier.ignore();
+        }
+
+        public String getDescription() {
+          return "business modules excluding shared and composition";
+        }
+      };
+  static final ArchRule MODULE_CYCLES =
+      slices().assignedFrom(BUSINESS_MODULES).should().beFreeOfCycles();
 
   static final List<ArchRule> ALL = rules();
 
@@ -54,6 +60,26 @@ final class ArchitectureRules {
                 ROOT + ".returns.infrastructure.rest"));
     rules.add(noClasses().should().resideInAPackage(ROOT + "..infrastructure"));
     for (String module : List.of("orders", "inventory", "returns")) {
+      rules.add(
+          noClasses()
+              .that()
+              .resideInAnyPackage(ROOT + ".orders..", ROOT + ".inventory..", ROOT + ".returns..")
+              .and()
+              .resideOutsideOfPackage(ROOT + "." + module + "..")
+              .should()
+              .dependOnClassesThat(
+                  new com.tngtech.archunit.base.DescribedPredicate<JavaClass>(
+                      "belong to another module's private application implementation") {
+                    public boolean test(JavaClass type) {
+                      String application = ROOT + "." + module + ".application";
+                      String name = type.getPackageName();
+                      return (name.equals(application) || name.startsWith(application + "."))
+                          && !name.startsWith(application + ".port.input.")
+                          && !name.equals(application + ".port.input")
+                          && !name.startsWith(application + ".model.")
+                          && !name.equals(application + ".model");
+                    }
+                  }));
       rules.add(
           noClasses()
               .that()

@@ -16,9 +16,13 @@ Estas APIs reciben el token de acceso (access token) de Keycloak. El ID token in
 
 Un tenant es el ámbito de aislamiento de una organización; un actor es la identidad que realiza la operación. El tenant siempre procede del token. Buscar un pedido exige tenant y propietario, salvo MANAGER del mismo tenant. Un identificador UUID difícil de adivinar no sustituye esa condición. Se devuelve 404 para recursos ajenos para limitar divulgación. Los tests incluyen firma, issuer y audiencia incorrectos, token caducado, claims ausentes y acceso cruzado.
 
+En Python, [JwtVerifier](../../apps/ai-service/src/ai_service/infrastructure/security.py) conserva las claves JWKS durante sesenta segundos y solo admite claves RSA de firma RS256. Un `kid` desconocido durante ese intervalo se rechaza, sin forzar una descarga inmediata. La rotación real necesita solapamiento de claves, política de caché y pruebas de disponibilidad acordadas con el emisor; no asumir que esta caché implementa todas las políticas de Spring Security. [test_security.py](../../apps/ai-service/tests/test_security.py) distingue una clave de cifrado de una de firma y rechaza identidades inválidas; no acredita una rotación completa en producción.
+
 Keycloak local tiene credenciales sintéticas y password grant (canje directo de usuario y contraseña por un token) para automatizar escenarios. Solo se publica en el propio equipo (loopback). Es una excepción de laboratorio; un cliente público en producción debe usar Authorization Code + PKCE (inicio de sesión en el navegador y comprobación que vincula el código de autorización con el cliente que lo solicitó), TLS y configuración endurecida. Las aplicaciones no ofrecen un endpoint para inventar tokens ni elegir un rol en el cuerpo de login.
 
 <a id="topic-modelo-de-amenazas-minimo"></a>
+
+<a id="ref-topic-r25"></a>
 
 ## Modelo de amenazas mínimo
 
@@ -35,11 +39,13 @@ La prompt injection es contenido no confiable que intenta cambiar las instruccio
 
 <a id="topic-fallos-de-dependencias"></a>
 
+<a id="ref-topic-r26"></a>
+
 ## Fallos de dependencias
 
 Una llamada remota necesita un plazo. El plazo total de doce segundos incluye espera de capacidad, recuperación y generación. El proveedor tiene un presupuesto máximo de once segundos y timeout HTTP de diez segundos por fase de red, con como máximo dos intentos para errores transitorios y circuito de protección abierto tras tres fallos, con recuperación de prueba a treinta segundos. Errores de entrada, permisos o esquema no deben reintentarse ciegamente. Las pruebas usan reloj/transporte controlados, sin esperar a un proveedor real.
 
-Un semáforo, que limita cuántas tareas pueden avanzar a la vez, admite cuatro tareas de respuesta. Un plazo total (deadline) agotado durante generación cuenta como fallo del circuito; una desconexión del cliente solo cancela y libera capacidad, sin atribuir al proveedor ese fallo. El plazo total evita acumular trabajo indefinidamente; cancelar SSE cancela su tarea. El circuito de protección (circuit breaker) evita insistir cuando la dependencia falla, pero no ofrece capacidad adicional ni sustituye una cola limitada. La espera creciente entre reintentos (backoff), su variación aleatoria (jitter) y el plazo total deben revisarse juntos: varios niveles reintentando multiplican llamadas.
+Un semáforo, que limita cuántas tareas pueden avanzar a la vez, permite cuatro respuestas en ejecución; no limita por sí solo el número de solicitudes esperando entrar. Esas esperas consumen el plazo total. A diferencia del workflow, este servicio no mantiene un contador explícito de admisión de dieciséis operaciones. Una pasarela o un límite de admisión adicional sería necesario si el producto exige acotar también esa cola. Un plazo total (deadline) agotado durante generación cuenta como fallo del circuito; una desconexión del cliente solo cancela y libera capacidad, sin atribuir al proveedor ese fallo. El plazo total evita acumular trabajo indefinidamente; cancelar SSE cancela su tarea. El circuito de protección (circuit breaker) evita insistir cuando la dependencia falla, pero no ofrece capacidad adicional ni sustituye una cola limitada. La espera creciente entre reintentos (backoff), su variación aleatoria (jitter) y el plazo total deben revisarse juntos: varios niveles reintentando multiplican llamadas.
 
 <a id="topic-circuito-del-proveedor"></a>
 
@@ -59,6 +65,8 @@ Los archivos de versiones fijadas (lockfiles) y los análisis de dependencias re
 
 <a id="practica-guiada-comprobar-esperas-y-cancelaciones"></a>
 <a id="práctica-guiada-comprobar-esperas-y-cancelaciones"></a>
+
+<a id="ref-topic-r27"></a>
 
 ## Comprobación reproducible: comprobar esperas y cancelaciones
 
@@ -85,7 +93,7 @@ Si el cliente cierra una conexión, ¿ese abandono debe contar como un fallo del
 
 ## Para profundizar
 
-[*Release It!*, 2.ª edición, de Michael Nygard](https://pragprog.com/titles/mnee2/release-it-second-edition/) complementa límites, fallos de dependencias y recuperación. La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/2f3d998c85f10b8ff88a3dca9f24bacf11c3a250/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten seguir las transiciones cerrado/abierto/prueba y compararlas con `OpenAIProvider`. Localizar qué reinicia los fallos y qué llamadas se permiten durante la recuperación. Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
+**Primero:** [Release It!, 2.ª, capítulo 5](../bibliography.md#book-b5), consultando timeout, circuit breaker y límites de capacidad. **Alternativa:** [AI Engineering, capítulo 5](../bibliography.md#book-b12), para entradas no confiables; no sustituye autorización de backend. Terminado cuando se distinguen plazo de cola, cancelación y fallo del proveedor. [Correspondencias de seguridad](../bibliography.md#chapters-security). La [guía de CircuitBreaker de Resilience4j](https://resilience4j.readme.io/docs/circuitbreaker) y su [máquina de estados Java](https://github.com/resilience4j/resilience4j/blob/2f3d998c85f10b8ff88a3dca9f24bacf11c3a250/resilience4j-circuitbreaker/src/main/java/io/github/resilience4j/circuitbreaker/internal/CircuitBreakerStateMachine.java) permiten seguir las transiciones cerrado/abierto/prueba y compararlas con `OpenAIProvider`. Localizar qué reinicia los fallos y qué llamadas se permiten durante la recuperación. Sus ventanas y umbrales configurables difieren del mecanismo pequeño de este proveedor Python; se enlaza como comparación, sin incorporar la dependencia.
 
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>

@@ -8,6 +8,8 @@ El capítulo 5 permitió consultar políticas. Consultar una política y autoriz
 
 <a id="topic-una-propuesta-no-es-un-permiso"></a>
 
+<a id="ref-topic-r22"></a>
+
 ## Separar solicitud, aprobación y ejecución
 
 Recuperar una política o generar una recomendación no autoriza una devolución. La API de comercio conserva las reglas y comprueba al actor en cada operación. El flujo coordina pasos y recuerda progreso; no otorga roles ni escribe directamente en tablas de negocio.
@@ -35,6 +37,8 @@ El JWT se usa transitoriamente para la llamada y no se guarda en puntos de contr
 
 <a id="topic-estado-y-fallo-entre-sistemas"></a>
 
+<a id="ref-topic-r23"></a>
+
 ## Reanudar tras una respuesta perdida
 
 [![Estados de negocio de una devolución](../diagrams/return-states.svg)](../diagrams/return-states.svg)
@@ -46,6 +50,8 @@ Un punto de control (checkpoint) es una copia guardada del progreso del grafo pa
 Al reanudar un `interrupt`, LangGraph vuelve a ejecutar el nodo desde su principio. Cualquier efecto anterior a la pausa debe admitir repetición. Aquí el nodo de espera solo interrumpe; propuesta y ejecución usan claves estables frente a reinicios o respuestas perdidas. La pausa se conserva entre peticiones HTTP distintas: no mantiene una conexión abierta esperando al responsable. Véanse las [reglas de reanudación e idempotencia de interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts#side-effects-called-before-interrupt-must-be-idempotent).
 
 La versión es un contador de cambios, no la versión de la API. Si se aprueba una propuesta con versión 0, Comercio devuelve la versión 1; ejecutar todavía con 0 debe fallar. El flujo consulta la versión aprobada para ejecutar con ella. Una propuesta aprobada no se edita silenciosamente; cualquier cambio requiere nueva aprobación. La caducidad de diez minutos limita una autorización que dejó de representar la intención actual. El backend aplica estos controles dentro de su transacción, incluso si se invoca sin pasar por AI.
+
+<a id="ref-topic-r24"></a>
 
 ## Persistencia y escalado
 
@@ -86,6 +92,10 @@ Con Docker, `make up` y `make demo` prueban JWT reales de Keycloak, aprobación,
 ## Documentación de la sección
 
 [LangGraph persistencia](https://docs.langchain.com/oss/python/langgraph/persistence), [interrupciones](https://docs.langchain.com/oss/python/langgraph/interrupts), [OWASP autorización](https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html).
+
+## Para profundizar
+
+**Primero:** [DDIA, 2.ª, capítulo 9](../bibliography.md#book-b3), para razonar sobre una respuesta perdida entre sistemas. **Alternativa:** [AI Engineering, capítulo 10](../bibliography.md#book-b12), para arquitectura de integración; la API exacta de reanudación se consulta en LangGraph. Terminado cuando se distingue repetir un nodo de repetir el efecto de negocio. [Correspondencias de workflows](../bibliography.md#chapters-workflows).
 
 <a id="comprobar-lo-aprendido"></a>
 

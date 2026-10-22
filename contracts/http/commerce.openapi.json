@@ -88,6 +88,16 @@
                 }
               }
             }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -173,6 +183,26 @@
           },
           "503": {
             "description": "Dependency unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -276,6 +306,16 @@
           },
           "503": {
             "description": "Dependency unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -397,6 +437,16 @@
                 }
               }
             }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -483,6 +533,26 @@
           },
           "503": {
             "description": "Dependency unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -595,6 +665,16 @@
                 }
               }
             }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -681,6 +761,26 @@
           },
           "503": {
             "description": "Dependency unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -785,6 +885,26 @@
           },
           "503": {
             "description": "Dependency unavailable",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Requested representation unavailable; errors use application/problem+json",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported request media type",
             "content": {
               "application/problem+json": {
                 "schema": {

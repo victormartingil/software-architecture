@@ -10,9 +10,19 @@ public final class ApplicationBoundaryFixtures {
     dev.reference.commerce.orders.application.port.output.OrderRepository forbidden;
   }
 
+  public static class ForeignService {
+    dev.reference.commerce.orders.application.service.ManageOrderService forbidden;
+  }
+
+  public static class ForeignModel {
+    dev.reference.commerce.orders.application.model.OrderResult allowed;
+    dev.reference.commerce.orders.domain.Order allowedDomain;
+  }
+
   public static class SharedType {
     dev.reference.commerce.shared.domain.BusinessException allowed;
   }
+
   public static class InputPort {
     dev.reference.commerce.orders.application.port.input.OrderUseCase allowed;
   }

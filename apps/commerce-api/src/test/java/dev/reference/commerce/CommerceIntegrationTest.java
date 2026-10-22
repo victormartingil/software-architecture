@@ -824,6 +824,58 @@ class CommerceIntegrationTest {
   org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping mappings;
 
   @Test
+  void frameworkErrorsPreserveStatusHeadersAndCorrelation() throws Exception {
+    var customer = apiActor("demo", "alice", "CUSTOMER");
+    String correlation = "framework-errors-test";
+    var method =
+        http.perform(
+                delete("/api/v1/orders").with(customer).header("X-Correlation-Id", correlation))
+            .andExpect(status().isMethodNotAllowed())
+            .andExpect(header().string("Allow", org.hamcrest.Matchers.containsString("GET")))
+            .andExpect(header().string("Allow", org.hamcrest.Matchers.containsString("POST")))
+            .andExpect(jsonPath("$.status").value(405))
+            .andExpect(jsonPath("$.correlationId").value(correlation))
+            .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+            .andReturn();
+    assertThat(method.getResponse().getHeader("X-Correlation-Id")).isEqualTo(correlation);
+    var media =
+        http.perform(
+                post("/api/v1/orders")
+                    .with(customer)
+                    .header("X-Correlation-Id", correlation)
+                    .header("Idempotency-Key", "unsupported")
+                    .contentType("text/plain")
+                    .content("private-request-marker"))
+            .andExpect(status().isUnsupportedMediaType())
+            .andExpect(
+                header().string("Accept", org.hamcrest.Matchers.containsString("application/json")))
+            .andExpect(jsonPath("$.status").value(415))
+            .andExpect(jsonPath("$.correlationId").value(correlation))
+            .andReturn();
+    CommerceContractAssertions.response("/api/v1/orders", "post", media);
+    assertThat(media.getResponse().getContentAsString()).doesNotContain("private-request-marker");
+    for (String accept : List.of("text/plain", "invalid media type")) {
+      var negotiation =
+          http.perform(
+                  get("/api/v1/orders")
+                      .with(customer)
+                      .header("X-Correlation-Id", correlation)
+                      .header("Accept", accept))
+              .andExpect(status().isNotAcceptable())
+              .andExpect(jsonPath("$.status").value(406))
+              .andExpect(jsonPath("$.correlationId").value(correlation))
+              .andReturn();
+      CommerceContractAssertions.response("/api/v1/orders", "get", negotiation);
+    }
+    http.perform(
+            get("/api/v1/no-such-route").with(customer).header("X-Correlation-Id", correlation))
+        .andExpect(status().isNotFound())
+        .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.correlationId").value(correlation));
+  }
+
+  @Test
   void httpContractMatchesActualRoutesAndResponses() throws Exception {
     var contract = CommerceContractAssertions.document();
     var actualRoutes = new TreeSet<String>();

@@ -1,6 +1,12 @@
 # Especificación de la referencia
 
-Versión 4, 2026-10-17. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
+Versión 5, 2026-10-23. Fuente canónica de requisitos implementables. Sustituye propuestas de alcance anteriores. Estado de ejecución en [verificación](verification.md); criterios en [aceptación](acceptance.md).
+
+## Ampliación de referencia y mantenimiento
+
+Se conservan tres aplicaciones, nueve capítulos, Java 21, Python 3.12 y sus contratos de éxito. Se completan errores HTTP de framework, diagnóstico seguro, guardas intermodulares y versiones soportadas de observabilidad, con regresiones. La publicación mantiene separados hechos implementados, ejercicios y alternativas; no añade cloud ni modelos de pago.
+
+El índice ofrece lectura secuencial y tres sesiones cortas Java/Spring; el mapa existente permite consulta por concepto. Cada tema relevante enlaza explicación, ejemplo, código, comprobación y documentación oficial. La bibliografía central reúne 17 volúmenes y nueve ejemplos externos, con 35 correspondencias y 50 asociaciones opcionales; el manual prioriza una lectura y un contraste por capítulo. Ediciones, capítulos y fragmentos se contrastan con fuentes primarias; no se presupone acceso completo a libros ni aval de autores. Se sustituye el mantenimiento público de estrellas por utilidad, fuente y fecha de consulta. La verificación registra resultados reales y sus límites.
 
 ## Objetivo y límites
 

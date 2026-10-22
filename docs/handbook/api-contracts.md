@@ -23,6 +23,8 @@ Las llamadas del asistente usan operaciones por intención; solo el adaptador HT
 
 <a id="topic-significado-antes-que-transporte"></a>
 
+<a id="ref-topic-r07"></a>
+
 ## Traducir errores de negocio a HTTP
 
 El dominio expresa errores como NOT_FOUND o CONFLICT, sin importar Spring ni devolver un status HTTP. `ProblemAdvice` traduce esos significados a 404 o 409. Otro adaptador podría traducir el mismo fallo a un resultado de mensajería. Esta separación evita que la regla «aprobación vencida» dependa del protocolo con el que se ejecuta.
@@ -30,6 +32,8 @@ El dominio expresa errores como NOT_FOUND o CONFLICT, sin importar Spring ni dev
 Las respuestas de error mantienen Problem Details: status, title, detail y correlationId, con mensajes controlados. No devuelven el cuerpo del proveedor ni un stacktrace. Los códigos distinguen la causa: 401 para credenciales ausentes o inválidas, 403 para permisos insuficientes, 404 para un recurso no visible y 409 para un conflicto de negocio. 400 indica una entrada inválida y 503, indisponibilidad temporal del servicio, por ejemplo por saturación, plazo agotado o fallo de una dependencia. Un 503 no autoriza a repetir cualquier escritura: hace falta identidad idempotente y una política explícita.
 
 <a id="topic-un-listado-pequeno-y-estable"></a>
+
+<a id="ref-topic-r08"></a>
 
 ## Paginar pedidos con un cursor
 
@@ -73,6 +77,8 @@ La alternativa offset es más sencilla para saltar a un número de página, pero
 <a id="practica-guiada-contrato-y-aislamiento-reales"></a>
 <a id="práctica-guiada-contrato-y-aislamiento-reales"></a>
 
+<a id="ref-topic-r09"></a>
+
 ## Comprobación reproducible: contrato y aislamiento reales
 
 ### 1. Seguir el código
@@ -96,12 +102,42 @@ Si se leen tres filas para devolver una página de dos elementos, ¿qué identif
 
 **Alternativa:** generar clientes desde OpenAPI puede aportar valor si existen consumidores que los necesitan. Aquí no se añade un generador ni modelos duplicados: el contrato se verifica contra el comportamiento. Una modificación de ruta, seguridad, entrada o respuesta exige actualizar contrato y pruebas en el mismo cambio.
 
+<a id="exercise-java-pagination"></a>
+
+## Caso de aplicación: reconstruir la página en Java
+
+En una copia de estudio, reconstruir solo el cuerpo de [ManageOrderService.list](../../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java), sin mirar primero su implementación. Conservar firma, puertos, consulta SQL y contrato HTTP. `orders.list(actor, query)` ya devuelve como máximo `limit + 1` filas autorizadas; el ejercicio transforma ese resultado, no vuelve a filtrar permisos en memoria.
+
+**Predicción:** con `limit=2`, anotar tamaño de `items` y cursor para cero filas, `[A]`, `[A,B]` y `[A,B,C]`, donde las letras representan pedidos ordenados. **Entregable:** el método Java y esas cuatro predicciones. **Pista:** comparar el tamaño leído antes de limitar; convertir con `OrderResult.from` y obtener el último elemento solo si existe continuación.
+
+Con JDK 21 y Docker, contrastar la variante mediante `orderPagesUseTenantOwnerAndKeyset` usando el comando de la comprobación anterior. Sin Docker, comparar razonadamente con la fuente, sin afirmar que se han probado SQL o permisos. Terminado cuando no se devuelve la fila adicional, no se omiten pedidos y una lista vacía no intenta acceder a su último elemento. Restaurar la implementación de referencia al acabar.
+
+<details markdown="1">
+<summary>Ver una resolución razonada</summary>
+
+```java
+public OrderPage list(Actor actor, OrderQuery query) {
+  var candidates = orders.list(actor, query);
+  boolean hasMore = candidates.size() > query.limit();
+  var items = candidates.stream().limit(query.limit()).map(OrderResult::from).toList();
+  return new OrderPage(items, hasMore ? items.getLast().id() : null);
+}
+```
+
+Los cuatro resultados son `0/null`, `1/null`, `2/null` y `2/B`. El condicional solo evalúa `getLast` cuando `hasMore` es verdadero; con límites positivos y sobrelectura eso implica elementos devueltos. `Stream.limit` acota la página, `map` adapta el modelo y `toList` recoge el resultado. No sustituyen el aislamiento aplicado en SQL ni convierten las páginas en una instantánea.
+
+</details>
+
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>
 
 ## Documentación de la sección
 
 [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/17/using-explain.html), [OpenAPI](https://spec.openapis.org/oas/v3.1.0), [JSON Schema: tipos numéricos y enteros](https://json-schema.org/understanding-json-schema/reference/numeric), [Problem Details](https://www.rfc-editor.org/rfc/rfc9457).
+
+## Para profundizar
+
+**Primero:** [Core Java II, 14.ª, apartados 1.3–1.4](../bibliography.md#book-b1-ii), para `map` y límite del stream. **Alternativa:** [Spring Start Here, 2.ª MEAP, 10.3.3](../bibliography.md#book-b2), para REST y excepciones; numeración provisional. Terminado cuando se explica el cursor y se separa error de dominio de transporte. [Correspondencias de contratos](../bibliography.md#chapters-api-contracts).
 
 <a id="comprobar-lo-aprendido"></a>
 

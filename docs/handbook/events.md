@@ -22,6 +22,8 @@ Un grupo de consumidores (consumer group) identifica un lector lógico: auditor�
 
 <a id="topic-publicar-despues-de-confirmar"></a>
 
+<a id="ref-topic-r14"></a>
+
 ## Publicar después de confirmar
 
 Guardar un pedido y enviar un mensaje a Kafka son dos escrituras en sistemas distintos. Si la primera funciona y la segunda falla, el consumidor nunca recibe el hecho. Enviar primero invierte el problema: puede publicarse un pedido que luego no existe. `@Async` cambia el hilo, sin crear atomicidad.
@@ -36,6 +38,8 @@ El contrato vive en [orders.placed.v1](../../contracts/events/orders.placed.v1.s
 
 Los consumidores validan el contrato antes de producir efectos. Los identificadores UUID se exigen completos y se normalizan para que mayúsculas y minúsculas conserven la misma identidad; el [corpus de casos de prueba](../../contracts/events/fixtures/uuid-cases.json) recoge formas válidas e inválidas.
 
+<a id="ref-topic-r15"></a>
+
 ## Mensajes inválidos
 
 Un error transitorio admite reintentos limitados. Un mensaje estructuralmente inválido no se arregla esperando: termina en una DLT (dead-letter topic): un topic de mensajes fallidos para investigación y reproceso controlado, separado para auditoría y analytics. Si publicar la DLT falla, no se debe confirmar el original como procesado. El [procedimiento de recuperación](operations.md) explica cómo investigar la causa y volver a enviar un evento reparado. Ese reproceso, o replay, debe ser explícito y conservar su identidad.
@@ -44,13 +48,15 @@ La evolución debe mantener forma y semántica compatibles. Aquí los esquemas y
 
 <a id="topic-ventanas-y-deduplicacion"></a>
 
+<a id="ref-topic-r16"></a>
+
 ## Ventanas y deduplicación
 
 [OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) resume pedidos por organización, producto y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia, o grace, es de treinta segundos. Se calcula respecto al avance del tiempo observado por la tarea de procesamiento (stream time). No significa esperar treinta segundos de reloj tras cada mensaje.
 
 [![Validación, deduplicación y resumen de pedidos](../diagrams/order-summary-flow.svg)](../diagrams/order-summary-flow.svg)
 
-Un `KStream` interpreta cada registro como un hecho individual; una `KTable` interpreta la última actualización de cada clave como su valor actual. La agregación de esta topología produce una tabla por tenant/SKU/ventana y la vuelve a publicar como registros. El topic de salida publica actualizaciones de una tabla: la misma clave de ventana puede aparecer varias veces con un agregado más reciente. Por ejemplo, dos pedidos distintos de un mismo producto y organización en una ventana pueden publicar primero `orderCount=1` y después `orderCount=2`. El total actualizado es 2, no la suma 1 + 2. No sumar esas actualizaciones como si fueran hechos distintos. El resultado cuenta creaciones, aunque después exista una devolución; llamarlo ventas netas sería incorrecto. La deduplicación dura siete días, acorde al contrato de retención. Un replay más antiguo requiere otra política.
+Un `KStream` interpreta cada registro como un hecho individual; una `KTable` interpreta la última actualización de cada clave como su valor actual. La agregación de esta topología produce una tabla por tenant/SKU/ventana y la vuelve a publicar como registros. El topic de salida publica actualizaciones de una tabla: la misma clave de ventana puede aparecer varias veces con un agregado más reciente. Por ejemplo, dos pedidos distintos de un mismo producto y organización en una ventana pueden publicar primero `orderCount=1` y después `orderCount=2`. El total actualizado es 2, no la suma 1 + 2. No sumar esas actualizaciones como si fueran hechos distintos. El resultado cuenta creaciones, aunque después exista una devolución; llamarlo ventas netas sería incorrecto. La deduplicación dura siete días, acorde al contrato de retención. La retención del topic, la identidad almacenada para deduplicar y el plazo de claves idempotentes son decisiones distintas: conservar un mensaje no implica conservar indefinidamente la memoria de sus efectos. Un replay más antiguo requiere otra política y pruebas; no ampliar una retención aislada suponiendo que amplía todas las garantías.
 
 Las ventanas son consecutivas y no se solapan: `[10:00, 10:01)` incluye las 10:00, pero excluye las 10:01, que pertenecen a la siguiente.
 
@@ -77,6 +83,8 @@ El consumidor limita cada poll a 100 registros y pausa por partición al superar
 Analytics configura `exactly_once_v2`: offsets, changelog y salida se confirman dentro de la transacción Kafka. Sus consumidores deben leer con `isolation.level=read_committed`. Esta atomicidad no incluye PostgreSQL ni HTTP; eventId sigue siendo necesario para reconocer publicaciones repetidas del mismo hecho de negocio.
 
 <a id="topic-relojes-incorrectos-y-cuarentena"></a>
+
+<a id="ref-topic-r17"></a>
 
 ## Relojes incorrectos y cuarentena
 
@@ -123,7 +131,9 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 
 ## Para profundizar
 
-Lectura complementaria: [*Designing Data-Intensive Applications*, 2.ª edición](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781098119058/cover.html), para comparar sistemas de datos, procesamiento y sus trade-offs. El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/e4cc5d18f45d2965e4e1e571adc34bfb80cba642/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) permite localizar la secuencia `stream → groupBy → count → toStream`. Comparar su conteo por palabra con tenant/SKU/ventana y deduplicación de esta referencia: ¿qué cambia en la clave y en el estado? Sirve para estudiar la API, no como dependencia de esta implementación.
+**Primero:** [Kafka: The Definitive Guide, 2.ª, capítulo 7](../bibliography.md#book-b4): localizar las condiciones de entrega fiable. **Alternativa:** [DDIA, 2.ª, capítulo 9](../bibliography.md#book-b3), para razonar sobre fallos parciales y relojes. Terminado cuando se sitúa el fallo entre confirmación Kafka y marcado del outbox y se explica el papel de eventId. [Correspondencias de eventos](../bibliography.md#chapters-events).
+
+El ejemplo [WordCount de Kafka Streams](https://github.com/apache/kafka/blob/e4cc5d18f45d2965e4e1e571adc34bfb80cba642/streams/examples/src/main/java/org/apache/kafka/streams/examples/wordcount/WordCountDemo.java) permite localizar la secuencia `stream → groupBy → count → toStream`. Comparar su conteo por palabra con tenant/SKU/ventana y deduplicación de esta referencia: ¿qué cambia en la clave y en el estado? Sirve para estudiar la API, no como dependencia de esta implementación.
 
 <a id="comprobar-lo-aprendido"></a>
 

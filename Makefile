@@ -24,6 +24,7 @@ docs:
 verify: test observability-rules-test
 	python3 scripts/check_repository.py
 	$(UV) run --project tools/docs mkdocs build --strict -f mkdocs.yml
+	python3 scripts/check_doc_navigation.py
 observability:
 	TRACING_ENABLED=true TRACING_SAMPLING_PROBABILITY=1.0 AI_OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318 $(COMPOSE) --profile observability up -d --wait --wait-timeout 240
 observability-rules-test:

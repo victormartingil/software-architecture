@@ -42,6 +42,7 @@ nav:
   - Consulta:
       - Aplicaciones y datos: repository-design.md
       - Mapa de referencia: reference-map.md
+      - Bibliografía recomendada: bibliography.md
       - Decisiones de arquitectura: decisions/index.md
       - Especificación: specification.md
       - Criterios de aceptación: acceptance.md

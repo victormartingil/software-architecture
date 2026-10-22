@@ -126,13 +126,13 @@ services:
     volumes: ["streams:/state"]
     mem_limit: 768m
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.123.0
+    image: otel/opentelemetry-collector-contrib:0.163.2
     profiles: [observability]
     command: [--config=/etc/otel/config.yaml]
     volumes: ["./infra/observability/collector.yaml:/etc/otel/config.yaml:ro"]
     mem_limit: 256m
   prometheus:
-    image: prom/prometheus:v3.2.1
+    image: prom/prometheus:v3.15.1
     profiles: [observability]
     volumes:
       - ./infra/observability/prometheus.yaml:/etc/prometheus/prometheus.yml:ro
@@ -140,13 +140,13 @@ services:
     ports: ["127.0.0.1:9090:9090"]
     mem_limit: 256m
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:2.10.10
     profiles: [observability]
     command: [-config.file=/etc/tempo.yaml]
     volumes: ["./infra/observability/tempo.yaml:/etc/tempo.yaml:ro"]
     mem_limit: 256m
   grafana:
-    image: grafana/grafana:11.6.0
+    image: grafana/grafana:12.4.13
     profiles: [observability]
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"

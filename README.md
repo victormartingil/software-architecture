@@ -4,6 +4,8 @@ Una implementación de referencia que reúne decisiones de arquitectura backend 
 
 **[Explorar la arquitectura](docs/index.md)** · **[Preparar el entorno](docs/getting-started.md)** · **[Consultar un tema](docs/reference-map.md)**
 
+Consulta directa: [Java y Spring](docs/reference-map.md#concept-java-spring) · [Kafka](docs/reference-map.md#concept-kafka) · [Python e IA](docs/reference-map.md#concept-python-ai) · [Observabilidad](docs/reference-map.md#concept-observability) · [Despliegue](docs/reference-map.md#concept-delivery). Para repasar con poco tiempo, seguir las [tres sesiones de unos 45 minutos](docs/index.md#study-java-spring).
+
 <a id="que-se-aprende"></a>
 <a id="qué-se-aprende"></a>
 
@@ -32,6 +34,14 @@ El método de trabajo sigue **problema → restricciones → alternativas → de
 | Investigar fallos con señales de una operación concreta | [Observabilidad](docs/handbook/operations.md), con métricas, trazas y logs correlacionados |
 
 Las pruebas de integración y los escenarios comprueban el comportamiento de la referencia. La calidad generativa de un modelo real, la alta disponibilidad y el despliegue cloud tienen [límites explícitos](docs/verification.md); no se deducen de una demostración local.
+
+Para una primera revisión técnica, seguir estos tres casos:
+
+- **Última unidad y rollback:** [actualización condicional y transacción](docs/handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad), con dos compradores y un fallo antes de confirmar.
+- **Respuesta perdida:** [resultado idempotente](docs/handbook/transactions.md#topic-repetir-una-peticion-es-normal), con identidad persistida junto al efecto.
+- **Aprobación vigente:** [reanudación y permisos](docs/handbook/workflows.md#topic-estado-y-fallo-entre-sistemas), conservando la decisión final en Comercio.
+
+Cada explicación enlaza implementación y comprobaciones. La [bibliografía](docs/bibliography.md) es consulta opcional para profundizar en una decisión concreta.
 
 <a id="antes-de-empezar"></a>
 
