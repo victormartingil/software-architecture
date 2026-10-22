@@ -8,13 +8,15 @@ El capítulo 7 limitó errores y esperas. Para investigar un fallo real hace fal
 
 <a id="topic-senales-con-una-pregunta"></a>
 
+<a id="ref-topic-r28"></a>
+
 ## Elegir entre métricas, trazas y logs
 
 Las métricas resumen cantidades y tendencias; las trazas muestran el recorrido de una petición; los logs registran sucesos concretos. Se complementan para responder a preguntas distintas.
 
 Prometheus recoge y consulta métricas; Tempo almacena y consulta trazas; OpenTelemetry Collector recibe y reenvía telemetría; Grafana permite consultar y visualizar esas señales. Las aplicaciones generan los datos que utilizan estas herramientas.
 
-Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta.
+Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta. Un contador crece mientras vive el proceso y puede reiniciarse; una tasa necesita una ventana de observación. Un gauge expresa un valor actual, como pendientes, y un histograma agrupa observaciones de duración. No sumar el último valor acumulado de cada scrape como si fueran eventos nuevos. Antes de copiar una consulta del dashboard, localizar qué tipo de métrica consulta y qué intervalo usa.
 
 ```bash
 make observability
@@ -114,15 +116,21 @@ Medir éxito de operaciones válidas, latencia y frescura; IA añade fidelidad y
 
 Antes de escalar, localizar saturación SQL, bloqueos, lag Kafka y cola del proveedor. Más réplicas pueden trasladar el cuello de botella. El coste por tarea completada incluye errores, reintentos y recursos ociosos, no solo tokens.
 
+<a id="ref-topic-r30"></a>
+
 ## Prueba rápida de las reglas de alerta
 
 `make observability-rules-test` ejecuta [series sintéticas](../../infra/observability/alerts.test.yaml) con `promtool test rules`: ambas alertas se mantienen inactivas en condiciones normales, esperan su plazo `for`, disparan con etiquetas/anotaciones previstas y se resuelven al desaparecer la condición. Por ejemplo, un pendiente aparece al minuto uno; `OutboxBacklog` dispara al minuto tres tras dos minutos continuos. No basta un pico aislado.
 
 El comando forma parte de `make verify`, reutiliza la imagen Prometheus fijada en Compose, monta reglas y datos de prueba en solo lectura y ejecuta un contenedor efímero sin red. Requiere Docker y la imagen disponible; para la primera descarga usar `docker compose --profile observability pull prometheus` (requiere red). No arranca servidores. Las pruebas de reglas no acreditan lectura de métricas, entrega de notificaciones ni recuperación real: para señales actuales se conserva `make observability-smoke`. Véase [pruebas unitarias de reglas](https://prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/).
 
+<a id="ref-topic-r35"></a>
+
 ## Ciclo de vida local
 
 `make down` apaga sin borrar volúmenes. `make up` recupera datos. `make reset CONFIRM=delete-local-data` elimina únicamente volúmenes del proyecto Compose y exige intención explícita. Un reset no sustituye una migración ni una prueba de restauración. Ejecutar kind después de apagar Compose para evitar puertos y memoria competidos.
+
+Dentro de Analytics, [StreamsLifecycle](../../apps/order-analytics/src/main/java/dev/reference/analytics/StreamsLifecycle.java) coordina callbacks de Kafka y el hilo que arranca o cierra el proceso. `synchronized` protege el estado compartido; `CompletableFuture` comunica que llegó a RUNNING o falló, con espera de arranque acotada. Al cerrar se retira readiness antes de esperar a Kafka, sin retener el monitor: un callback que necesitara ese monitor podría impedir terminar el cierre. `volatile` hace visible el fallo de cierre entre hilos; no convierte varias operaciones en una transacción. [StreamsLifecycleTest](../../apps/order-analytics/src/test/java/dev/reference/analytics/StreamsLifecycleTest.java) comprueba callbacks cruzados, rebalance y plazos. Es el caso concreto para consultar concurrencia en [Core Java I](../bibliography.md#refs-r35).
 
 <a id="practica-guiada-contar-el-resultado-de-cada-operacion-una-vez"></a>
 <a id="práctica-guiada-contar-el-resultado-de-cada-operación-una-vez"></a>
@@ -157,7 +165,11 @@ Una respuesta SSE comienza con HTTP 200 y termina con un error. ¿Basta contar l
 
 <a id="topic-ejemplo-de-observabilidad"></a>
 
+<a id="ref-topic-r29"></a>
+
 ## Para profundizar
+
+**Primero:** [Learning OpenTelemetry, capítulo 8](../bibliography.md#book-b6), para seguir el pipeline del Collector. **Alternativa:** [Prometheus: Up & Running, 2.ª, capítulo 18](../bibliography.md#book-b14), para relacionar reglas y estados de alerta. Terminado cuando se explica qué comprueba una serie sintética y qué exige observar una operación actual. [Correspondencias de observabilidad](../bibliography.md#chapters-operations).
 
 La [configuración del OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo/blob/3ee33db6f17a7482f63553c514c81c53ba8a696f/src/otel-collector/otelcol-config.yml) permite seguir receptores, procesadores y exportadores hasta los pipelines de señales. Comparar ese recorrido con `infra/observability/collector.yaml`: ¿qué recibe y a dónde reenvía cada uno? Es un sistema mucho mayor que este laboratorio; úsalo para seguir la configuración de señales, no como topología mínima recomendada.
 

@@ -6,7 +6,17 @@ Hasta aquí el pedido ha circulado entre servicios. Se incorpora ahora el asiste
 
 **Objetivo:** entender RAG, comparar búsqueda léxica y vectorial e interpretar métricas de recuperación sin confundirlas con calidad generativa.
 
+<a id="python-prerequisites"></a>
+
+## Python necesario para seguir el ejemplo
+
+Conviene reconocer anotaciones de tipos, `dataclass`, `Protocol` y `async`/`await`. Un `Protocol` describe las operaciones que necesita la aplicación sin imponer herencia a sus adaptadores; [ports.py](../../apps/ai-service/src/ai_service/application/ports.py) permite compararlo con una interfaz Java. Una función `async def` produce una operación esperable; `await` cede control mientras espera, no crea por sí solo otro proceso ni vuelve paralelo código bloqueante.
+
+En [AnswerService.answer](../../apps/ai-service/src/ai_service/application/answers.py), seguir `timeout → Semaphore → search → generate`: el plazo rodea también la espera de capacidad. `async with` entra y sale de un contexto que libera recursos incluso al fallar o cancelar. Antes de continuar, explicar qué sucede cuando la búsqueda no encuentra documentos: se devuelve abstención sin llamar al generador. [test_answers.py](../../apps/ai-service/tests/test_answers.py) contrasta esa coordinación. Para sintaxis, consultar [Protocol](https://docs.python.org/3.12/library/typing.html#typing.Protocol), [corutinas y tareas](https://docs.python.org/3.12/library/asyncio-task.html) y [semáforos](https://docs.python.org/3.12/library/asyncio-sync.html#asyncio.Semaphore); aquí se usa Python 3.12.
+
 <a id="topic-evidencia-antes-de-redactar"></a>
+
+<a id="ref-topic-r18"></a>
 
 ## Buscar información antes de generar texto
 
@@ -23,6 +33,8 @@ El [recuperador](../../apps/ai-service/src/ai_service/infrastructure/retrieval.p
 [AnswerService](../../apps/ai-service/src/ai_service/application/answers.py) conoce los puertos de recuperación y generación. Los adaptadores concretos se ensamblan en la entrada FastAPI. Una respuesta solo puede citar identificadores realmente recuperados; una cita existente no demuestra que el texto esté respaldado semánticamente. Esa segunda propiedad necesita evaluación del modelo y revisión del contenido.
 
 <a id="topic-simulacion-y-proveedor-real"></a>
+
+<a id="ref-topic-r19"></a>
 
 ## Comparar la simulación con el proveedor real
 
@@ -41,9 +53,11 @@ El plazo total incluye la espera en cola; generar y realizar hasta dos intentos 
 
 </details>
 
-La variante pgvector valida dimensión de embeddings y filtra tenant en SQL antes de ordenar por distancia. Los tests usan vectores de prueba contra PostgreSQL/pgvector real para verificar aislamiento y orden, sin pagar embeddings. La ingesta de un corpus con embeddings reales requiere configuración deliberada. Búsqueda léxica y vectorial deben compararse sobre las mismas preguntas; una variante híbrida sería una ampliación posterior. Un índice vectorial no garantiza mejores respuestas.
+La variante pgvector valida dimensión de embeddings y filtra tenant en SQL antes de ordenar por distancia. Los tests usan vectores de prueba contra PostgreSQL/pgvector real para verificar aislamiento y orden, sin pagar embeddings. La ingesta de un corpus con embeddings reales requiere configuración deliberada. Búsqueda léxica y vectorial deben compararse sobre las mismas preguntas; una variante híbrida sería una ampliación posterior. La consulta concreta ordena por `embedding <=> vector` con filtro de tenant y dimensión; no demuestra un índice aproximado ANN ni rendimiento con un corpus grande. [test_vector.py](../../apps/ai-service/tests/test_vector.py) comprueba aislamiento, orden y dimensión con vectores sintéticos. Un índice vectorial no garantiza mejores respuestas; aproximar vecinos también exige medir qué evidencia se pierde.
 
 <a id="topic-que-medir"></a>
+
+<a id="ref-topic-r20"></a>
 
 ## Medir la recuperación de documentos
 
@@ -52,6 +66,8 @@ El [dataset](../../apps/ai-service/data/evaluation.json) incluye preguntas respo
 La evaluación es pequeña, sintética y cercana al corpus. Una puntuación perfecta no implica generalización. Para un modelo real añadir fidelidad a evidencia, corrección de citas, abstención apropiada, latencia p95, tokens y coste por tarea completada. Conservar modelo, versión de prompt, dataset y juicio humano. Un juez LLM puede ayudar, pero hereda sesgos y no sustituye pruebas deterministas de permisos.
 
 <a id="topic-evaluar-respaldo-de-respuestas"></a>
+
+<a id="ref-topic-r21"></a>
 
 ## Evaluar si la respuesta está respaldada
 
@@ -160,7 +176,7 @@ Completar `"relevant": ["demo-returns"]`. Se espera `['demo-returns']` y recall,
 
 ## Para profundizar
 
-Lectura: [*AI Engineering*, de Chip Huyen](https://www.oreilly.com/library/view/ai-engineering/9781098166298/), para diseño, evaluación y operación de aplicaciones con modelos fundacionales. [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/docs/examples/low_level/retrieval.ipynb) permite seguir recuperación, selección del contexto y consulta. Comparar qué decide el recuperador con lo que decide el generador; los filtros de autorización de esta referencia siguen siendo obligatorios. En el libro, buscar el tratamiento de evaluación y contrastarlo con la distinción entre recuperación y respaldo semántico de este capítulo.
+**Primero:** [AI Engineering, capítulo 6](../bibliography.md#book-b12), centrando la consulta en recuperación y RAG. **Alternativa:** [Architecture Patterns with Python, capítulo 4](../bibliography.md#book-b11), para comparar la coordinación de aplicación con AnswerService. Terminado cuando se separan ausencia de evidencia, ranking y fidelidad de generación. [Correspondencias de recuperación](../bibliography.md#chapters-retrieval). [La guía de recuperación de LlamaIndex](https://github.com/run-llama/llama_index/blob/8469a034226d20b70a667dc7faf013770716709f/docs/examples/low_level/retrieval.ipynb) permite seguir recuperación, selección del contexto y consulta. Comparar qué decide el recuperador con lo que decide el generador; los filtros de autorización de esta referencia siguen siendo obligatorios. La bibliografía enlaza por separado evaluación de recuperación y respaldo semántico; consultar ese tramo ante una duda concreta.
 
 <a id="comprobar-lo-aprendido"></a>
 

@@ -8,6 +8,8 @@ En el capítulo anterior se ha seguido un pedido desde fuera. Ahora se estudia s
 
 <a id="topic-problema-y-decision"></a>
 
+<a id="ref-topic-r01"></a>
+
 ## Separar las responsabilidades
 
 Una regla como «no vender más unidades de las disponibles» debe sobrevivir a un cambio de transporte o base de datos. Interpretar una petición HTTP corresponde al controlador que la recibe. Separar estas responsabilidades reduce el número de conceptos que hay que entender para modificar cada una.
@@ -50,6 +52,8 @@ Los tipos del dominio protegen reglas locales: `Quantity` valida 1..100 aun cuan
 
 <a id="topic-por-que-tres-servicios"></a>
 
+<a id="ref-topic-r02"></a>
+
 ## Por qué tres servicios
 
 Commerce tiene una única transacción de negocio. Dividir pedidos e inventario en servicios introduciría consistencia eventual y compensaciones sin mejorar este ejemplo. Analytics escala y reconstruye una proyección independiente. AI tiene dependencias, costes y ciclo de ejecución distintos; solo accede a comercio por HTTP. Estas diferencias justifican procesos separados. El tamaño de una clase o una entidad no los justifica por sí solo.
@@ -57,6 +61,8 @@ Commerce tiene una única transacción de negocio. Dividir pedidos e inventario 
 Un monolito modular sería una alternativa razonable para una tienda real pequeña. La referencia separa procesos para poder observar fallos de red, replay y permisos entre sistemas. No propone copiar esta topología en cualquier producto.
 
 <a id="topic-del-requisito-a-la-decision"></a>
+
+<a id="ref-topic-r03"></a>
 
 ## Del requisito a la decisión
 
@@ -72,6 +78,8 @@ En el primer caso, enviar antes puede anunciar un pedido inexistente; enviar sol
 Para otra necesidad, completar la misma tabla y señalar qué dato haría cambiar la decisión. El [SEI explica este razonamiento mediante escenarios de atributos de calidad](https://www.sei.cmu.edu/library/reasoning-about-software-quality-attributes/). Los [ADR](../decisions/index.md) registran la decisión resultante; no sustituyen formular primero el problema.
 
 <a id="topic-patrones-con-una-responsabilidad-concreta"></a>
+
+<a id="ref-topic-r04"></a>
 
 ## Patrones con una responsabilidad concreta
 
@@ -89,6 +97,8 @@ Un Command pide un cambio y una Query solicita información. CQRS (separación d
 
 <a id="practica-guiada-comprobar-las-dependencias-permitidas"></a>
 <a id="práctica-guiada-comprobar-las-dependencias-permitidas"></a>
+
+<a id="ref-topic-r05"></a>
 
 ## Comprobación reproducible: comprobar las dependencias permitidas
 
@@ -122,6 +132,8 @@ Un módulo puede respetar sus capas y aun así formar un ciclo con otro: `orders
 
 <a id="ejercicio-de-aplicacion-proteger-una-cantidad"></a>
 <a id="ejercicio-de-aplicación-proteger-una-cantidad"></a>
+
+<a id="ref-topic-r06"></a>
 
 ## Caso de aplicación: proteger una cantidad
 
@@ -161,7 +173,9 @@ Es el constructor compacto del `record Quantity(int value)`. Usa tipos de su pro
 
 ## Para profundizar
 
-Lectura: [*Fundamentals of Software Architecture*, 2.ª edición](https://www.oreilly.com/library/view/fundamentals-of-software/9781098175504/), para estilos, límites, decisiones y evolución de arquitectura. Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/1028b09682320bb3feaf017c72379a81835e3ad3/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring. Al leerla, localizar cómo identifica un módulo y compararlo con las reglas de `ArchitectureRules`: ¿qué verifica cada enfoque? Es una referencia de la biblioteca, no una dependencia de este proyecto.
+**Primero:** [Learning Domain-Driven Design, capítulo 3](../bibliography.md#book-b9): distinguir un límite de modelo de un proceso desplegado. **Alternativa:** [Clean Architecture, capítulo 22](../bibliography.md#book-b10), para contrastar la dirección de dependencias con el acoplamiento explícito a Spring. Terminado cuando se explica por qué tres módulos no demuestran tres bounded contexts. [Correspondencias de arquitectura](../bibliography.md#chapters-architecture).
+
+Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.com/spring-projects/spring-modulith/blob/1028b09682320bb3feaf017c72379a81835e3ad3/spring-modulith-core/src/main/java/org/springframework/modulith/core/ApplicationModules.java) modela y verifica módulos en aplicaciones Spring. Al leerla, localizar cómo identifica un módulo y compararlo con las reglas de `ArchitectureRules`: ¿qué verifica cada enfoque? Es una referencia de la biblioteca, no una dependencia de este proyecto.
 
 <a id="comprobar-lo-aprendido"></a>
 
