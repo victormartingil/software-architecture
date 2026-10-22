@@ -67,6 +67,22 @@ La implementación hace esperar dentro de PostgreSQL a las solicitudes que compa
 
 La devolución tiene una invariante semejante. Una aprobación se vincula a la versión y al contenido de una propuesta, con caducidad. La ejecución comprueba de nuevo estado, versión y fecha dentro de la transacción; registra devolución, cambia pedido y repone inventario una sola vez. Una respuesta perdida se recupera con una clave estable de ejecución. Se trata de un reembolso sintético: no hay transferencia de dinero ni transacción con un proveedor de pagos.
 
+### Qué aporta Spring y qué ejecuta Java
+
+`@Transactional` en `ManageOrderService.create` usa propagación `REQUIRED`: al entrar por el proxy de Spring inicia una transacción si no existe o participa en la actual. Los adaptadores `JdbcTemplate` usan la conexión asociada a esa transacción por Spring, con el mismo `DataSource`. No se abre una transacción independiente por cada repositorio. Una llamada directa al objeto evita el proxy; la prueba del capítulo muestra por qué deja de ser atómico el conjunto.
+
+Por defecto Spring revierte si sale una `RuntimeException` o un `Error`; una excepción checked no provoca rollback por defecto. Aquí `BusinessException`, los errores de acceso a datos y la excepción de serialización propagada por el adaptador son unchecked. Capturar una excepción y devolver normalmente puede permitir el commit, salvo que la transacción ya esté marcada para rollback. No ocultar un fallo y asumir que la anotación deshará todo: una regla distinta necesita configuración explícita y una prueba. Véase [rollback declarativo de Spring](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html).
+
+La firma idempotente conecta tres conceptos Java:
+
+```java
+public <T> T execute(Scope scope, Object request, Class<T> type, Supplier<T> action)
+```
+
+`<T>` declara el tipo del resultado para esa llamada: con `OrderResult.class`, `T` es `OrderResult`. `Class<T>` aporta a Jackson la clase concreta para reconstruir el JSON guardado, porque el parámetro genérico no conserva por sí solo ese tipo en ejecución. `Supplier<T>` representa una acción sin argumentos que devolverá `T`: la lambda todavía no ha reservado stock al pasarse como argumento. El adaptador llama a `action.get()` solo si no existe un resultado para la clave; en un reintento válido deserializa el resultado y no ejecuta la lambda. No hay otro hilo ni ejecución asíncrona: ocurre dentro de la misma transacción y llamada.
+
+**Comprobar la comprensión:** seguir las dos ramas de `JdbcIdempotencyAdapter.execute` y señalar dónde se reserva stock, dónde se deserializa y cuándo se libera el bloqueo transaccional. Si se cambia el cuerpo manteniendo la clave, la respuesta es conflicto, sin ejecutar la acción.
+
 ## Alternativas y costes
 
 Bloquear la fila antes de decidir puede simplificar reglas más complejas; aumenta el tiempo de espera y exige orden consistente de bloqueos. El bloqueo previo es una estrategia pesimista: excluye escrituras competidoras mientras se decide. La alternativa optimista comprueba una versión al escribir y rechaza el cambio si otro la ha modificado. Sirve cuando los conflictos son infrecuentes y el cliente puede reintentar. La actualización condicional expresa bien este caso pequeño. No se escoge un nivel de aislamiento más costoso por costumbre: se razona sobre anomalías concretas y se prueba la invariante.
