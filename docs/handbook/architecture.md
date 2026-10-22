@@ -104,7 +104,7 @@ Un Command pide un cambio y una Query solicita información. CQRS (separación d
 
 ### 1. Seguir el código
 
-Leer el caso de uso y puerto enlazados arriba y [ArchitectureTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureTest.java). Desde la raíz, con Java 21 y Docker disponible para consultar su contexto:
+Leer el caso de uso y puerto enlazados arriba y [ArchitectureTest](../../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureTest.java). Desde la raíz, con Java 21; estas comprobaciones estáticas no necesitan Docker:
 
 ### 2. Predecir el resultado
 
@@ -113,10 +113,7 @@ Una clase de dominio importa Spring. ¿Qué debería detectar la regla de arquit
 ### 3. Ejecutar y comparar
 
 ```bash
-(cd apps/commerce-api && \
-  DOCKER_HOST="$(docker context inspect --format '{{.Endpoints.docker.Host}}')" \
-  TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock \
-  ./mvnw -B -ntp -Dapi.version=1.44 -Dtest=ArchitectureTest test)
+(cd apps/commerce-api && ./mvnw -B -ntp -Dtest=ArchitectureTest test)
 (cd apps/ai-service && uv run pytest tests/test_architecture.py -q && uv run lint-imports)
 ```
 

@@ -43,6 +43,12 @@ Sesiones orientativas de unos 45 minutos de trabajo activo; descargas y arranque
 
 Los ejercicios modifican solo una copia de estudio y conservan contratos. Volver a la implementación de referencia al terminar; no introducir variantes de aprendizaje en una entrega. No hace falta ejecutar Kubernetes, Terraform ni un modelo real.
 
+### Continuar con una prioridad de backend senior
+
+Después de las tres sesiones, seguir [transacciones](handbook/transactions.md) → [Kafka](handbook/events.md#exercise-kafka-grace) → [seguridad](handbook/security.md) → [observabilidad](handbook/operations.md#exercise-promql) → [Python/IA](handbook/retrieval.md#exercise-python-provider) y [workflows](handbook/workflows.md). Dejar [Kubernetes y Terraform](handbook/delivery.md) como ampliación opcional. Antes de pasar de tema, explicar la garantía, producir una pequeña solución y reconocer su límite; consultar el libro cuando quede una duda concreta.
+
+Intentar primero sin IA ni solución, pedir una pista si se bloquea el razonamiento y usar la IA después para revisar la propuesta y plantear un contraejemplo. Días después repetir una variante sin mirar: recordar el mecanismo y justificarlo importa más que reconocer una respuesta al leerla. La corrección se contrasta con código, documentación y pruebas, también cuando la respuesta viene de una IA.
+
 Para consultar la referencia con buscador, índice lateral y modo claro u oscuro, ejecutar `make docs` desde la raíz, con uv instalado. Abrir la dirección local que indique el comando en la terminal. También se puede seguir completo desde los enlaces Markdown de GitHub.
 
 <a id="orden-de-estudio"></a>

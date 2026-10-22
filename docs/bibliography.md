@@ -182,12 +182,12 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r01"></a>[R01. Separar las responsabilidades](handbook/architecture.md#ref-topic-r01) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B2](#book-b2): 2.2, 3.2.2 y 4.2<br>[B1](#book-b1): 6.1 | beans, inyección por constructor y abstracciones; interfaces como contratos. |
+| <a id="refs-r01"></a>[R01. Separar las responsabilidades](handbook/architecture.md#ref-topic-r01) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B2 · Spring Start Here](#book-b2): 2.2, 3.2.2 y 4.2<br>[B1 · Core Java I](#book-b1): 6.1 | beans, inyección por constructor y abstracciones; interfaces como contratos. |
 | <a id="refs-r02"></a>[R02. Por qué tres servicios](handbook/architecture.md#ref-topic-r02) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B9](#book-b9): 3–4<br>[B8](#book-b8): 3 y 8 | límites de modelo e integración entre contextos; modularidad y componentes frente a despliegue. |
 | <a id="refs-r03"></a>[R03. Del requisito a la decisión](handbook/architecture.md#ref-topic-r03) · [ADR001](decisions/001-boundaries.md) | [B8](#book-b8): 21 | registrar decisiones, alternativas y consecuencias. |
 | <a id="refs-r04"></a>[R04. Patrones con una responsabilidad concreta](handbook/architecture.md#ref-topic-r04) · [ports.py](../apps/ai-service/src/ai_service/application/ports.py) | [B10](#book-b10): 22<br>[B11](#book-b11): 2 y 4 | inversión de dependencias, límites, negocio y organización; repositorio y capa de servicios en Python. |
 | <a id="refs-r05"></a>[R05. Comprobación reproducible: comprobar las dependencias permitidas](handbook/architecture.md#ref-topic-r05) · [ArchitectureRules.java](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) | [B8](#book-b8): 6 | fitness functions y gobierno automatizado. |
-| <a id="refs-r06"></a>[R06. Caso de aplicación: proteger una cantidad](handbook/architecture.md#ref-topic-r06) · [Quantity.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/domain/Quantity.java) | [B1](#book-b1): 4.7, 4.7.2 y 7.1<br>[B9](#book-b9): 6 | records, constructores y excepciones; invariantes y value objects como contraste. |
+| <a id="refs-r06"></a>[R06. Caso de aplicación: proteger una cantidad](handbook/architecture.md#ref-topic-r06) · [Quantity.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/domain/Quantity.java) | [B1 · Core Java I](#book-b1): 4.7, 4.7.2 y 7.1<br>[B9](#book-b9): 6 | records, constructores y excepciones; invariantes y value objects como contraste. |
 
 <a id="chapters-api-contracts"></a>
 
@@ -195,8 +195,8 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r07"></a>[R07. Traducir errores de negocio a HTTP](handbook/api-contracts.md#ref-topic-r07) · [ProblemAdvice.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/ProblemAdvice.java) | [B2](#book-b2): 10.3.3 | REST y gestión de excepciones. |
-| <a id="refs-r08"></a>[R08. Paginar pedidos con un cursor](handbook/api-contracts.md#ref-topic-r08) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B1-II](#book-b1-ii): 1.3, 1.4 y 1.8<br>[B3](#book-b3): 4 | transformación, limitación y recogida del stream; índices y acceso a datos. |
+| <a id="refs-r07"></a>[R07. Traducir errores de negocio a HTTP](handbook/api-contracts.md#ref-topic-r07) · [ProblemAdvice.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/ProblemAdvice.java) | [B2 · Spring Start Here](#book-b2): 10.3.3 | REST y gestión de excepciones. |
+| <a id="refs-r08"></a>[R08. Paginar pedidos con un cursor](handbook/api-contracts.md#ref-topic-r08) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B1-II · Core Java II](#book-b1-ii): 1.3, 1.4 y 1.8<br>[B3 · DDIA](#book-b3): 4 | transformación, limitación y recogida del stream; índices y acceso a datos. |
 | <a id="refs-r09"></a>[R09. Comprobación reproducible: contrato y aislamiento reales](handbook/api-contracts.md#ref-topic-r09) · [CommerceIntegrationTest.java](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) | [B15](#book-b15): 8 | diseño de pruebas de integración. |
 
 <a id="chapters-transactions"></a>
@@ -205,9 +205,9 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r10"></a>[R10. Evitar que dos pedidos vendan la misma unidad](handbook/transactions.md#ref-topic-r10) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B2](#book-b2): 6.1 y 13<br>[B3](#book-b3): 8 | proxy y transacciones Spring; atomicidad, aislamiento y concurrencia. |
-| <a id="refs-r11"></a>[R11. Recuperar el resultado al repetir una petición](handbook/transactions.md#ref-topic-r11) · [JdbcIdempotencyAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/persistence/JdbcIdempotencyAdapter.java) | [B3](#book-b3): 8<br>[B1](#book-b1): 8.1.4, 8.2 y 8.6.2 | coordinación transaccional e idempotencia de efectos; métodos genéricos, borrado y `Class<T>`. |
-| <a id="refs-r12"></a>[R12. Esquema que sostiene las garantías](handbook/transactions.md#ref-topic-r12) · [JdbcOrderRepositoryAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/persistence/JdbcOrderRepositoryAdapter.java) | [B1-II](#book-b1-ii): 5, especialmente 5.5 y 5.9 | JDBC, consultas preparadas y transacciones. |
+| <a id="refs-r10"></a>[R10. Evitar que dos pedidos vendan la misma unidad](handbook/transactions.md#ref-topic-r10) · [ManageOrderService.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [B2 · Spring Start Here](#book-b2): 6.1 y 13<br>[B3 · DDIA](#book-b3): 8. *Transactions* | proxy y transacciones Spring; atomicidad, aislamiento y concurrencia. |
+| <a id="refs-r11"></a>[R11. Recuperar el resultado al repetir una petición](handbook/transactions.md#ref-topic-r11) · [JdbcIdempotencyAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/persistence/JdbcIdempotencyAdapter.java) | [B3 · DDIA](#book-b3): 8. *Transactions*<br>[B1 · Core Java I](#book-b1): 8.1.4, 8.2 y 8.6.2 | coordinación transaccional e idempotencia de efectos; métodos genéricos, borrado y `Class<T>`. |
+| <a id="refs-r12"></a>[R12. Esquema que sostiene las garantías](handbook/transactions.md#ref-topic-r12) · [JdbcOrderRepositoryAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/infrastructure/persistence/JdbcOrderRepositoryAdapter.java) | [B1-II · Core Java II](#book-b1-ii): 5, especialmente 5.5 y 5.9 | JDBC, consultas preparadas y transacciones. |
 | <a id="refs-r13"></a>[R13. Caso de aplicación: corregir una carrera](handbook/transactions.md#ref-topic-r13) · [CommerceIntegrationTest.java](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) | [B15](#book-b15): 8 | dependencias reales y regresiones de integración. |
 
 <a id="chapters-events"></a>
@@ -216,10 +216,10 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r14"></a>[R14. Publicar después de confirmar](handbook/events.md#ref-topic-r14) · [OutboxEventsAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxEventsAdapter.java) | [B9](#book-b9): 9<br>[B4](#book-b4): 3, 7 y 8 | outbox y coordinación entre componentes; productor, entrega fiable y alcance de exactly-once. |
-| <a id="refs-r15"></a>[R15. Mensajes inválidos](handbook/events.md#ref-topic-r15) · [KafkaConfiguration.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/KafkaConfiguration.java) | [B3](#book-b3): 5<br>[B4](#book-b4): 4 y 7 | esquemas, codificación y evolución; consumo y entrega fiable. |
-| <a id="refs-r16"></a>[R16. Ventanas y deduplicación](handbook/events.md#ref-topic-r16) · [OrderSummaryTopology.java](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) | [B4](#book-b4): 14<br>[B3](#book-b3): 12 | procesamiento con Kafka Streams; tiempo de evento, agregaciones y estado. |
-| <a id="refs-r17"></a>[R17. Relojes incorrectos y cuarentena](handbook/events.md#ref-topic-r17) · [OrderSummaryTopology.java](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) | [B3](#book-b3): 9 | relojes no fiables y fallos de sistemas distribuidos. |
+| <a id="refs-r14"></a>[R14. Publicar después de confirmar](handbook/events.md#ref-topic-r14) · [OutboxEventsAdapter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxEventsAdapter.java) | [B9](#book-b9): 9<br>[B4 · Kafka: The Definitive Guide](#book-b4): 3, 7 y 8 | outbox y coordinación entre componentes; productor, entrega fiable y alcance de exactly-once. |
+| <a id="refs-r15"></a>[R15. Mensajes inválidos](handbook/events.md#ref-topic-r15) · [KafkaConfiguration.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/KafkaConfiguration.java) | [B3 · DDIA](#book-b3): 5<br>[B4 · Kafka: The Definitive Guide](#book-b4): 4 y 7 | esquemas, codificación y evolución; consumo y entrega fiable. |
+| <a id="refs-r16"></a>[R16. Ventanas y deduplicación](handbook/events.md#ref-topic-r16) · [OrderSummaryTopology.java](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) | [B4 · Kafka: The Definitive Guide](#book-b4): 14. *Stream Processing*<br>[B3 · DDIA](#book-b3): 12. *Stream Processing* | procesamiento con Kafka Streams; tiempo de evento, agregaciones y estado. |
+| <a id="refs-r17"></a>[R17. Relojes incorrectos y cuarentena](handbook/events.md#ref-topic-r17) · [OrderSummaryTopology.java](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) | [B3 · DDIA](#book-b3): 9. *The Trouble with Distributed Systems* | relojes no fiables y fallos de sistemas distribuidos. |
 
 <a id="chapters-retrieval"></a>
 
@@ -238,9 +238,9 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r22"></a>[R22. Separar solicitud, aprobación y ejecución](handbook/workflows.md#ref-topic-r22) · [ReturnProposal.java](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/domain/ReturnProposal.java) | [B9](#book-b9): 5–6<br>[B1-II](#book-b1-ii): 6 | orquestación de aplicación frente a reglas de dominio; Instant y reglas temporales. |
-| <a id="refs-r23"></a>[R23. Reanudar tras una respuesta perdida](handbook/workflows.md#ref-topic-r23) · [workflows.py](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [B12](#book-b12): 6 y 10<br>[B3](#book-b3): 5 y 9 | workflows y arquitectura de integración; ejecución durable y fallos parciales. |
-| <a id="refs-r24"></a>[R24. Persistencia y escalado](handbook/workflows.md#ref-topic-r24) · [workflows.py](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [B3](#book-b3): 8–9 | control concurrente y límites ante fallos. |
+| <a id="refs-r22"></a>[R22. Separar solicitud, aprobación y ejecución](handbook/workflows.md#ref-topic-r22) · [ReturnProposal.java](../apps/commerce-api/src/main/java/dev/reference/commerce/returns/domain/ReturnProposal.java) | [B9](#book-b9): 5–6<br>[B1-II · Core Java II](#book-b1-ii): 6 | orquestación de aplicación frente a reglas de dominio; Instant y reglas temporales. |
+| <a id="refs-r23"></a>[R23. Reanudar tras una respuesta perdida](handbook/workflows.md#ref-topic-r23) · [workflows.py](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [B12](#book-b12): 6 y 10<br>[B3 · DDIA](#book-b3): 5 y 9 | workflows y arquitectura de integración; ejecución durable y fallos parciales. |
+| <a id="refs-r24"></a>[R24. Persistencia y escalado](handbook/workflows.md#ref-topic-r24) · [workflows.py](../apps/ai-service/src/ai_service/infrastructure/workflows.py) | [B3 · DDIA](#book-b3): 8–9 | control concurrente y límites ante fallos. |
 
 <a id="chapters-security"></a>
 
@@ -258,10 +258,10 @@ Cada fila enlaza al apartado del manual y a código representativo. Los rangos a
 
 | Tema y código | Libro: capítulos/apartados | Para qué leerlo |
 |---|---|---|
-| <a id="refs-r28"></a>[R28. Elegir entre métricas, trazas y logs](handbook/operations.md#ref-topic-r28) · [CorrelationFilter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java) | [B6](#book-b6): 3 y 5<br>[B7](#book-b7): 8 | señales e instrumentación; análisis de datos instrumentados. |
-| <a id="refs-r29"></a>[R29. Para profundizar](handbook/operations.md#ref-topic-r29) · [collector.yaml](../infra/observability/collector.yaml) | [B6](#book-b6): 8 | pipelines de telemetría. |
+| <a id="refs-r28"></a>[R28. Elegir entre métricas, trazas y logs](handbook/operations.md#ref-topic-r28) · [CorrelationFilter.java](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java) | [B6 · Learning OpenTelemetry](#book-b6): 3 y 5<br>[B7](#book-b7): 8 | señales e instrumentación; análisis de datos instrumentados. |
+| <a id="refs-r29"></a>[R29. Para profundizar](handbook/operations.md#ref-topic-r29) · [collector.yaml](../infra/observability/collector.yaml) | [B6 · Learning OpenTelemetry](#book-b6): 8. *Designing Telemetry Pipelines* | pipelines de telemetría. |
 | <a id="refs-r30"></a>[R30. Prueba rápida de las reglas de alerta](handbook/operations.md#ref-topic-r30) · [alerts.yaml](../infra/observability/alerts.yaml) | [B14](#book-b14): 18 | reglas de alerta, for, etiquetas y anotaciones de las alertas. |
-| <a id="refs-r35"></a>[R35. Ciclo de vida local](handbook/operations.md#ref-topic-r35) · [StreamsLifecycle.java](../apps/order-analytics/src/main/java/dev/reference/analytics/StreamsLifecycle.java) | [B1](#book-b1): 10.3.2, 10.5.5–10.5.9 y 10.7.1<br>[B5](#book-b5): 5 | sincronización, tareas y concurrencia; esperas acotadas y recursos. |
+| <a id="refs-r35"></a>[R35. Ciclo de vida local](handbook/operations.md#ref-topic-r35) · [StreamsLifecycle.java](../apps/order-analytics/src/main/java/dev/reference/analytics/StreamsLifecycle.java) | [B1 · Core Java I](#book-b1): 10.3.2, 10.5.5–10.5.9 y 10.7.1<br>[B5](#book-b5): 5 | sincronización, tareas y concurrencia; esperas acotadas y recursos. |
 
 <a id="chapters-delivery"></a>
 
