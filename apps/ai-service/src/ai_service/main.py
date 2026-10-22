@@ -125,7 +125,8 @@ def create_app(settings: Settings | None = None):
     def problem(request, status, detail):
         return JSONResponse(status_code=status, content={"status": status,
             "title": "Request failed", "detail": detail, "correlationId": request.state.correlation},
-            media_type="application/problem+json")
+            media_type="application/problem+json",
+            headers={"WWW-Authenticate": "Bearer"} if status == 401 else None)
 
     @app.exception_handler(ServiceError)
     async def service_error(request, exc):

@@ -371,6 +371,20 @@ class CommerceIntegrationTest {
   void apiValidationAndAuthentication() throws Exception {
     http.perform(get("/api/v1/inventory/BOOK-1"))
         .andExpect(status().isUnauthorized())
+        .andExpect(header().string("WWW-Authenticate", "Bearer"))
+        .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+        .andExpect(jsonPath("$.status").value(401))
+        .andExpect(jsonPath("$.correlationId").exists());
+    http.perform(
+            get("/api/v1/inventory/BOOK-1").header("Authorization", "Bearer not-a-jwt"))
+        .andExpect(status().isUnauthorized())
+        .andExpect(header().string("WWW-Authenticate", "Bearer"))
+        .andExpect(jsonPath("$.status").value(401))
+        .andExpect(jsonPath("$.correlationId").exists());
+    http.perform(get("/api/v1/inventory/BOOK-1").with(jwt().authorities(List.of())))
+        .andExpect(status().isForbidden())
+        .andExpect(header().doesNotExist("WWW-Authenticate"))
+        .andExpect(jsonPath("$.status").value(403))
         .andExpect(jsonPath("$.correlationId").exists());
     http.perform(
             post("/api/v1/orders")

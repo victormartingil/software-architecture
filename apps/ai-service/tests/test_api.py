@@ -34,6 +34,46 @@ async def test_api_errors_fake_sse_and_injection_no_tool(tmp_path):
             assert 'event: result' not in response.text
 
 
+@pytest.mark.parametrize('authorization', [None, 'Basic fixture', 'Bearer', 'Bearer invalid-token'])
+async def test_authentication_errors_include_bearer_challenge(tmp_path, authorization):
+    class Rejected:
+        async def verify(self, token):
+            assert token == 'invalid-token'
+            raise ServiceError(401, 'Invalid token')
+
+    app = create_app(Settings(workflow_db=str(tmp_path / 'auth.db')))
+    correlation_id = '00000000-0000-4000-8000-000000000001'
+    async with app.router.lifespan_context(app):
+        app.state.verifier = Rejected()
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+            headers = {'X-Correlation-ID': correlation_id}
+            if authorization is not None:
+                headers['Authorization'] = authorization
+            response = await client.post('/api/v1/answers', json={'question': 'policy'}, headers=headers)
+    assert response.status_code == 401
+    assert response.headers['WWW-Authenticate'] == 'Bearer'
+    assert response.headers['content-type'] == 'application/problem+json'
+    assert response.headers['X-Correlation-ID'] == correlation_id
+    assert response.json()['status'] == 401
+    assert response.json()['correlationId'] == correlation_id
+
+
+async def test_permission_error_does_not_request_reauthentication(tmp_path):
+    app = create_app(Settings(workflow_db=str(tmp_path / 'forbidden.db')))
+    async with app.router.lifespan_context(app):
+        app.state.verifier = Verified()
+        async def denied(*args):
+            raise ServiceError(403, 'Insufficient permissions')
+        app.state.answers.answer = denied
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+            response = await client.post('/api/v1/answers', json={'question': 'policy'},
+                headers={'Authorization': 'Bearer signed-test'})
+    assert response.status_code == 403
+    assert 'WWW-Authenticate' not in response.headers
+    assert response.json()['status'] == 403
+    assert response.json()['correlationId']
+
+
 async def test_sse_disconnect_cancels_provider_task(tmp_path):
     before = REQUESTS.labels('cancelled', 'fake-simulation')._value.get()
     app = create_app(Settings(workflow_db=str(tmp_path/'db')))

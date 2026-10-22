@@ -44,7 +44,7 @@
 | WF-01 | Crear propuesta persiste workflow; restart permite continuar | Persistencia/reinicio |
 | WF-02 | Aprobar/reintentar no duplica efecto; no guarda JWT | Integración gateway y checkpoints |
 | WF-03 | Mutaciones del workflow tienen plazo total de 12 s incluida espera del lock y admisión máxima de 16 operaciones por proceso; exceso/timeout devuelve 503, cancelación libera cupo sin perder claves de reanudación | Dependencia bloqueada, cola, capacidad, cancelación y retry con misma clave |
-| SEC-01 | Sin token 401, role insuficiente 403, ajeno 404 | Tokens OIDC reales y negativos |
+| SEC-01 | Sin token o token inválido: 401 con WWW-Authenticate: Bearer y Problem Details seguro; role insuficiente 403, ajeno 404 | Tokens OIDC reales y negativos |
 | SEC-02 | JWT inválido/expirado/issuer/audience erróneos rechaza | Tests seguridad |
 | SEC-03 | Prompt injection no llama herramienta privilegiada | Adversarial tests |
 | SEC-04 | No secretos/PII en logs; sin token minting en APIs | Scan y revisión logs |
