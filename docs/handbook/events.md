@@ -65,7 +65,7 @@ La clave cambia para colocar cada decisión junto a su estado:
 | Segunda repartición, `tenant-sku` | JSON `[tenant, sku]` | Reúne pedidos distintos del mismo producto/organización antes de comprobar tardanza y agregar. |
 | Agregación y salida | `[tenant, sku]` + inicio de ventana | Mantiene un agregado por minuto; la clave serializada de salida añade `@windowStartMillis`. No necesita una tercera repartición. |
 
-Ambas reparticiones intercambian registros mediante topics internos: cuestan red, almacenamiento y operaciones de Kafka. Deduplicar después de agrupar por producto no resolvería correctamente una identidad repetida enviada con otra clave de entrada. El contrato exige además que el mismo `eventId` conserve el mismo hecho y payload; la deduplicación reconoce identidad, no compara ni reconcilia contenidos distintos.
+Ambas reparticiones intercambian registros mediante topics internos: cuestan red, almacenamiento y operaciones de Kafka. La primera reparte identidad de evento; la segunda reúne identidades distintas que contribuyen al mismo agregado. El contrato exige además que el mismo `eventId` conserve el mismo hecho y payload; la deduplicación reconoce identidad, no compara ni reconcilia contenidos distintos.
 
 El store conserva como marca `max(occurredAt, stream time)` al aceptar una identidad. La consulta ignora una marca vencida y un barrido cada hora de **stream time** elimina entradas antiguas. Siete días sin nuevos eventos no hacen avanzar ese reloj ni disparan el barrido; el espacio físico puede conservar entradas hasta la siguiente limpieza. El [README técnico](../../apps/order-analytics/README.md#flujo-y-garantías) detalla esa política.
 
@@ -132,6 +132,62 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 **Qué observar:** las dos pruebas de integración deben pasar. La primera inyecta el fallo únicamente en el envío DLT: el offset original no avanza ni se procesa el mensaje posterior; recuperar permite ambos. La segunda envía duplicados explícitos por particiones distintas antes y después de perder RocksDB; el resumen no aumenta por duplicados.
 
 **Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
+
+<a id="exercise-kafka-grace"></a>
+
+## Microejercicio Kafka: escribir una prueba del límite de grace
+
+**Tiempo activo:** 15–25 minutos; preparar JDK 21 y resolver dependencias Maven es tiempo adicional. Sin Docker ni broker. En una copia de estudio, añadir un método a [OrderSummaryTopologyTest](../../apps/order-analytics/src/test/java/dev/reference/analytics/OrderSummaryTopologyTest.java), reutilizando `dir`, `event` e `id` y sus imports. No cambiar la topología.
+
+**Objetivo:** enviar eventos distintos en segundos 89, 20, 90 y 25 desde epoch. Predecir qué actualiza `[0,60)` y cuál se descarta. Escribir las aserciones de número de actualizaciones, contador de tardíos y valor de la primera ventana, antes de abrir la solución.
+
+**Pista:** para esa ventana el cierre es `60 + 30 = 90`. A stream time 89 admite el evento de segundo 20; con stream time 90 el de segundo 25 ya es tardío. Los eventos de segundos 89 y 90 pertenecen a `[60,120)`. Usar IDs diferentes evita que la deduplicación oculte el caso; no avanzar tiempo de pared ni dormir.
+
+<details markdown="1">
+<summary>Ver solución y comprobación</summary>
+
+```java
+  @Test
+  void exerciseGraceBoundary() throws Exception {
+    var topology = new OrderSummaryTopology();
+    try (var driver = new TopologyTestDriver(topology.build(),
+        AnalyticsApplication.configuration("unused:9092", "exercise", dir.toString()))) {
+      var in = driver.createInputTopic(OrderSummaryTopology.INPUT,
+          new StringSerializer(), new StringSerializer());
+      var out = driver.createOutputTopic(OrderSummaryTopology.OUTPUT,
+          new StringDeserializer(), new StringDeserializer());
+      in.pipeInput("order", event(id(101), "demo", 89, 1));
+      in.pipeInput("order", event(id(102), "demo", 20, 1));
+      in.pipeInput("order", event(id(103), "demo", 90, 1));
+      in.pipeInput("order", event(id(104), "demo", 25, 1));
+      var values = out.readValuesToList();
+      assertEquals(3, values.size());
+      assertEquals(1, topology.lateEvents.sum());
+      var firstWindow = values.stream()
+          .map(value -> {
+            try { return EventCodec.JSON.readTree(value); }
+            catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
+          })
+          .filter(value -> value.get("windowStart").asText().equals("1970-01-01T00:00:00Z"))
+          .toList();
+      assertEquals(1, firstWindow.size());
+      assertEquals(1, firstWindow.getFirst().get("orderCount").asInt());
+    }
+  }
+```
+
+Desde la raíz de la copia:
+
+```bash
+(cd apps/order-analytics && ./mvnw -B -ntp \
+  '-Dtest=OrderSummaryTopologyTest#exerciseGraceBoundary' test)
+```
+
+Se espera una prueba aprobada: tres actualizaciones de salida y un tardío. La primera ventana tiene un único pedido, no dos. `TopologyTestDriver` ejecuta el procesamiento y los topics internos de forma determinista; no acredita redistribución real entre brokers ni recuperación de RocksDB. Eso se contrasta en `KafkaRecoveryTest`.
+
+</details>
+
+**Terminado:** explicar por qué el límite exacto ya está cerrado, identificar las dos actualizaciones de la segunda ventana y justificar por qué no se suman como hechos nuevos. Restaurar la copia al terminar.
 
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>
