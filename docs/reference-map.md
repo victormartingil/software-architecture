@@ -2,6 +2,25 @@
 
 Usar esta página para volver a una explicación o localizar su código al consultar la [referencia](index.md). El [estado comprobado](verification.md) prevalece sobre cualquier descripción de capacidad.
 
+<a id="concept-index"></a>
+
+## Consultar por concepto
+
+Cada fila lleva a la explicación, el código y la comprobación existentes. No es otro recorrido ni exige leer las tecnologías anteriores. Para una primera ejecución, usar [preparación](getting-started.md).
+
+| Conceptos que se quieren reforzar | Explicación y ejemplo | Código y comprobación |
+|---|---|---|
+| <a id="concept-java-spring"></a> **Java y Spring:** records, invariantes, interfaces, inyección, proxy, transacciones; streams y JDBC | [Módulos y composición](handbook/architecture.md#topic-problema-y-decision), [Quantity](handbook/architecture.md#topic-ejercicio-regla-de-dominio), [paginación](handbook/api-contracts.md#exercise-java-pagination), [frontera transaccional](handbook/transactions.md#exercise-spring-transaction) | [ManageOrderService](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java), [dominio](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceDomainTest.java) y [integración](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) |
+| <a id="concept-architecture"></a> **Arquitectura:** DDD, módulos/procesos, puertos, adaptadores, DIP, decisiones | [Responsabilidades y alternativas](handbook/architecture.md#topic-problema-y-decision), [requisito a decisión](handbook/architecture.md#topic-del-requisito-a-la-decision), [ADR](decisions/index.md) | [ArchitectureRules](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureRules.java) y [fixtures negativos](../apps/commerce-api/src/test/java/dev/reference/commerce/ArchitectureTest.java) |
+| <a id="concept-data"></a> **HTTP y datos:** Problem Details, contrato, cursor, aislamiento, stock e idempotencia | [Contratos](handbook/api-contracts.md), [última unidad](handbook/transactions.md#topic-dos-peticiones-y-la-ultima-unidad), [reintento](handbook/transactions.md#topic-repetir-una-peticion-es-normal) | [OpenAPI](../contracts/http/commerce.openapi.json), [SQL de inventario](../apps/commerce-api/src/main/java/dev/reference/commerce/inventory/infrastructure/persistence/JdbcInventoryRepositoryAdapter.java), [pruebas reales](../apps/commerce-api/src/test/java/dev/reference/commerce/CommerceIntegrationTest.java) |
+| <a id="concept-kafka"></a> **Kafka:** topics, particiones, outbox/inbox, DLT, replay, Streams, ventanas y deduplicación | [Kafka y Streams](handbook/events.md#topic-kafka-eventos-y-streams), [outbox](handbook/events.md#topic-publicar-despues-de-confirmar), [ventanas](handbook/events.md#topic-ventanas-y-deduplicacion) | [Publicador](../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/messaging/OutboxPublisher.java), [topología](../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java), [recuperación](../apps/order-analytics/src/test/java/dev/reference/analytics/KafkaRecoveryTest.java) |
+| <a id="concept-python-ai"></a> **Python e IA:** Protocol, async/await, RAG, ranking, métricas, citas, LangGraph, checkpoint y aprobación | [Prerrequisitos Python y recuperación](handbook/retrieval.md#python-prerequisites), [evaluación](handbook/retrieval.md#topic-que-medir), [workflow](handbook/workflows.md#topic-estado-y-fallo-entre-sistemas) | [Puertos](../apps/ai-service/src/ai_service/application/ports.py), [recuperador](../apps/ai-service/src/ai_service/infrastructure/retrieval.py), [evaluación](../apps/ai-service/tests/test_evaluate.py), [reinicio/reintento](../apps/ai-service/tests/test_workflows.py) |
+| <a id="concept-security"></a> **Seguridad y resiliencia:** OIDC/JWT/JWKS, tenant, prompt injection, deadline, cancelación y circuit breaker | [Identidad](handbook/security.md#topic-autenticacion-y-autorizacion), [amenazas](handbook/security.md#topic-modelo-de-amenazas-minimo), [fallos](handbook/security.md#topic-fallos-de-dependencias) | [JWT](../apps/ai-service/src/ai_service/infrastructure/security.py), [proveedor](../apps/ai-service/src/ai_service/infrastructure/providers.py), [pruebas de identidad](../apps/ai-service/tests/test_security.py), [fallos controlados](../apps/ai-service/tests/test_providers.py) |
+| <a id="concept-observability"></a> **Observabilidad:** OpenTelemetry, Prometheus, trazas/logs, contexto, cardinalidad, PromQL, alertas y SLO | [Elegir señal](handbook/operations.md#topic-senales-con-una-pregunta), [reglas](handbook/operations.md#ref-topic-r30), [SLI/SLO](handbook/operations.md#topic-sli-slo-y-capacidad) | [Dashboard](../infra/observability/dashboard.json), [reglas sintéticas](../infra/observability/alerts.test.yaml), [señales actuales](../scenarios/observability.py) |
+| <a id="concept-delivery"></a> **Entrega:** Compose, CI, probes, Kubernetes/HPA/PVC, Terraform/mock, migración y reversión | [Ciclo de vida](handbook/operations.md#ref-topic-r35), [Kubernetes](handbook/delivery.md#topic-laboratorio-kubernetes), [Terraform](handbook/delivery.md#topic-fundacion-cloud), [adaptación productiva](handbook/delivery.md#topic-reutilizar-la-referencia-en-un-sistema-real) | [HPA y efectos](../scripts/kind-scale-check.py), [planes mock](../infra/cloud/tests/plan.tftest.hcl), [gate](../scripts/test.sh) |
+
+## Encontrar una decisión por pregunta
+
 | Pregunta | Código | Explicación | AC |
 |---|---|---|---|
 | ¿Qué se separa y por qué? | [Caso de uso y puertos](../apps/commerce-api/src/main/java/dev/reference/commerce/orders/application/service/ManageOrderService.java) | [Arquitectura](handbook/architecture.md) | ARCH |
@@ -50,7 +69,7 @@ Spring AI, MCP, event sourcing, sagas, service mesh, Backstage y múltiples prov
 
 ## Lecturas y ejemplos externos
 
-Cada capítulo incluye fuentes oficiales y lecturas con una pregunta de comparación. Los seis ejemplos de código externos están fijados a commits consultados el 21-10-2026 para conservar el contenido explicado; las cifras de popularidad de abajo mantienen su fecha original. No son versiones elegidas para las dependencias de esta referencia:
+Cada capítulo incluye fuentes oficiales y lecturas con una pregunta de comparación. Los ejemplos de código externos se fijan al fragmento consultado para conservar el contenido explicado; su fecha y finalidad constan en la [bibliografía](bibliography.md#repositorios). No son versiones elegidas para las dependencias de esta referencia:
 
 | Tema | Recursos complementarios |
 |---|---|
@@ -65,13 +84,4 @@ Cada capítulo incluye fuentes oficiales y lecturas con una pregunta de comparac
 
 ## Repositorios enlazados
 
-Las siguientes cifras registran la consulta del 17-10-2026. Sirven como contexto de las referencias, no como criterio de calidad ni como requisito para seguir el manual. Los capítulos enlazan la parte concreta que complementa su explicación.
-
-| Repositorio | Estrellas registradas | Capítulo |
-|---|---:|---|
-| Spring Modulith | 1.200 | [Módulos y dependencias](handbook/architecture.md#topic-lectura-y-repositorio-de-referencia) |
-| Apache Kafka | 34.036 | [Topología WordCount](handbook/events.md#topic-lecturas-y-ejemplo-de-referencia) |
-| LlamaIndex | 52.539 | [Recuperación de documentos](handbook/retrieval.md#topic-lectura-y-ejemplo-de-referencia) |
-| Resilience4j | 10.787 | [Circuito de protección](handbook/security.md#topic-lectura-y-ejemplo-de-resiliencia) |
-| OpenTelemetry Demo | 3.409 | [Configuración de señales](handbook/operations.md#topic-ejemplo-de-observabilidad) |
-| Online Boutique | 21.060 | [Manifiestos Kubernetes](handbook/delivery.md#topic-ejemplo-de-kubernetes) |
+La [bibliografía recomendada](bibliography.md#repositorios) reúne los ejemplos externos y sus fragmentos fijados. Cada entrada identifica fecha de consulta, utilidad y diferencias con esta implementación. Esos ejemplos sirven para comparar una decisión; no seleccionan versiones de dependencias ni certifican el código. La popularidad no sustituye esa comparación.

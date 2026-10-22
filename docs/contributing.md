@@ -26,10 +26,12 @@ Para cambios de documentación:
 ```bash
 python3 scripts/check_repository.py
 uv run --project tools/docs mkdocs build --strict -f mkdocs.yml
+python3 scripts/check_doc_navigation.py
+python3 -m unittest discover -s scripts/tests -p test_doc_navigation.py
 git diff --check
 ```
 
-Estos comandos revisan higiene, destinos de enlaces y construcción del manual. Las anclas y la presentación deben comprobarse también en el HTML resultante y en GitHub. Si cambia código o configuración, ejecutar las pruebas de la capacidad afectada y registrar el resultado real en la verificación. El [capítulo 9](handbook/delivery.md) distingue esos niveles de comprobación.
+Estos comandos revisan higiene, construcción estricta y navegación del HTML generado: destinos internos, fragmentos e IDs únicos. El verificador usa solo la biblioteca estándar de Python, no consulta URLs externas y sus negativos deben rechazar un destino, fragmento o ID alterado. No comprueba el renderizado de GitHub ni acredita accesibilidad visual. Las anclas y la presentación deben comprobarse también en el HTML resultante y en GitHub. Si cambia código o configuración, ejecutar las pruebas de la capacidad afectada y registrar el resultado real en la verificación. El [capítulo 9](handbook/delivery.md) distingue esos niveles de comprobación.
 
 No versionar credenciales, contexto privado ni informes regenerables. Los resultados locales se guardan en `reports/`, que está excluido de Git.
 
@@ -39,4 +41,4 @@ No versionar credenciales, contexto privado ni informes regenerables. Los result
 
 El código y la documentación originales se distribuyen bajo [MIT](https://github.com/victormartingil/software-architecture/blob/main/LICENSE). Se conservan las licencias y atribuciones de terceros, incluida [metrics-server](https://github.com/victormartingil/software-architecture/blob/main/infra/kubernetes/LICENSE.metrics-server). Enlazar una fuente externa no incorpora su contenido al proyecto ni cambia su licencia.
 
-Cada lectura debe indicar qué observar y para qué sirve. Para un extracto externo descrito con precisión, preferir tag o commit consultado; un enlace a la rama principal sirve para explorar, pero su contenido puede cambiar. No duplicar clases ni capítulos de libros. La licencia MIT permite reutilizar el material original conservando el aviso de copyright y la licencia, sin garantía; su texto completo prevalece sobre este resumen.
+Cada lectura debe indicar qué observar y para qué sirve. Mantener una lectura prioritaria y, cuando aporte contraste, una alternativa al final de cada capítulo; las correspondencias completas viven en la [bibliografía](bibliography.md). Identificar edición, capítulos contrastados y límites de actualidad; no inventar páginas ni presentar un índice consultado como lectura integral. El catálogo es consulta opcional. Los ejemplos GitHub identifican fragmento/commit, fecha y diferencias, sin mantener recuentos de estrellas. Para un extracto externo descrito con precisión, preferir tag o commit consultado; un enlace a la rama principal sirve para explorar, pero su contenido puede cambiar. No duplicar clases ni capítulos de libros. La licencia MIT permite reutilizar el material original conservando el aviso de copyright y la licencia, sin garantía; su texto completo prevalece sobre este resumen.
