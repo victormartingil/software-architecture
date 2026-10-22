@@ -14,9 +14,14 @@ class CommerceDomainTest {
   @Test
   void quantityCannotBypassHttpValidation() {
     for (int invalid : new int[] {Integer.MIN_VALUE, -1, 0, 101, Integer.MAX_VALUE}) {
-      assertThatThrownBy(() -> new Quantity(invalid)).isInstanceOf(BusinessException.class);
+      assertThatThrownBy(() -> new Quantity(invalid))
+          .isInstanceOfSatisfying(
+              BusinessException.class,
+              error -> assertThat(error.kind()).isEqualTo(BusinessException.Kind.INVALID_INPUT));
       assertThatThrownBy(() -> new CreateOrderCommand("BOOK-1", invalid))
-          .isInstanceOf(BusinessException.class);
+          .isInstanceOfSatisfying(
+              BusinessException.class,
+              error -> assertThat(error.kind()).isEqualTo(BusinessException.Kind.INVALID_INPUT));
       assertThatThrownBy(
               () ->
                   new Order(
@@ -28,7 +33,9 @@ class CommerceDomainTest {
                       2500,
                       OrderStatus.PLACED,
                       0))
-          .isInstanceOf(BusinessException.class);
+          .isInstanceOfSatisfying(
+              BusinessException.class,
+              error -> assertThat(error.kind()).isEqualTo(BusinessException.Kind.INVALID_INPUT));
     }
     assertThat(new Quantity(1).value()).isEqualTo(1);
     assertThat(new Quantity(100).value()).isEqualTo(100);
