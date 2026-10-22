@@ -107,8 +107,9 @@
 | REF-OBS-05 | Imágenes de observabilidad fijadas a releases mantenidas, configuración compatible y análisis de referencias exactas sin duplicar versiones | Manifiestos ARM64/AMD64, validación, promtool, smoke actual, provisioning y scanner |
 | REF-NAV-01 | Se conservan rutas/anclas previas y funcionan lectura 0–9 y consulta directa por conceptos; enlaces y fragmentos internos renderizados comprobados con negativos | Higiene, MkDocs estricto, verificador de navegación y lectura en GitHub |
 | REF-DOC-01 | Nueve capítulos conectan conceptos esenciales con explicación breve, ejemplo pertinente, código y comprobación; se distinguen capacidades implementadas y alternativas | Matriz por conceptos del mapa existente y revisión especializada |
-| REF-STUDY-01 | Ruta de tres sesiones orientativas de 45 minutos y dos ejercicios Java/Spring de paginación/proxy, con predicción, pista, resultado y solución | Ejecución en copia temporal y contraste con pruebas existentes |
+| REF-STUDY-01 | Ruta de tres sesiones orientativas de 45 minutos y ejercicios Java/Spring de paginación/proxy; microejercicios Kafka/grace, Python/Protocol/cancelación y PromQL con predicción, pista, resultado y solución | Ejecución en copia temporal y contraste con pruebas existentes |
 | REF-BIB-01 | Biblioteca opcional de 17 volúmenes y nueve repositorios, con enlaces oficiales/editoriales o fragmentos fijados; 35 correspondencias/50 asociaciones y capítulos verificados, sin páginas inventadas | Contraste de catálogo, fuentes y navegación; una lectura prioritaria por capítulo |
+| REF-JAVA25-01 | Laboratorio opcional de ScopedValue final, sin preview ni dependencias: alcance, anidación, limpieza por excepción, aislamiento, ausencia de herencia ordinaria y revinculación explícita; las aplicaciones siguen en Java 21 | Seis comprobaciones explícitas con JDK 25 local y job CI separado |
 | REF-EVIDENCE-01 | Evidencia vigente por capacidad con fecha, entorno, resultado y límites; historia repetida consolidada, sin presentar revisión de agentes como certificación | Revisión editorial, pruebas completas y CI del SHA final |
 
 ## Protocolo de entrega

@@ -187,6 +187,22 @@ Como ejemplo implementado, [Spring Modulith: ApplicationModules](https://github.
 
 Ya se puede seguir una operación dentro del código. El siguiente capítulo estudia el contrato HTTP que utiliza su cliente.
 
+<a id="exercise-java25-scoped-context"></a>
+
+## Ampliación opcional Java 25: contexto con ScopedValue
+
+**Tiempo activo:** 15–20 minutos, después del repaso Java/Spring. Preparar JDK 25 es tiempo adicional; las aplicaciones conservan Java 21. Leer [ScopedContextLab.java](../../labs/java25/ScopedContextLab.java): seis comprobaciones autónomas, sin dependencias ni preview. Los virtual threads ya son finales en Java 21; aquí la novedad final en 25 es `ScopedValue`.
+
+La vinculación es de solo lectura dentro de un alcance dinámico y por hilo. El ejemplo usa un `record` inmutable para la correlación sintética; `ScopedValue` no vuelve inmutable cualquier objeto asociado. Un alcance anidado restaura el valor exterior al terminar y una excepción también limpia la vinculación. Un nuevo hilo iniciado directamente no la hereda; el laboratorio muestra una revinculación explícita. La herencia mediante `StructuredTaskScope` pertenece a una API preview y queda fuera del ejercicio.
+
+**Antes de ejecutar:** predecir qué devuelve `get()` fuera del alcance, tras un alcance anidado y desde otro hilo. Desde la raíz, con JDK 25 seleccionado:
+
+```bash
+make java25-lab
+```
+
+Se espera `PASS: 6 scoped-context checks (Java 25, no preview)`. Explicar aislamiento y limpieza en cada caso. Como alternativa, pasar un parámetro explícito mantiene visible la dependencia; `ThreadLocal` permite mutación y exige gestionar `remove()` al terminar. El contexto del ejemplo no contiene JWT ni concede permisos: no reemplaza `SecurityContext`, MDC ni la propagación de OpenTelemetry. Consultar [API Java 25](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ScopedValue.html) y [JEP 506](https://openjdk.org/jeps/506).
+
 ---
 
 [← 0. Preparación](../getting-started.md) · [Índice](../index.md) · [2. Definir contratos HTTP y paginar resultados →](api-contracts.md)
