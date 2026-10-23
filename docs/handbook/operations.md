@@ -16,7 +16,7 @@ Las métricas resumen cantidades y tendencias; las trazas muestran el recorrido 
 
 Prometheus recoge y consulta métricas; Tempo almacena y consulta trazas; OpenTelemetry Collector recibe y reenvía telemetría; Grafana permite consultar y visualizar esas señales. Las aplicaciones generan los datos que utilizan estas herramientas.
 
-Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta. Un contador crece mientras vive el proceso y puede reiniciarse; una tasa necesita una ventana de observación. Un gauge expresa un valor actual, como pendientes, y un histograma agrupa observaciones de duración. No sumar el último valor acumulado de cada scrape como si fueran eventos nuevos. Antes de copiar una consulta del dashboard, localizar qué tipo de métrica consulta y qué intervalo usa.
+Una métrica debe ayudar a decidir algo. `commerce_outbox_pending` responde si hay hechos confirmados todavía sin publicar. Los contadores de auditoría distinguen efectos nuevos y duplicados. Streams expone lag máximo observado, eventos inválidos y descartes por tardanza. AI registra una sola vez cada operación iniciada como `answered`, `abstained`, `error` o `cancelled`, tanto JSON como SSE; HTTP 503 también incrementa errores. La duración y esas etiquetas acotadas permiten distinguir resultados sin identificar usuarios. Estas señales no son equivalentes: lag cero no demuestra que una respuesta sea correcta. Si no existe una medición válida, Analytics omite la muestra de lag: ausencia no significa cero ni readiness correcta. Un contador crece mientras vive el proceso y puede reiniciarse; una tasa necesita una ventana de observación. Un gauge expresa un valor actual, como pendientes, y un histograma agrupa observaciones de duración. No sumar el último valor acumulado de cada scrape como si fueran eventos nuevos. Antes de copiar una consulta del dashboard, localizar qué tipo de métrica consulta y qué intervalo usa.
 
 ```bash
 make observability
@@ -26,7 +26,7 @@ make demo
 
 Grafana permite consultar las señales en una interfaz local: [dashboard](http://localhost:3000/d/architecture-reference), [Prometheus](http://localhost:9090) y Tempo mediante OTel Collector. El dashboard combina tráfico, errores, latencia p95 y resultados de negocio, sin IDs como labels. El identificador de correlación viaja en HTTP y sobre del evento; la traza HTTP se conserva en el outbox para enlazar publicación posterior. Una tarea asíncrona no mantiene mágicamente el contexto de la petición: hay que transportarlo explícitamente.
 
-**Código y configuración:** [configuración y dashboard](../../infra/observability/dashboard.json), [instrumentación HTTP Python](../../apps/ai-service/src/ai_service/main.py) y [registro Java](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java). Los logs JSON contienen plantilla de ruta, status, duración y correlación; usar `docker compose logs --since=5m commerce-api ai-service` y buscar el `correlationId`. No se añade Loki: consultar stdout basta para este caso. La latencia HTTP Python termina al enviar cabeceras; la métrica de operación IA incluye el trabajo de la respuesta SSE.
+**Código y configuración:** [configuración y dashboard](../../infra/observability/dashboard.json), [instrumentación HTTP Python](../../apps/ai-service/src/ai_service/main.py) y [registro Java](../../apps/commerce-api/src/main/java/dev/reference/commerce/shared/infrastructure/rest/CorrelationFilter.java). Los logs JSON contienen plantilla de ruta, status, duración y correlación; usar `docker compose logs --since=5m commerce-api ai-service` y buscar el `correlationId`. No se añade Loki: consultar stdout basta para este caso. Ante un fallo inesperado, Python añade un evento `unexpected_error` con categoría de excepción, correlación y operación acotada; conserva el registro de acceso independiente. El [filtro del servidor](../../apps/ai-service/src/ai_service/infrastructure/diagnostics.py) elimina los mensajes y tracebacks que Uvicorn recibiría al relanzarse una excepción, conservando nivel y tipo. El [exportador de trazas](../../apps/ai-service/src/ai_service/infrastructure/telemetry.py) conserva contexto, método, ruta plantilla y estado, pero elimina URL/query concretas y texto de excepciones antes de enviar spans. Las pruebas incluyen Uvicorn real y un exportador en memoria; no basta capturar el logger propio. La latencia HTTP Python termina al enviar cabeceras; la métrica de operación IA incluye el trabajo de la respuesta SSE.
 
 [El escenario](../../scenarios/observability.py) verifica lecturas de métricas de los tres servicios, un incremento nuevo, una traza W3C exacta AI → Commerce y logs JSON correlacionados sin JWT ni cuerpo. Imprime `traceId`: abrir Grafana → Explore → Tempo → Trace ID. No basta encontrar una traza antigua o ver el dashboard vacío.
 
@@ -155,6 +155,82 @@ Una respuesta SSE comienza con HTTP 200 y termina con un error. ¿Basta contar l
 **Qué observar:** las pruebas JSON/SSE deben cubrir errores, vencimiento de plazo, respuesta, abstención y cancelación; cada operación iniciada incrementa exactamente un resultado. No necesita Docker ni proveedor real. `make verify` conserva además JUnit local igual que CI y rechaza pruebas omitidas.
 
 **Alternativa:** contar solo HTTP 2xx oculta abstenciones y errores SSE posteriores al inicio de la respuesta. Elegir el SLI según resultado de negocio, sin prometer disponibilidad desde este laboratorio.
+
+<a id="exercise-promql"></a>
+
+## Microejercicio PromQL: errores y latencia sin sumar acumulados
+
+**Tiempo activo:** 15–20 minutos; preparar Docker y la imagen fijada de Prometheus es tiempo adicional. La comprobación usa series sintéticas, sin arrancar el sistema. Primero localizar los paneles `AI HTTP errors per second` y `AI latency p95` en [dashboard.json](../../infra/observability/dashboard.json).
+
+**Objetivo:** escribir la tasa de errores HTTP AI por estado, convertirla en porcentaje sobre todas sus peticiones y reconstruir el p95 de la operación IA. Predecir resultados con 135 éxitos y 15 errores nuevos cada 15 segundos: 1 error/s y 10 %. Para el histograma sintético, 90 de cada 100 observaciones duran hasta 0,1 s y todas hasta 1 s: ¿cómo se estima el p95?
+
+**Pista:** aplicar `rate` al contador antes de agregar. Conservar `le` al sumar buckets; son acumulados, no franjas independientes. La tasa de errores HTTP no describe todos los resultados SSE posteriores a las cabeceras: para eso existe `ai_requests_total{outcome=...}`. Un denominador sin tráfico no es un 0 % observado.
+
+<details markdown="1">
+<summary>Ver consultas y comprobación sintética</summary>
+
+Las consultas de tasa y p95 reproducen las del dashboard; el porcentaje es una ampliación del ejercicio:
+
+```promql
+sum by(status)(rate(ai_http_requests_total{status=~"5.."}[1m]))
+
+100 * sum(rate(ai_http_requests_total{status=~"5.."}[1m]))
+    / sum(rate(ai_http_requests_total[1m]))
+
+histogram_quantile(0.95, sum by(le)(rate(ai_answer_seconds_bucket[5m])))
+```
+
+La ventana es retrospectiva: `rate` estima incremento por segundo y trata reinicios del contador. `sum by(status)` reúne réplicas y rutas conservando estado; el porcentaje reúne esos estados. `sum by(le)` reúne las otras etiquetas para estimar un p95 global: no promedia percentiles por réplica. El p95 sintético es aproximadamente `0.1 + (95−90)/(100−90) × (1−0.1) = 0.55 s`, una interpolación del bucket, no una medición exacta de cada duración.
+
+En una copia de estudio guardar este contenido como `reports/promql-study.yaml` (directorio ignorado por Git):
+
+```yaml
+fuzzy_compare: true
+evaluation_interval: 15s
+tests:
+  - interval: 15s
+    input_series:
+      - series: 'ai_http_requests_total{status="200",job="ai"}'
+        values: '0+135x24'
+      - series: 'ai_http_requests_total{status="503",job="ai"}'
+        values: '0+15x24'
+      - series: 'ai_answer_seconds_bucket{le="0.1"}'
+        values: '0+90x24'
+      - series: 'ai_answer_seconds_bucket{le="1.0"}'
+        values: '0+100x24'
+      - series: 'ai_answer_seconds_bucket{le="+Inf"}'
+        values: '0+100x24'
+    promql_expr_test:
+      - expr: sum by(status)(rate(ai_http_requests_total{status=~"5.."}[1m]))
+        eval_time: 5m
+        exp_samples:
+          - labels: '{status="503"}'
+            value: 1
+      - expr: 100 * sum(rate(ai_http_requests_total{status=~"5.."}[1m])) / sum(rate(ai_http_requests_total[1m]))
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 10
+      - expr: histogram_quantile(0.95, sum by(le)(rate(ai_answer_seconds_bucket[5m])))
+        eval_time: 5m
+        exp_samples:
+          - labels: '{}'
+            value: 0.5499999999999998
+```
+
+Desde la raíz, con la imagen ya disponible:
+
+```bash
+docker run --rm --network none --entrypoint /bin/promtool \
+  -v "$PWD/reports:/work:ro" prom/prometheus:v3.15.1 \
+  test rules /work/promql-study.yaml
+```
+
+Se espera `SUCCESS` para las tres expresiones. El decimal esperado del p95 refleja representación de coma flotante; no cambia la interpretación aproximada de 0,55 s. La consulta real necesita muestras suficientes y buckets adecuados; esta prueba no verifica scrapes ni generación de tráfico.
+
+</details>
+
+**Terminado:** explicar la diferencia entre errores/s y porcentaje, por qué se conserva `le` y qué coste de cardinalidad y privacidad introduce una etiqueta de UUID frente a una ruta parametrizada. Comparar después con una operación actual mediante `make observability-smoke` si se dispone del entorno completo.
 
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>

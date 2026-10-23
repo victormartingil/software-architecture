@@ -42,7 +42,7 @@ El test Kafka real usa Testcontainers; la verificación canónica exige ejecutar
 
 `max.poll.records=100` acota registros por poll; `buffered.records.per.partition=100` es un umbral de pausa por partición que puede superarse al añadir un lote. Ninguno es un rate limit ni un techo exacto de memoria. Observar lag junto a capacidad de proceso, tamaño de mensajes, particiones y readiness; aumentar pods está limitado por particiones/tareas y datos locales.
 
-Liveness `/live` tolera rebalance y solo falla ERROR/PENDING_ERROR; readiness `/health` responde 200 solo RUNNING; Docker usa el archivo para evitar añadir curl. Métricas Prometheus: `analytics_late_events_total`, `analytics_invalid_events_total` y `analytics_records_lag_max` (máximo lag observado entre consumidores; cero antes de asignar particiones, interpretar junto con readiness). Counters reinician con proceso, usar `rate()` en dashboard. No publicar puerto de métricas a Internet.
+Liveness `/live` tolera rebalance y solo falla ERROR/PENDING_ERROR; readiness `/health` responde 200 solo RUNNING; Docker usa el archivo para evitar añadir curl. Métricas Prometheus: `analytics_late_events_total`, `analytics_invalid_events_total` y `analytics_records_lag_max` (máximo lag observado entre consumidores; muestra ausente si todavía no hay una medición válida, interpretar junto con readiness). Counters reinician con proceso, usar `rate()` en dashboard. No publicar puerto de métricas a Internet.
 
 Heap 256 MiB, direct buffers 128 MiB y RocksDB limitado por store a cache 4 MiB y dos write buffers de 1 MiB. El número de particiones/stores multiplica memoria nativa: la referencia presupone tres particiones y un stream thread. No equivale a dimensionamiento para tráfico industrial. Replicación interna 1 para broker local; producción exige broker redundante, TLS/ACL y política de retención/capacidad.
 
@@ -50,7 +50,7 @@ Heap 256 MiB, direct buffers 128 MiB y RocksDB limitado por store a cache 4 MiB 
 
 La DSL resuelve ventanas, materialización y changelog; dos procesadores pequeños cubren deduplicación y métrica explícita de tardíos. Un consumidor sin Streams necesitaría implementar recuperación y ventanas. No se añade un microservicio REST para consultar una única agregación: puede consumirse la salida Kafka.
 
-Límite: el barrido horario de deduplicación recorre el store. Es sencillo y verificable con volúmenes de referencia; un caudal alto requeriría expiración indexada y dimensionamiento medido. Los eventos futuros incorrectos pueden adelantar stream time; en producción se debe acordar y validar un máximo de desfase de reloj sin romper backfills autorizados.
+Límite: el barrido horario de deduplicación recorre el store. Es sencillo y verificable con volúmenes de referencia; un caudal alto requeriría expiración indexada y dimensionamiento medido. El ingreso ya rechaza eventos adelantados más de treinta segundos respecto al reloj UTC del proceso antes de asignar tiempo de evento. En producción se debe acordar ese desfase y un procedimiento separado para backfills autorizados; la validación de reloj no amplía grace ni retención.
 
 Fuentes oficiales consultadas: [Processor API 4.0](https://kafka.apache.org/40/streams/developer-guide/processor-api/), [pruebas](https://kafka.apache.org/40/streams/developer-guide/testing/), [memoria](https://kafka.apache.org/40/streams/developer-guide/memory-mgmt/), [ciclo de vida](https://kafka.apache.org/40/javadoc/org/apache/kafka/streams/KafkaStreams.html). Los ejemplos se implementan para el contrato de esta referencia.
 

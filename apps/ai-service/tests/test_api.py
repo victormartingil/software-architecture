@@ -34,6 +34,46 @@ async def test_api_errors_fake_sse_and_injection_no_tool(tmp_path):
             assert 'event: result' not in response.text
 
 
+@pytest.mark.parametrize('authorization', [None, 'Basic fixture', 'Bearer', 'Bearer invalid-token'])
+async def test_authentication_errors_include_bearer_challenge(tmp_path, authorization):
+    class Rejected:
+        async def verify(self, token):
+            assert token == 'invalid-token'
+            raise ServiceError(401, 'Invalid token')
+
+    app = create_app(Settings(workflow_db=str(tmp_path / 'auth.db')))
+    correlation_id = '00000000-0000-4000-8000-000000000001'
+    async with app.router.lifespan_context(app):
+        app.state.verifier = Rejected()
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+            headers = {'X-Correlation-ID': correlation_id}
+            if authorization is not None:
+                headers['Authorization'] = authorization
+            response = await client.post('/api/v1/answers', json={'question': 'policy'}, headers=headers)
+    assert response.status_code == 401
+    assert response.headers['WWW-Authenticate'] == 'Bearer'
+    assert response.headers['content-type'] == 'application/problem+json'
+    assert response.headers['X-Correlation-ID'] == correlation_id
+    assert response.json()['status'] == 401
+    assert response.json()['correlationId'] == correlation_id
+
+
+async def test_permission_error_does_not_request_reauthentication(tmp_path):
+    app = create_app(Settings(workflow_db=str(tmp_path / 'forbidden.db')))
+    async with app.router.lifespan_context(app):
+        app.state.verifier = Verified()
+        async def denied(*args):
+            raise ServiceError(403, 'Insufficient permissions')
+        app.state.answers.answer = denied
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+            response = await client.post('/api/v1/answers', json={'question': 'policy'},
+                headers={'Authorization': 'Bearer signed-test'})
+    assert response.status_code == 403
+    assert 'WWW-Authenticate' not in response.headers
+    assert response.json()['status'] == 403
+    assert response.json()['correlationId']
+
+
 async def test_sse_disconnect_cancels_provider_task(tmp_path):
     before = REQUESTS.labels('cancelled', 'fake-simulation')._value.get()
     app = create_app(Settings(workflow_db=str(tmp_path/'db')))
@@ -136,5 +176,49 @@ async def test_access_telemetry_uses_route_template_without_secrets(tmp_path, ca
         assert HTTP_REQUESTS.labels('GET', '/api/v1/workflows/{workflow_id}', '404')._value.get() == before + 2
         serialized = json.dumps(events)
         assert not any(secret in serialized for secret in ('secret-token', 'secret-path-one', 'query-value'))
+    finally:
+        ACCESS_LOG.removeHandler(caplog.handler)
+
+
+@pytest.mark.parametrize('path', ['/api/v1/answers', '/api/v1/answers/stream'])
+@pytest.mark.parametrize('unexpected', [True, False])
+async def test_error_diagnostics_are_single_structured_and_sanitized(tmp_path, caplog, path, unexpected):
+    import json
+    from ai_service.main import ACCESS_LOG
+    app = create_app(Settings(workflow_db=str(tmp_path / 'diagnostic.db')))
+    correlation_id = '00000000-0000-4000-8000-000000000001'
+    secret = 'fixture-secret-never-log'
+    ACCESS_LOG.addHandler(caplog.handler)
+    try:
+        async with app.router.lifespan_context(app):
+            app.state.verifier = Verified()
+            async def fail(*args):
+                if unexpected:
+                    raise ValueError(secret)
+                raise ServiceError(503, 'Dependency unavailable')
+            app.state.answers.answer = fail
+            async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app, raise_app_exceptions=False),
+                                         base_url='http://test') as client:
+                response = await client.post(path, json={'question': secret},
+                    headers={'Authorization': 'Bearer ' + secret, 'X-Correlation-ID': correlation_id})
+        assert response.headers['X-Correlation-ID'] == correlation_id
+        if path.endswith('/stream'):
+            assert response.status_code == 200
+            assert 'event: error' in response.text and 'event: result' not in response.text
+        else:
+            assert response.status_code == 503
+            assert response.json()['correlationId'] == correlation_id
+        records = [record for record in caplog.records if record.name == 'ai_service.access']
+        events = [json.loads(record.message) for record in records]
+        errors = [event for event in events if event['event'] == 'unexpected_error']
+        assert len(errors) == int(unexpected)
+        if unexpected:
+            assert errors[0] == {**errors[0], 'level': 'ERROR', 'errorType': 'ValueError',
+                                 'route': path, 'method': 'POST', 'correlationId': correlation_id}
+            assert set(errors[0]) == {'event', 'service', 'timestamp', 'level', 'errorType',
+                                      'route', 'method', 'correlationId', 'traceId'}
+        assert all(record.exc_info is None and record.stack_info is None for record in records)
+        assert secret not in json.dumps(events)
+        assert secret not in response.text
     finally:
         ACCESS_LOG.removeHandler(caplog.handler)

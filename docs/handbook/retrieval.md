@@ -165,6 +165,84 @@ Completar `"relevant": ["demo-returns"]`. Se espera `['demo-returns']` y recall,
 
 </details>
 
+<a id="exercise-python-provider"></a>
+
+## Microejercicio Python: cancelar un proveedor sin perder capacidad
+
+**Tiempo activo:** 20–30 minutos; preparar Python 3.12 y `uv sync` puede requerir tiempo adicional. Sin Docker, claves ni modelo real. Trabajar en una copia de estudio y añadir `tests/test_provider_exercise.py`; restaurarla al terminar.
+
+**Objetivo:** implementar un objeto compatible con [`AnswerProvider`](../../apps/ai-service/src/ai_service/application/ports.py) sin heredar del protocolo. Su `generate` debe señalar que ha empezado, esperar un `asyncio.Event` y señalar limpieza en `finally`. Conectarlo a `AnswerService` y al recuperador léxico real.
+
+**Antes de escribir:** predecir cuántos cupos quedan de los cuatro del servicio mientras una llamada espera; qué excepción debe propagarse al cancelarla; y si una llamada posterior podrá responder. No usar `sleep` para adivinar cuándo ha empezado.
+
+**Pista:** crear tres eventos (`started`, `release`, `cleaned`), esperar `started` con timeout y cancelar la tarea. El `async with` del semáforo debe liberar su permiso al propagarse `CancelledError`. El deadline se recibe como argumento, aunque el falso no realiza IO externo. Un `Protocol` describe estructura para el comprobador de tipos; la anotación no valida el objeto en ejecución.
+
+<details markdown="1">
+<summary>Ver solución y comprobación</summary>
+
+```python
+import asyncio
+from pathlib import Path
+import pytest
+from ai_service.application.answers import AnswerService
+from ai_service.application.ports import AnswerProvider
+from ai_service.domain import Document, Principal
+from ai_service.infrastructure.retrieval import LexicalRetriever
+
+class BlockingProvider:
+    mode = "fake-simulation"
+
+    def __init__(self):
+        self.started = asyncio.Event()
+        self.release = asyncio.Event()
+        self.cleaned = asyncio.Event()
+
+    async def generate(self, question: str, documents: list[Document], *,
+                       deadline: asyncio.Timeout | None = None) -> dict:
+        self.started.set()
+        try:
+            await self.release.wait()
+            return {"answer": "Respuesta sintética", "citations": [documents[0].id],
+                    "abstained": False}
+        finally:
+            self.cleaned.set()
+
+@pytest.mark.asyncio
+async def test_provider_cancellation_releases_capacity():
+    provider = BlockingProvider()
+    port: AnswerProvider = provider
+    service = AnswerService(port, LexicalRetriever(Path("data/corpus.json")))
+    actor = Principal("alice", "demo", frozenset({"CUSTOMER"}))
+    task = asyncio.create_task(service.answer(actor, "devolución plazo"))
+    try:
+        await asyncio.wait_for(provider.started.wait(), timeout=1)
+        assert service.capacity._value == 3
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert provider.cleaned.is_set()
+        assert service.capacity._value == 4
+        provider.release.set()
+        result = await service.answer(actor, "devolución plazo")
+        assert result["citations"]
+        assert service.capacity._value == 4
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+```
+
+Desde la raíz de la copia:
+
+```bash
+(cd apps/ai-service && uv run pytest tests/test_provider_exercise.py -q)
+```
+
+Se espera una prueba aprobada. `_value` es un detalle interno del semáforo que aquí se inspecciona solo en la prueba, como en la regresión existente; no es una API para lógica de negocio. La segunda llamada demuestra que el servicio sigue utilizable. El `finally` de la prueba recoge la tarea incluso si una aserción falla.
+
+</details>
+
+**Terminado:** explicar por qué el `finally` del proveedor y la salida del semáforo tienen responsabilidades diferentes, y por qué capturar `CancelledError` sin propagarlo rompería esta expectativa. Comparar con [test_answers.py](../../apps/ai-service/tests/test_answers.py), que cubre además ocho llamadas y el deadline en cola.
+
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>
 

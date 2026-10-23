@@ -2,7 +2,7 @@ SHELL := /bin/bash
 UV ?= uv
 KIND_BIN ?= $(if $(wildcard reports/tools/kind),$(CURDIR)/reports/tools/kind,kind)
 COMPOSE := docker compose
-.PHONY: up down reset demo smoke test eval docs verify observability observability-smoke observability-rules-test kafka-summary terraform-check kind-up kind-down kind-smoke kind-scale-check
+.PHONY: up down reset demo smoke test eval docs verify observability observability-smoke observability-rules-test kafka-summary terraform-check kind-up kind-down kind-smoke kind-scale-check java25-lab
 up:
 	$(COMPOSE) up -d --build --wait --wait-timeout 240
 down:
@@ -16,6 +16,8 @@ kind-smoke:
 	SCENARIO_RUNTIME=kind python3 scenarios/smoke.py
 test:
 	UV=$(UV) ./scripts/test.sh
+java25-lab:
+	java labs/java25/ScopedContextLab.java
 eval: export EVAL_REPORT := $(EVAL_REPORT)
 eval:
 	cd apps/ai-service && $(UV) run python -m ai_service.evaluate

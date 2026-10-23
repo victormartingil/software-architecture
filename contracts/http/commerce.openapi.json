@@ -41,6 +41,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -143,6 +152,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -266,6 +284,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -390,6 +417,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -493,6 +529,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -618,6 +663,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -721,6 +775,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -845,6 +908,15 @@
           },
           "401": {
             "description": "Authentication required",
+            "headers": {
+              "WWW-Authenticate": {
+                "description": "Bearer authentication challenge",
+                "schema": {
+                  "type": "string",
+                  "const": "Bearer"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {

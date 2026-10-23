@@ -30,9 +30,9 @@ Guardar un pedido y enviar un mensaje a Kafka son dos escrituras en sistemas dis
 
 El outbox es una tabla de eventos pendientes: guarda el evento en la misma transacción que el pedido. Un publicador reclama lotes pendientes con `FOR UPDATE SKIP LOCKED` (bloquea las filas elegidas y omite las que otro publicador ya ha bloqueado), envía y espera confirmación del broker antes de marcarlos. Si cae tras enviar y antes de marcar, publicará de nuevo. La garantía es entrega al menos una vez dentro de las condiciones de retención y recuperación; el consumidor debe tolerar duplicados.
 
-`OutboxPublisher` reclama hasta veinte filas pendientes con bloqueo. Su scheduler espera un segundo tras terminar el lote antes de volver a consultar; una publicación lenta alarga el intervalo. Consultar periódicamente si hay trabajo pendiente se llama polling. Aquí se usa para publicar el outbox; el cliente no lo utiliza para consultar el estado del pedido. La respuesta HTTP no espera a Kafka.
+`OutboxPublisher` reclama hasta veinte filas pendientes con bloqueo. Su scheduler espera un segundo tras terminar el lote antes de volver a consultar; una publicación lenta alarga el intervalo. Consultar periódicamente si hay trabajo pendiente se llama polling. Aquí se usa para publicar el outbox; el cliente no lo utiliza para consultar el estado del pedido. La respuesta HTTP no espera a Kafka. La transacción del publicador sí permanece abierta mientras espera los ACK: retiene conexión y bloqueos del lote. `SKIP LOCKED` permite reclamar otras filas, pero una caída lenta del broker aumenta esperas y ocupación SQL. Ordenar el lote por UUID no demuestra orden causal de negocio entre publicadores; un requisito de secuencia por agregado necesitaría un protocolo explícito.
 
-El inbox registra los eventos ya procesados. El consumidor de auditoría utiliza esa tabla con `UNIQUE(eventId)`. Registrar identidad y efecto se hace en una transacción; el offset se confirma después. Un reinicio puede repetir un mensaje pero la restricción evita un segundo efecto. La identidad de evento debe mantenerse en los reintentos y en el reproceso. Generar un UUID nuevo convierte la repetición en otro hecho.
+El inbox registra los eventos ya procesados. El consumidor de auditoría utiliza esa tabla con `UNIQUE(eventId)`. Registrar identidad y efecto se hace en una transacción; el offset se confirma después. Un reinicio puede repetir un mensaje pero la restricción evita un segundo efecto. La identidad de evento debe mantenerse en los reintentos y en el reproceso. Generar un UUID nuevo convierte la repetición en otro hecho. El inbox SQL no tiene purga automática en esta referencia: crece mientras se conserva la base. Su horizonte no es el de siete días del store de Analytics; una limpieza futura exige acordar primero el replay soportado.
 
 El contrato vive en [orders.placed.v1](../../contracts/events/orders.placed.v1.schema.json). Tenant, correlación, versión y tiempo pertenecen al sobre; el contenido contiene solo datos sintéticos necesarios. La clave Kafka es orderId para conservar orden por pedido dentro de su partición. No existe un orden total entre las tres particiones.
 
@@ -55,6 +55,19 @@ La evolución debe mantener forma y semántica compatibles. Aquí los esquemas y
 [OrderSummaryTopology](../../apps/order-analytics/src/main/java/dev/reference/analytics/OrderSummaryTopology.java) resume pedidos por organización, producto y ventana de un minuto usando `occurredAt`, el tiempo del hecho. La tolerancia, o grace, es de treinta segundos. Se calcula respecto al avance del tiempo observado por la tarea de procesamiento (stream time). No significa esperar treinta segundos de reloj tras cada mensaje.
 
 [![Validación, deduplicación y resumen de pedidos](../diagrams/order-summary-flow.svg)](../diagrams/order-summary-flow.svg)
+
+La clave cambia para colocar cada decisión junto a su estado:
+
+| Etapa | Clave | Por qué cambia y qué estado consulta |
+|---|---|---|
+| Entrada | `orderId` | Reúne hechos de un pedido en su partición de entrada. |
+| Primera repartición, `event-identity` | `eventId` normalizado | Lleva duplicados de distintas particiones al mismo store de deduplicación; cambiar solo la clave con `selectKey` no redistribuye físicamente los registros. |
+| Segunda repartición, `tenant-sku` | JSON `[tenant, sku]` | Reúne pedidos distintos del mismo producto/organización antes de comprobar tardanza y agregar. |
+| Agregación y salida | `[tenant, sku]` + inicio de ventana | Mantiene un agregado por minuto; la clave serializada de salida añade `@windowStartMillis`. No necesita una tercera repartición. |
+
+Ambas reparticiones intercambian registros mediante topics internos: cuestan red, almacenamiento y operaciones de Kafka. La primera reparte identidad de evento; la segunda reúne identidades distintas que contribuyen al mismo agregado. El contrato exige además que el mismo `eventId` conserve el mismo hecho y payload; la deduplicación reconoce identidad, no compara ni reconcilia contenidos distintos.
+
+El store conserva como marca `max(occurredAt, stream time)` al aceptar una identidad. La consulta ignora una marca vencida y un barrido cada hora de **stream time** elimina entradas antiguas. Siete días sin nuevos eventos no hacen avanzar ese reloj ni disparan el barrido; el espacio físico puede conservar entradas hasta la siguiente limpieza. El [README técnico](https://github.com/victormartingil/software-architecture/blob/main/apps/order-analytics/README.md#flujo-y-garantías) detalla esa política.
 
 Un `KStream` interpreta cada registro como un hecho individual; una `KTable` interpreta la última actualización de cada clave como su valor actual. La agregación de esta topología produce una tabla por tenant/SKU/ventana y la vuelve a publicar como registros. El topic de salida publica actualizaciones de una tabla: la misma clave de ventana puede aparecer varias veces con un agregado más reciente. Por ejemplo, dos pedidos distintos de un mismo producto y organización en una ventana pueden publicar primero `orderCount=1` y después `orderCount=2`. El total actualizado es 2, no la suma 1 + 2. No sumar esas actualizaciones como si fueran hechos distintos. El resultado cuenta creaciones, aunque después exista una devolución; llamarlo ventas netas sería incorrecto. La deduplicación dura siete días, acorde al contrato de retención. La retención del topic, la identidad almacenada para deduplicar y el plazo de claves idempotentes son decisiones distintas: conservar un mensaje no implica conservar indefinidamente la memoria de sus efectos. Un replay más antiguo requiere otra política y pruebas; no ampliar una retención aislada suponiendo que amplía todas las garantías.
 
@@ -119,6 +132,62 @@ Si falla el envío de un mensaje inválido a la DLT, ¿debería avanzar el offse
 **Qué observar:** las dos pruebas de integración deben pasar. La primera inyecta el fallo únicamente en el envío DLT: el offset original no avanza ni se procesa el mensaje posterior; recuperar permite ambos. La segunda envía duplicados explícitos por particiones distintas antes y después de perder RocksDB; el resumen no aumenta por duplicados.
 
 **Alternativa:** omitir el mensaje deja avanzar, pero pierde evidencia. Elegir responsable y procedimiento de reproceso. Con `make up` y `make demo`, el escenario además correlaciona su pedido actual con outbox, inbox y ventana Kafka; no toma el primer resultado histórico ni suma actualizaciones. `make kafka-summary` exige `ORDER_ID` de ese pedido.
+
+<a id="exercise-kafka-grace"></a>
+
+## Microejercicio Kafka: escribir una prueba del límite de grace
+
+**Tiempo activo:** 15–25 minutos; preparar JDK 21 y resolver dependencias Maven es tiempo adicional. Sin Docker ni broker. En una copia de estudio, añadir un método a [OrderSummaryTopologyTest](../../apps/order-analytics/src/test/java/dev/reference/analytics/OrderSummaryTopologyTest.java), reutilizando `dir`, `event` e `id` y sus imports. No cambiar la topología.
+
+**Objetivo:** enviar eventos distintos en segundos 89, 20, 90 y 25 desde epoch. Predecir qué actualiza `[0,60)` y cuál se descarta. Escribir las aserciones de número de actualizaciones, contador de tardíos y valor de la primera ventana, antes de abrir la solución.
+
+**Pista:** para esa ventana el cierre es `60 + 30 = 90`. A stream time 89 admite el evento de segundo 20; con stream time 90 el de segundo 25 ya es tardío. Los eventos de segundos 89 y 90 pertenecen a `[60,120)`. Usar IDs diferentes evita que la deduplicación oculte el caso; no avanzar tiempo de pared ni dormir.
+
+<details markdown="1">
+<summary>Ver solución y comprobación</summary>
+
+```java
+  @Test
+  void exerciseGraceBoundary() throws Exception {
+    var topology = new OrderSummaryTopology();
+    try (var driver = new TopologyTestDriver(topology.build(),
+        AnalyticsApplication.configuration("unused:9092", "exercise", dir.toString()))) {
+      var in = driver.createInputTopic(OrderSummaryTopology.INPUT,
+          new StringSerializer(), new StringSerializer());
+      var out = driver.createOutputTopic(OrderSummaryTopology.OUTPUT,
+          new StringDeserializer(), new StringDeserializer());
+      in.pipeInput("order", event(id(101), "demo", 89, 1));
+      in.pipeInput("order", event(id(102), "demo", 20, 1));
+      in.pipeInput("order", event(id(103), "demo", 90, 1));
+      in.pipeInput("order", event(id(104), "demo", 25, 1));
+      var values = out.readValuesToList();
+      assertEquals(3, values.size());
+      assertEquals(1, topology.lateEvents.sum());
+      var firstWindow = values.stream()
+          .map(value -> {
+            try { return EventCodec.JSON.readTree(value); }
+            catch (java.io.IOException error) { throw new java.io.UncheckedIOException(error); }
+          })
+          .filter(value -> value.get("windowStart").asText().equals("1970-01-01T00:00:00Z"))
+          .toList();
+      assertEquals(1, firstWindow.size());
+      assertEquals(1, firstWindow.getFirst().get("orderCount").asInt());
+    }
+  }
+```
+
+Desde la raíz de la copia:
+
+```bash
+(cd apps/order-analytics && ./mvnw -B -ntp \
+  '-Dtest=OrderSummaryTopologyTest#exerciseGraceBoundary' test)
+```
+
+Se espera una prueba aprobada: tres actualizaciones de salida y un tardío. La primera ventana tiene un único pedido, no dos. `TopologyTestDriver` ejecuta el procesamiento y los topics internos de forma determinista; no acredita redistribución real entre brokers ni recuperación de RocksDB. Eso se contrasta en `KafkaRecoveryTest`.
+
+</details>
+
+**Terminado:** explicar por qué el límite exacto ya está cerrado, identificar las dos actualizaciones de la segunda ventana y justificar por qué no se suman como hechos nuevos. Restaurar la copia al terminar.
 
 <a id="documentacion-del-capitulo"></a>
 <a id="documentación-del-capítulo"></a>

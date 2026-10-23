@@ -7,7 +7,7 @@ from mkdocs.structure.files import File
 
 def on_files(files, config, **kwargs):
     root = Path(config.config_file_path).parent
-    for directory in ("apps", "contracts", "infra", "scenarios", "scripts"):
+    for directory in ("apps", "contracts", "infra", "labs", "scenarios", "scripts"):
         for path in sorted((root / directory).rglob("*")):
             if not path.is_file() or any(p in {"target", ".venv", "__pycache__", ".pytest_cache", ".terraform", "build", ".import_linter_cache", ".ruff_cache"} or p.endswith(".egg-info") for p in path.parts):
                 continue
@@ -33,7 +33,7 @@ def on_page_markdown(markdown, page, config, **kwargs):
             relative = resolved.relative_to(root).as_posix()
         except ValueError:
             return match.group(0)
-        if relative.split("/")[0] not in {"apps", "contracts", "infra", "scenarios", "scripts"}:
+        if relative.split("/")[0] not in {"apps", "contracts", "infra", "labs", "scenarios", "scripts"}:
             return match.group(0)
         link = posixpath.relpath("source/" + relative, posixpath.dirname(page.file.src_uri))
         return "](" + link + ("#" + fragment if fragment else "") + ")"

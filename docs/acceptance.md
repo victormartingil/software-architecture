@@ -44,14 +44,14 @@
 | WF-01 | Crear propuesta persiste workflow; restart permite continuar | Persistencia/reinicio |
 | WF-02 | Aprobar/reintentar no duplica efecto; no guarda JWT | Integración gateway y checkpoints |
 | WF-03 | Mutaciones del workflow tienen plazo total de 12 s incluida espera del lock y admisión máxima de 16 operaciones por proceso; exceso/timeout devuelve 503, cancelación libera cupo sin perder claves de reanudación | Dependencia bloqueada, cola, capacidad, cancelación y retry con misma clave |
-| SEC-01 | Sin token 401, role insuficiente 403, ajeno 404 | Tokens OIDC reales y negativos |
+| SEC-01 | Sin token o token inválido: 401 con WWW-Authenticate: Bearer y Problem Details seguro; role insuficiente 403, ajeno 404 | Tokens OIDC reales y negativos |
 | SEC-02 | JWT inválido/expirado/issuer/audience erróneos rechaza | Tests seguridad |
 | SEC-03 | Prompt injection no llama herramienta privilegiada | Adversarial tests |
-| SEC-04 | No secretos/PII en logs; sin token minting en APIs | Scan y revisión logs |
+| SEC-04 | No secretos/PII en logs; errores de Uvicorn sanitizados sin perder nivel ni tipo; sin token minting en APIs | Scan, captura del servidor real y revisión logs |
 | OBS-01 | HTTP-evento-consumidor correlacionados | Escenario y trazas visibles |
-| OBS-02 | Dashboard lag/outbox/errors/IA y alerta accionable; éxitos, abstenciones, errores y cancelaciones IA contabilizados una sola vez | Inspección y runbook |
+| OBS-02 | Dashboard lag/outbox/errors/IA y alerta accionable; lag sin medición se omite y cero observado se conserva; éxitos, abstenciones, errores y cancelaciones IA contabilizados una sola vez | Inspección y runbook |
 | OBS-03 | Un comando optativo verifica targets de las tres aplicaciones, incremento de métricas y traza de una operación nueva; no acepta señales históricas. Dashboard local permite consultar métricas y trazas sin cuenta externa | Escenario real sobre Compose con telemetría activada y pruebas negativas |
-| OBS-04 | Logs operativos estructurados con correlación cuando existe; sin cuerpos, JWT, preguntas ni identificadores personales como labels. Explicación breve de cuándo usar métricas, logs y trazas y enlace al código | Tests de privacidad/correlación y revisión de configuración |
+| OBS-04 | Logs operativos estructurados con correlación cuando existe; errores inesperados HTTP/SSE de AI registran una única causa acotada por tipo, sin mensaje ni traceback; sin cuerpos, JWT, preguntas ni identificadores personales como labels. Spans exportados conservan contexto y fallo, sin mensajes/stacktraces de excepción ni URL/query concretas. Explicación breve de cuándo usar métricas, logs y trazas y enlace al código | Tests de privacidad/correlación y revisión de configuración |
 | K8S-03 | Comprobación optativa acotada observa HPA de una a dos réplicas disponibles bajo carga y verifica idempotencia concurrente entre pods; restaura su carga/configuración temporal sin afectar otros clústeres | Escenario kind real, no inferido de manifests ni de carga GET aislada |
 | OPS-01 | Compose arranca desde vacío, seed y demo terminan | make up/demo/smoke |
 | OPS-04 | Pedido recién creado observado en outbox, inbox y actualización Kafka de su tenant/SKU/ventana; no aceptar primer histórico | Escenario integrado con plazo y aserciones |
@@ -101,14 +101,15 @@
 
 | ID | Condición y resultado observable | Verificación |
 |---|---|---|
-| REF-HTTP-01 | Errores MVC conservan 404/405/406/415, encabezados pertinentes y Problem Details con correlación; éxitos y errores de negocio/seguridad conservan contratos | MockMvc, negativos y OpenAPI de operaciones existentes |
+| REF-HTTP-01 | AI conserva 404/405 del framework con Problem Details, correlación y Allow pertinente; errores MVC conservan 404/405/406/415, encabezados pertinentes y Problem Details con correlación; éxitos y errores de negocio/seguridad conservan contratos | MockMvc, negativos y OpenAPI de operaciones existentes |
 | REF-LOG-01 | Un diagnóstico por fallo 5xx contiene tipos y correlación, sin mensajes, cuerpos, SQL, credenciales ni Throwable completo | Captura de logs con marcadores sensibles y regresión de correlación |
 | REF-ARCH-05 | Módulos de negocio colaboran mediante input y datos de contrato, sin importar servicios de aplicación ajenos; firmas actuales y guardas anteriores se conservan | Producción, negativos de acceso directo y positivos de modelos/input |
 | REF-OBS-05 | Imágenes de observabilidad fijadas a releases mantenidas, configuración compatible y análisis de referencias exactas sin duplicar versiones | Manifiestos ARM64/AMD64, validación, promtool, smoke actual, provisioning y scanner |
 | REF-NAV-01 | Se conservan rutas/anclas previas y funcionan lectura 0–9 y consulta directa por conceptos; enlaces y fragmentos internos renderizados comprobados con negativos | Higiene, MkDocs estricto, verificador de navegación y lectura en GitHub |
 | REF-DOC-01 | Nueve capítulos conectan conceptos esenciales con explicación breve, ejemplo pertinente, código y comprobación; se distinguen capacidades implementadas y alternativas | Matriz por conceptos del mapa existente y revisión especializada |
-| REF-STUDY-01 | Ruta de tres sesiones orientativas de 45 minutos y dos ejercicios Java/Spring de paginación/proxy, con predicción, pista, resultado y solución | Ejecución en copia temporal y contraste con pruebas existentes |
+| REF-STUDY-01 | Ruta de tres sesiones orientativas de 45 minutos y ejercicios Java/Spring de paginación/proxy; microejercicios Kafka/grace, Python/Protocol/cancelación y PromQL con predicción, pista, resultado y solución | Ejecución en copia temporal y contraste con pruebas existentes |
 | REF-BIB-01 | Biblioteca opcional de 17 volúmenes y nueve repositorios, con enlaces oficiales/editoriales o fragmentos fijados; 35 correspondencias/50 asociaciones y capítulos verificados, sin páginas inventadas | Contraste de catálogo, fuentes y navegación; una lectura prioritaria por capítulo |
+| REF-JAVA25-01 | Laboratorio opcional de ScopedValue final, sin preview ni dependencias: alcance, anidación, limpieza por excepción, aislamiento, ausencia de herencia ordinaria y revinculación explícita; las aplicaciones siguen en Java 21 | Seis comprobaciones explícitas con JDK 25 local y job CI separado |
 | REF-EVIDENCE-01 | Evidencia vigente por capacidad con fecha, entorno, resultado y límites; historia repetida consolidada, sin presentar revisión de agentes como certificación | Revisión editorial, pruebas completas y CI del SHA final |
 
 ## Protocolo de entrega

@@ -87,6 +87,7 @@ public class SecurityConfiguration {
   private void problem(jakarta.servlet.http.HttpServletResponse response, int status, String detail)
       throws java.io.IOException {
     response.setStatus(status);
+    if (status == 401) response.setHeader("WWW-Authenticate", "Bearer");
     response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
     response
         .getWriter()
