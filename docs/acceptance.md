@@ -101,7 +101,7 @@
 
 | ID | Condición y resultado observable | Verificación |
 |---|---|---|
-| REF-HTTP-01 | Errores MVC conservan 404/405/406/415, encabezados pertinentes y Problem Details con correlación; éxitos y errores de negocio/seguridad conservan contratos | MockMvc, negativos y OpenAPI de operaciones existentes |
+| REF-HTTP-01 | AI conserva 404/405 del framework con Problem Details, correlación y Allow pertinente; errores MVC conservan 404/405/406/415, encabezados pertinentes y Problem Details con correlación; éxitos y errores de negocio/seguridad conservan contratos | MockMvc, negativos y OpenAPI de operaciones existentes |
 | REF-LOG-01 | Un diagnóstico por fallo 5xx contiene tipos y correlación, sin mensajes, cuerpos, SQL, credenciales ni Throwable completo | Captura de logs con marcadores sensibles y regresión de correlación |
 | REF-ARCH-05 | Módulos de negocio colaboran mediante input y datos de contrato, sin importar servicios de aplicación ajenos; firmas actuales y guardas anteriores se conservan | Producción, negativos de acceso directo y positivos de modelos/input |
 | REF-OBS-05 | Imágenes de observabilidad fijadas a releases mantenidas, configuración compatible y análisis de referencias exactas sin duplicar versiones | Manifiestos ARM64/AMD64, validación, promtool, smoke actual, provisioning y scanner |

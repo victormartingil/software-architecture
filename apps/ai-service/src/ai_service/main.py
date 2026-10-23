@@ -3,6 +3,7 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
+from http import HTTPStatus
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
@@ -14,6 +15,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
+from starlette.exceptions import HTTPException
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from ai_service.application.answers import AnswerService
 from ai_service.domain import ServiceError
@@ -137,12 +139,25 @@ def create_app(settings: Settings | None = None):
             "correlationId": request.state.correlation,
             "traceId": format(span.trace_id, "032x") if span.is_valid else None}))
 
-    def problem(request, status, detail):
+    def problem(request, status, detail, headers=None):
+        # Body metadata and correlation belong to this response, not the exception.
+        response_headers = {key: value for key, value in (headers or {}).items()
+            if key.lower() not in {"content-type", "content-length", "x-correlation-id"}}
+        response_headers["X-Correlation-ID"] = request.state.correlation
+        if status == 401:
+            response_headers["WWW-Authenticate"] = "Bearer"
         return JSONResponse(status_code=status, content={"status": status,
             "title": "Request failed", "detail": detail, "correlationId": request.state.correlation},
             media_type="application/problem+json",
-            headers={"X-Correlation-ID": request.state.correlation,
-                **({"WWW-Authenticate": "Bearer"} if status == 401 else {})})
+            headers=response_headers)
+
+    @app.exception_handler(HTTPException)
+    async def http_error(request, exc):
+        try:
+            detail = HTTPStatus(exc.status_code).phrase
+        except ValueError:
+            detail = "Request failed"
+        return problem(request, exc.status_code, detail, exc.headers)
 
     @app.exception_handler(ServiceError)
     async def service_error(request, exc):
