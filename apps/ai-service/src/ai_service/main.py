@@ -17,12 +17,15 @@ from starlette.responses import Response
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from ai_service.application.answers import AnswerService
 from ai_service.domain import ServiceError
+from ai_service.infrastructure.diagnostics import install_server_log_filter
 from ai_service.infrastructure.settings import Settings
 from ai_service.infrastructure.security import JwtVerifier
 from ai_service.infrastructure.providers import FakeProvider, OpenAIProvider, OpenAIEmbedder
 from ai_service.infrastructure.retrieval import LexicalRetriever, VectorRetriever
 from ai_service.infrastructure.commerce import HttpCommerceGateway
 from ai_service.infrastructure.workflows import ReturnApprovalWorkflow
+
+install_server_log_filter()
 
 REQUESTS = Counter("ai_requests_total", "Answer outcomes", ["outcome", "mode"])
 HTTP_REQUESTS = Counter("ai_http_requests_total", "HTTP responses", ["method", "route", "status"])
