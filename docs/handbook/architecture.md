@@ -33,7 +33,9 @@ return OrderResult.from(order);
 
 Un módulo reúne una capacidad del negocio; una capa separa responsabilidades dentro de ese módulo. `orders` e `inventory` comparten proceso Java y transacción, mientras `ai-service` es otro proceso con una frontera HTTP. Una interfaz Java es un contrato de código; no crea por sí sola un servicio de red.
 
-Spring crea el servicio y le entrega los objetos que necesita a través de su constructor: esto es inyección de dependencias. Por ejemplo, el parámetro `OrderRepository` recibe el adaptador concreto al arrancar, sin que el caso de uso tenga que crearlo.
+Al arrancar [CommerceApplication](../../apps/commerce-api/src/main/java/dev/reference/commerce/CommerceApplication.java), `SpringApplication.run` crea el contexto de Spring: el contenedor que registra y construye los objetos gestionados, llamados *beans*. `@SpringBootApplication` activa la búsqueda de componentes desde `dev.reference.commerce` y la autoconfiguración de Spring Boot, que prepara infraestructura según las dependencias y la configuración disponibles. Eso no sustituye las reglas del dominio ni crea automáticamente cualquier interfaz. Véanse [búsqueda de componentes](https://docs.spring.io/spring-framework/reference/core/beans/classpath-scanning.html) y [autoconfiguración](https://docs.spring.io/spring-boot/reference/using/auto-configuration.html).
+
+Spring encuentra `ManageOrderService` por `@Service` y `JdbcOrderRepositoryAdapter` por `@Repository`. Ambos son beans; el adaptador implementa `OrderRepository`. Al construir el servicio, Spring encuentra para ese parámetro el bean compatible y le entrega el adaptador, sin que el caso de uso lo cree. Esto es inyección de dependencias. El capítulo 3 explica cómo Spring interviene además en sus transacciones.
 
 Las dependencias de código apuntan al núcleo: el controlador usa `OrderUseCase`, `ManageOrderService` lo implementa y utiliza `OrderRepository`; `JdbcOrderRepositoryAdapter` implementa ese puerto y accede a PostgreSQL. En ejecución el caso de uso invoca el adaptador mediante el puerto. Invertir dependencias no significa invertir todas las llamadas.
 

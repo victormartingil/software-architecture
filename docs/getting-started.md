@@ -42,6 +42,10 @@ cd software-architecture
 | JDK 21 | Ejecutar las pruebas Java de los capítulos 1–4. La demostración usa el Java de los contenedores. Maven Wrapper descarga Maven. |
 | kind y kubectl | Solo para la práctica opcional de Kubernetes del capítulo 9. |
 
+`make` reúne comandos del repositorio; delega la construcción y las pruebas a las herramientas de cada aplicación. El JDK compila y ejecuta Java. Maven lee el POM (*Project Object Model*), el archivo XML `pom.xml` que describe el proyecto, sus dependencias y cómo construirlo. Los [POM de Comercio](../apps/commerce-api/pom.xml) y [Analytics](../apps/order-analytics/pom.xml) son independientes. `./mvnw` es el Maven Wrapper: permite usar la distribución de Maven configurada por el proyecto sin instalarla aparte. Una dependencia declarada puede traer otras dependencias transitivas; su `scope` acota dónde se utiliza, como `test` para pruebas.
+
+Comercio hereda configuración de `spring-boot-starter-parent`; Analytics importa `jackson-bom` en `dependencyManagement`. Un BOM (*Bill of Materials*) es un POM que coordina versiones: importarlo no añade por sí solo todas esas bibliotecas. Analytics declara aparte las que utiliza, como `jackson-databind`. En Python, [pyproject.toml](../apps/ai-service/pyproject.toml) declara el proyecto y sus dependencias; `uv` prepara el entorno y ejecuta comandos, mientras `uv.lock` fija las versiones resueltas. Para profundizar en POM, dependencias y BOM, consultar la [referencia de Maven](https://maven.apache.org/pom.html) y su [guía de dependencias](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html).
+
 Una imagen contiene la aplicación y lo necesario para ejecutarla; un contenedor es una ejecución de esa imagen. Docker Compose utiliza `compose.yaml` para arrancar y conectar los servicios del ejemplo. Los volúmenes conservan datos aunque se sustituyan los contenedores.
 
 La primera construcción descarga imágenes y dependencias y necesita conexión a Internet. No se necesita una cuenta cloud ni una clave de IA.
